@@ -1,0 +1,117 @@
+<div class="auth-container animate-fade-in">
+  <div class="auth-card glass-panel">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="brand-badge">
+        <i class="fa-solid fa-sparkles brand-icon"></i>
+        <span>StyleStore Auth</span>
+      </div>
+      <h1 class="auth-title">Crear Cuenta</h1>
+      <p class="auth-subtitle">Regístrate para comenzar a utilizar StyleStore</p>
+    </div>
+
+    <!-- Feedback Alerts -->
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check"></i>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name" class="form-label">Nombre Completo</label>
+        <div class="input-wrapper">
+          <i class="fa-regular fa-user input-icon"></i>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            class="form-input"
+            placeholder="Juan Pérez"
+            [class.input-error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+          />
+        </div>
+        @if (registerForm.get('name')?.invalid && registerForm.get('name')?.touched) {
+          <span class="field-error">El nombre debe tener al menos 2 caracteres.</span>
+        }
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <div class="input-wrapper">
+          <i class="fa-regular fa-envelope input-icon"></i>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-input"
+            placeholder="ejemplo@stylestore.com"
+            [class.input-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          />
+        </div>
+        @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+          <span class="field-error">Ingresa un correo electrónico válido.</span>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            placeholder="Mínimo 8 caracteres"
+            [class.input-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <i [class]="showPassword() ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
+        @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+          <span class="field-error">La contraseña debe tener al menos 8 caracteres.</span>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        id="btn-register-submit"
+        class="btn-primary"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <span>Creando cuenta...</span>
+        } @else {
+          <span>Registrarme</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        }
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>¿Ya tienes una cuenta? <a routerLink="/auth/login" class="auth-link">Inicia sesión</a></p>
+    </div>
+  </div>
+</div>

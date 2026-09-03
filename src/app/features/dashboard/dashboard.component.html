@@ -1,0 +1,137 @@
+<div class="dashboard-layout animate-fade-in">
+  <!-- Top Navigation Bar -->
+  <header class="dashboard-header glass-panel">
+    <div class="brand-container">
+      <div class="brand-logo">
+        <i class="fa-solid fa-bolt"></i>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">StyleStore</span>
+        <span class="brand-tag">Authentication Suite</span>
+      </div>
+    </div>
+
+    <div class="user-action-area">
+      @if (user()) {
+        <div class="user-chip">
+          <div class="user-avatar">
+            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="user-details">
+            <span class="user-name">{{ user()?.name }}</span>
+            <span class="user-status-badge">
+              <span class="status-dot"></span> Activo
+            </span>
+          </div>
+        </div>
+      }
+
+      <button id="btn-logout" class="btn-logout" (click)="onLogout()" title="Cerrar Sesión">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        <span>Cerrar Sesión</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="dashboard-content">
+    @if (isLoading()) {
+      <div class="loading-state glass-panel">
+        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+        <p>Cargando información del usuario...</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="alert alert-danger glass-panel">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    } @else if (user()) {
+      <!-- Welcome Hero Banner -->
+      <section class="welcome-hero glass-panel">
+        <div class="hero-text">
+          <div class="hero-badge">
+            <i class="fa-solid fa-shield-check"></i>
+            <span>Sesión Segura JWT</span>
+          </div>
+          <h1 class="hero-title">¡Hola, {{ user()?.name }}!</h1>
+          <p class="hero-description">
+            Has iniciado sesión exitosamente en el sistema de autenticación centralizada de <strong>StyleStore</strong>.
+          </p>
+        </div>
+        <div class="hero-illustration">
+          <i class="fa-duotone fa-solid fa-fingerprint fa-4x hero-icon"></i>
+        </div>
+      </section>
+
+      <!-- Data Cards Grid -->
+      <section class="cards-grid">
+        <!-- Profile Card -->
+        <div class="info-card glass-panel">
+          <div class="card-header">
+            <div class="card-icon-wrap icon-user">
+              <i class="fa-regular fa-user"></i>
+            </div>
+            <h2 class="card-title">Detalles de la Cuenta</h2>
+          </div>
+          <div class="card-body">
+            <div class="data-row">
+              <span class="data-label">ID de Usuario:</span>
+              <span class="data-value code-font">#{{ user()?.id }}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Nombre Completo:</span>
+              <span class="data-value">{{ user()?.name }}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Correo Electrónico:</span>
+              <span class="data-value">{{ user()?.email }}</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Estado de la Cuenta:</span>
+              <span class="badge-success">
+                <i class="fa-solid fa-check"></i> Activo
+              </span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Fecha de Registro:</span>
+              <span class="data-value">{{ user()?.created_at | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Card -->
+        <div class="info-card glass-panel">
+          <div class="card-header">
+            <div class="card-icon-wrap icon-security">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="card-title">Seguridad & Arquitectura</h2>
+          </div>
+          <div class="card-body">
+            <div class="security-item">
+              <div class="sec-dot green"></div>
+              <div>
+                <strong>FastAPI + PostgreSQL 18</strong>
+                <p>Backend de alta velocidad con SQLAlchemy ORM</p>
+              </div>
+            </div>
+            <div class="security-item">
+              <div class="sec-dot purple"></div>
+              <div>
+                <strong>JWT Stateless Tokens</strong>
+                <p>HS256 con revocación activa en lista negra</p>
+              </div>
+            </div>
+            <div class="security-item">
+              <div class="sec-dot pink"></div>
+              <div>
+                <strong>Bcrypt Password Hashing</strong>
+                <p>Salts automáticos y protección contra ataques por fuerza bruta</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>

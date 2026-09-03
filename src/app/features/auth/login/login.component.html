@@ -1,0 +1,91 @@
+<div class="auth-container animate-fade-in">
+  <div class="auth-card glass-panel">
+    <!-- Header -->
+    <div class="auth-header">
+      <div class="brand-badge">
+        <i class="fa-solid fa-bolt brand-icon"></i>
+        <span>StyleStore Auth</span>
+      </div>
+      <h1 class="auth-title">Bienvenido de nuevo</h1>
+      <p class="auth-subtitle">Ingresa tus credenciales para acceder a tu cuenta</p>
+    </div>
+
+    <!-- Error Alert -->
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email" class="form-label">Correo Electrónico</label>
+        <div class="input-wrapper">
+          <i class="fa-regular fa-envelope input-icon"></i>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-input"
+            placeholder="ejemplo@stylestore.com"
+            [class.input-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+        </div>
+        @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+          <span class="field-error">Por favor ingresa un correo válido.</span>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password" class="form-label">Contraseña</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            placeholder="••••••••"
+            [class.input-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <i [class]="showPassword() ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+          </button>
+        </div>
+        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <span class="field-error">La contraseña es obligatoria.</span>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        id="btn-login-submit"
+        class="btn-primary"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <i class="fa-solid fa-circle-notch fa-spin"></i>
+          <span>Iniciando sesión...</span>
+        } @else {
+          <span>Iniciar Sesión</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        }
+      </button>
+    </form>
+
+    <!-- Footer -->
+    <div class="auth-footer">
+      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Regístrate gratis</a></p>
+    </div>
+  </div>
+</div>
