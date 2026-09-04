@@ -13,6 +13,16 @@ export const routes: Routes = [
       import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
   {
+    path: 'cuenta',
+    loadChildren: () =>
+      import('./features/cuenta/cuenta.routes').then((m) => m.CUENTA_ROUTES),
+  },
+  {
+    path: 'admin',
+    loadChildren: () =>
+      import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
+  },
+  {
     path: 'dashboard',
     loadComponent: () =>
       import('./features/dashboard/dashboard.component').then(

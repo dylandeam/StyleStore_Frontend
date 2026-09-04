@@ -1,0 +1,61 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <a routerLink="/dashboard">Inicio</a> / <a routerLink="/admin/roles">Roles</a> / <span>Permisos</span>
+      </div>
+      <h1>Permisos del Rol: <span class="role-highlight">{{ roleName() }}</span></h1>
+      <p class="subtitle">Selecciona las acciones permitidas para este rol en cada módulo del sistema.</p>
+    </div>
+
+    <div class="header-actions">
+      <a routerLink="/admin/roles" class="btn btn-secondary">Volver</a>
+      <button class="btn btn-primary" (click)="saveChanges()" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <span class="spinner-small"></span> Guardando...
+        } @else {
+          Guardar Cambios
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-danger">{{ errorMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando permisos...</p>
+    </div>
+  } @else {
+    <div class="modules-container">
+      @for (module of modules; track module) {
+        <div class="module-card">
+          <div class="module-header">
+            <h3>Módulo: {{ module | uppercase }}</h3>
+          </div>
+          <div class="permissions-list">
+            @for (perm of getPermissionsByModule(module); track perm.id) {
+              <label class="perm-checkbox-label" [class.checked]="isPermissionChecked(perm.code)">
+                <input
+                  type="checkbox"
+                  [checked]="isPermissionChecked(perm.code)"
+                  (change)="togglePermission(perm.code)"
+                />
+                <div class="perm-info">
+                  <span class="perm-code">{{ perm.code }}</span>
+                  <span class="perm-desc">{{ perm.description }}</span>
+                </div>
+              </label>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

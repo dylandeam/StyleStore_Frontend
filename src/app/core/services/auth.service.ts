@@ -5,7 +5,7 @@ import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
-import { User } from '../models/user.model';
+import { User, UserCreateByAdmin } from '../models/user.model';
 import { LoginRequest, RegisterRequest, TokenResponse, MessageResponse } from '../models/auth.model';
 
 @Injectable({
@@ -59,6 +59,17 @@ export class AuthService {
         return throwError(() => error);
       })
     );
+  }
+
+  getUsers(search?: string, role?: string): Observable<User[]> {
+    let params: any = {};
+    if (search) params.search = search;
+    if (role) params.role = role;
+    return this.http.get<User[]>(`${this.API_URL}/users`, { params });
+  }
+
+  createEmployee(payload: UserCreateByAdmin): Observable<User> {
+    return this.http.post<User>(`${this.API_URL}/users`, payload);
   }
 
   logout(): void {

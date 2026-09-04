@@ -1,0 +1,101 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <a routerLink="/dashboard">Inicio</a> / <span>Bitácora de Auditoría</span>
+      </div>
+      <h1>Bitácora del Sistema (CU6)</h1>
+      <p class="subtitle">Registro inmutable de auditoría para supervisar todas las acciones clave realizadas en la plataforma.</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="toolbar-card">
+    <div class="search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="userFilter"
+        (ngModelChange)="onFilterChange()"
+        placeholder="Filtrar por usuario..."
+      />
+    </div>
+
+    <div class="filter-select">
+      <select [(ngModel)]="moduleFilter" (change)="onFilterChange()">
+        <option value="">Todos los módulos</option>
+        <option value="auth">Autenticación / Seguridad</option>
+        <option value="usuarios">Usuarios y Empleados</option>
+        <option value="roles">Roles y Permisos</option>
+        <option value="sucursales">Sucursales</option>
+        <option value="productos">Productos</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando registros de bitácora...</p>
+      </div>
+    } @else if (logs().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron registros de auditoría.</p>
+      </div>
+    } @else {
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Fecha y Hora</th>
+            <th>Usuario</th>
+            <th>Módulo</th>
+            <th>Acción Registrada</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of logs(); track log.id) {
+            <tr>
+              <td class="date-cell">{{ log.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td class="user-cell">
+                <span class="user-snapshot">{{ log.user_snapshot }}</span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="getModuleBadgeClass(log.module)">
+                  {{ log.module || 'general' }}
+                </span>
+              </td>
+              <td class="action-cell">{{ log.action }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Pagination Footer -->
+      <div class="pagination-footer">
+        <span class="total-count">Total: {{ total() }} eventos registrados</span>
+        <div class="page-buttons">
+          <button
+            class="btn-page"
+            [disabled]="page === 1"
+            (click)="goToPage(page - 1)"
+          >
+            &laquo; Anterior
+          </button>
+          <span class="page-indicator">Página {{ page }} de {{ pages() }}</span>
+          <button
+            class="btn-page"
+            [disabled]="page === pages()"
+            (click)="goToPage(page + 1)"
+          >
+            Siguiente &raquo;
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -3,11 +3,13 @@
   <header class="dashboard-header glass-panel">
     <div class="brand-container">
       <div class="brand-logo">
-        <i class="fa-solid fa-bolt"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
       </div>
       <div class="brand-text">
         <span class="brand-name">StyleStore</span>
-        <span class="brand-tag">Authentication Suite</span>
+        <span class="brand-tag">Platform Management</span>
       </div>
     </div>
 
@@ -19,16 +21,28 @@
           </div>
           <div class="user-details">
             <span class="user-name">{{ user()?.name }}</span>
-            <span class="user-status-badge">
-              <span class="status-dot"></span> Activo
+            <span class="user-role-badge">
+              {{ user()?.role }}
             </span>
           </div>
         </div>
       }
 
+      <a routerLink="/cuenta/cambiar-password" class="btn-header-action" title="Cambiar Contraseña">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        <span>Seguridad</span>
+      </a>
+
       <button id="btn-logout" class="btn-logout" (click)="onLogout()" title="Cerrar Sesión">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        <span>Cerrar Sesión</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+        <span>Salir</span>
       </button>
     </div>
   </header>
@@ -37,12 +51,11 @@
   <main class="dashboard-content">
     @if (isLoading()) {
       <div class="loading-state glass-panel">
-        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
-        <p>Cargando información del usuario...</p>
+        <div class="spinner"></div>
+        <p>Cargando información del sistema...</p>
       </div>
     } @else if (errorMessage()) {
       <div class="alert alert-danger glass-panel">
-        <i class="fa-solid fa-triangle-exclamation"></i>
         <span>{{ errorMessage() }}</span>
       </div>
     } @else if (user()) {
@@ -50,86 +63,115 @@
       <section class="welcome-hero glass-panel">
         <div class="hero-text">
           <div class="hero-badge">
-            <i class="fa-solid fa-shield-check"></i>
-            <span>Sesión Segura JWT</span>
+            <span>Rol: {{ user()?.role }}</span>
           </div>
-          <h1 class="hero-title">¡Hola, {{ user()?.name }}!</h1>
+          <h1 class="hero-title">¡Bienvenido(a), {{ user()?.name }}!</h1>
           <p class="hero-description">
-            Has iniciado sesión exitosamente en el sistema de autenticación centralizada de <strong>StyleStore</strong>.
+            Plataforma de gestión centralizada y administración para <strong>StyleStore</strong>.
           </p>
-        </div>
-        <div class="hero-illustration">
-          <i class="fa-duotone fa-solid fa-fingerprint fa-4x hero-icon"></i>
         </div>
       </section>
 
-      <!-- Data Cards Grid -->
-      <section class="cards-grid">
-        <!-- Profile Card -->
-        <div class="info-card glass-panel">
-          <div class="card-header">
-            <div class="card-icon-wrap icon-user">
-              <i class="fa-regular fa-user"></i>
-            </div>
-            <h2 class="card-title">Detalles de la Cuenta</h2>
-          </div>
-          <div class="card-body">
-            <div class="data-row">
-              <span class="data-label">ID de Usuario:</span>
-              <span class="data-value code-font">#{{ user()?.id }}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Nombre Completo:</span>
-              <span class="data-value">{{ user()?.name }}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Correo Electrónico:</span>
-              <span class="data-value">{{ user()?.email }}</span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Estado de la Cuenta:</span>
-              <span class="badge-success">
-                <i class="fa-solid fa-check"></i> Activo
-              </span>
-            </div>
-            <div class="data-row">
-              <span class="data-label">Fecha de Registro:</span>
-              <span class="data-value">{{ user()?.created_at | date:'medium' }}</span>
-            </div>
-          </div>
-        </div>
+      <!-- Modules Navigation Section -->
+      <section class="modules-section">
+        <h2 class="section-title">Módulos del Sistema</h2>
 
-        <!-- Security Card -->
-        <div class="info-card glass-panel">
-          <div class="card-header">
-            <div class="card-icon-wrap icon-security">
-              <i class="fa-solid fa-lock"></i>
+        <div class="module-cards-grid">
+          <!-- Products Module -->
+          <a routerLink="/admin/productos" class="dash-module-card">
+            <div class="mod-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
             </div>
-            <h2 class="card-title">Seguridad & Arquitectura</h2>
-          </div>
-          <div class="card-body">
-            <div class="security-item">
-              <div class="sec-dot green"></div>
-              <div>
-                <strong>FastAPI + PostgreSQL 18</strong>
-                <p>Backend de alta velocidad con SQLAlchemy ORM</p>
+            <div class="mod-info">
+              <h3>Catálogo de Productos</h3>
+              <p>Inventario, tallas, colores, precios y disponibilidad.</p>
+            </div>
+            <span class="mod-arrow">&rarr;</span>
+          </a>
+
+          <!-- Branches Module -->
+          <a routerLink="/admin/sucursales" class="dash-module-card">
+            <div class="mod-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <div class="mod-info">
+              <h3>Sucursales</h3>
+              <p>Puntos de venta físicos, direcciones y teléfonos.</p>
+            </div>
+            <span class="mod-arrow">&rarr;</span>
+          </a>
+
+          <!-- Users Module (Admin only) -->
+          @if (isAdmin) {
+            <a routerLink="/admin/usuarios" class="dash-module-card">
+              <div class="mod-icon blue">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
               </div>
-            </div>
-            <div class="security-item">
-              <div class="sec-dot purple"></div>
-              <div>
-                <strong>JWT Stateless Tokens</strong>
-                <p>HS256 con revocación activa en lista negra</p>
+              <div class="mod-info">
+                <h3>Usuarios y Empleados (CU1)</h3>
+                <p>Gestión de usuarios y registro de empleados con rol.</p>
               </div>
-            </div>
-            <div class="security-item">
-              <div class="sec-dot pink"></div>
-              <div>
-                <strong>Bcrypt Password Hashing</strong>
-                <p>Salts automáticos y protección contra ataques por fuerza bruta</p>
+              <span class="mod-arrow">&rarr;</span>
+            </a>
+
+            <!-- Roles Module (Admin only) -->
+            <a routerLink="/admin/roles" class="dash-module-card">
+              <div class="mod-icon orange">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
               </div>
+              <div class="mod-info">
+                <h3>Roles y Permisos (CU5)</h3>
+                <p>Matriz de permisos de seguridad por módulo.</p>
+              </div>
+              <span class="mod-arrow">&rarr;</span>
+            </a>
+
+            <!-- Bitacora Module (Admin only) -->
+            <a routerLink="/admin/bitacora" class="dash-module-card">
+              <div class="mod-icon red">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+              </div>
+              <div class="mod-info">
+                <h3>Bitácora de Auditoría (CU6)</h3>
+                <p>Historial inmutable de eventos y acciones del sistema.</p>
+              </div>
+              <span class="mod-arrow">&rarr;</span>
+            </a>
+          }
+
+          <!-- Change Password Module (Everyone) -->
+          <a routerLink="/cuenta/cambiar-password" class="dash-module-card">
+            <div class="mod-icon indigo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
             </div>
-          </div>
+            <div class="mod-info">
+              <h3>Cambiar Contraseña (CU4)</h3>
+              <p>Seguridad de cuenta con confirmación por correo electrónico.</p>
+            </div>
+            <span class="mod-arrow">&rarr;</span>
+          </a>
         </div>
       </section>
     }

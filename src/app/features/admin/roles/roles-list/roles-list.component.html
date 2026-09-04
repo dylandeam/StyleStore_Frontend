@@ -1,0 +1,44 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">
+        <a routerLink="/dashboard">Inicio</a> / <span>Roles y Permisos</span>
+      </div>
+      <h1>Roles del Sistema (RBAC)</h1>
+      <p class="subtitle">Gestiona la asignación de permisos para cada uno de los roles (CU5).</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando roles...</p>
+    </div>
+  } @else {
+    <div class="roles-grid">
+      @for (item of roles(); track item.role) {
+        <div class="role-card">
+          <div class="card-top">
+            <span class="role-emoji">{{ getRoleIcon(item.role) }}</span>
+            <span class="perm-count-badge">
+              {{ item.permission_count }} permisos
+            </span>
+          </div>
+
+          <h3 class="role-title">{{ item.role }}</h3>
+          <p class="role-desc">{{ getRoleDescription(item.role) }}</p>
+
+          <div class="card-footer">
+            <a [routerLink]="['/admin/roles', item.role, 'permisos']" class="btn btn-outline">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+              Configurar Permisos
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

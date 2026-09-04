@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user.model';
@@ -7,7 +8,7 @@ import { User } from '../../core/models/user.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -34,6 +35,15 @@ export class DashboardComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  get isAdmin(): boolean {
+    return this.user()?.role === 'administrador';
+  }
+
+  get isStaff(): boolean {
+    const role = this.user()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
   }
 
   onLogout(): void {
