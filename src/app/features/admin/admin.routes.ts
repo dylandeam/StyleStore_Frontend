@@ -32,11 +32,11 @@ export const ADMIN_ROUTES: Routes = [
   {
     path: 'sucursales',
     component: SucursalesListComponent,
-    canActivate: [authGuard, roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+    canActivate: [authGuard, roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
   },
   {
     path: 'productos',
     component: ProductosListComponent,
-    canActivate: [authGuard, roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+    canActivate: [authGuard, roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
   },
 ];

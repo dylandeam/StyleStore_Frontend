@@ -5,15 +5,17 @@
         <a routerLink="/dashboard">Inicio</a> / <span>Productos</span>
       </div>
       <h1>Catálogo de Productos</h1>
-      <p class="subtitle">Gestiona el inventario, tallas, colores y precios de StyleStore.</p>
+      <p class="subtitle">Explora el inventario, tallas, colores y disponibilidad de StyleStore.</p>
     </div>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Nuevo Producto
-    </button>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Nuevo Producto
+      </button>
+    }
   </div>
 
   <!-- Filters -->
@@ -86,10 +88,12 @@
             </div>
           </div>
 
-          <div class="card-actions">
-            <button class="btn btn-sm btn-outline" (click)="openEditModal(prod)">Editar</button>
-            <button class="btn btn-sm btn-danger" (click)="deleteProducto(prod.id, prod.name)">Eliminar</button>
-          </div>
+          @if (canManage) {
+            <div class="card-actions">
+              <button class="btn btn-sm btn-outline" (click)="openEditModal(prod)">Editar</button>
+              <button class="btn btn-sm btn-danger" (click)="deleteProducto(prod.id, prod.name)">Eliminar</button>
+            </div>
+          }
         </div>
       }
     </div>

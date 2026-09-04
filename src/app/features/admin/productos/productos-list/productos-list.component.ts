@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ProductoService } from '../../../../core/services/producto.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Producto, ProductoCreate } from '../../../../core/models/producto.model';
 
 @Component({
@@ -14,6 +15,12 @@ import { Producto, ProductoCreate } from '../../../../core/models/producto.model
 })
 export class ProductosListComponent implements OnInit {
   private productoService = inject(ProductoService);
+  private authService = inject(AuthService);
+
+  get canManage(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
+  }
 
   productos = signal<Producto[]>([]);
   isLoading = signal<boolean>(false);

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SucursalService } from '../../../../core/services/sucursal.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Sucursal, SucursalCreate } from '../../../../core/models/sucursal.model';
 
 @Component({
@@ -14,6 +15,12 @@ import { Sucursal, SucursalCreate } from '../../../../core/models/sucursal.model
 })
 export class SucursalesListComponent implements OnInit {
   private sucursalService = inject(SucursalService);
+  private authService = inject(AuthService);
+
+  get canManage(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
+  }
 
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);
