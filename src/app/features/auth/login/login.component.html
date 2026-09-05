@@ -1,91 +1,91 @@
-<div class="auth-container animate-fade-in">
-  <div class="auth-card glass-panel">
-    <!-- Header -->
-    <div class="auth-header">
-      <div class="brand-badge">
-        <i class="fa-solid fa-bolt brand-icon"></i>
-        <span>StyleStore Auth</span>
+<div class="auth-page">
+  <div class="auth-card glass-panel animate-fade-in">
+    <div class="brand-header">
+      <div class="brand-logo-container">
+        <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="brand-logo-img" />
       </div>
-      <h1 class="auth-title">Bienvenido de nuevo</h1>
-      <p class="auth-subtitle">Ingresa tus credenciales para acceder a tu cuenta</p>
+      <h2>Bienvenido de nuevo</h2>
+      <p class="subtitle">Ingresa tus credenciales para acceder a tu panel seguro</p>
     </div>
 
-    <!-- Error Alert -->
-    @if (errorMessage()) {
-      <div class="alert alert-danger">
-        <i class="fa-solid fa-circle-exclamation"></i>
-        <span>{{ errorMessage() }}</span>
+    @if (sessionExpiredMessage()) {
+      <div class="alert alert-info">
+        <span>⚠️ Tu sesión ha expirado o fue cerrada. Por favor ingresa nuevamente.</span>
       </div>
     }
 
-    <!-- Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-      <!-- Email Field -->
+    @if (errorMessage()) {
+      <div class="alert alert-danger">
+        <span>❌ {{ errorMessage() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
       <div class="form-group">
         <label for="email" class="form-label">Correo Electrónico</label>
         <div class="input-wrapper">
-          <i class="fa-regular fa-envelope input-icon"></i>
           <input
             id="email"
             type="email"
-            formControlName="email"
-            class="form-input"
+            class="form-control"
             placeholder="ejemplo@stylestore.com"
-            [class.input-error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+            formControlName="email"
+            [class.is-invalid]="loginForm.get('email')?.touched && loginForm.get('email')?.invalid"
           />
         </div>
-        @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-          <span class="field-error">Por favor ingresa un correo válido.</span>
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']) {
+          <span class="form-error">El correo electrónico es obligatorio.</span>
+        }
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']) {
+          <span class="form-error">Ingrese un correo electrónico válido.</span>
         }
       </div>
 
-      <!-- Password Field -->
       <div class="form-group">
-        <label for="password" class="form-label">Contraseña</label>
-        <div class="input-wrapper">
-          <i class="fa-solid fa-lock input-icon"></i>
+        <div class="label-row">
+          <label for="password" class="form-label">Contraseña</label>
+        </div>
+        <div class="input-wrapper password-wrapper">
           <input
             id="password"
             [type]="showPassword() ? 'text' : 'password'"
-            formControlName="password"
-            class="form-input"
+            class="form-control"
             placeholder="••••••••"
-            [class.input-error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+            formControlName="password"
+            [class.is-invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.invalid"
           />
           <button
             type="button"
-            class="password-toggle"
+            class="toggle-password"
             (click)="togglePasswordVisibility()"
-            tabindex="-1"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
           >
-            <i [class]="showPassword() ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+            {{ showPassword() ? '👁️' : '🔒' }}
           </button>
         </div>
-        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
-          <span class="field-error">La contraseña es obligatoria.</span>
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
+          <span class="form-error">La contraseña es obligatoria.</span>
+        }
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['minlength']) {
+          <span class="form-error">La contraseña debe tener al menos 6 caracteres.</span>
         }
       </div>
 
-      <!-- Submit Button -->
-      <button
-        type="submit"
-        id="btn-login-submit"
-        class="btn-primary"
-        [disabled]="isLoading()"
-      >
+      <button type="submit" class="btn-primary w-full submit-btn" [disabled]="isLoading() || lockoutRemaining() > 0">
         @if (isLoading()) {
-          <i class="fa-solid fa-circle-notch fa-spin"></i>
-          <span>Iniciando sesión...</span>
+          <span class="spinner"></span>
+          <span>Verificando...</span>
+        } @else if (lockoutRemaining() > 0) {
+          <span>Esperar ({{ lockoutRemaining() }}s)...</span>
         } @else {
           <span>Iniciar Sesión</span>
-          <i class="fa-solid fa-arrow-right"></i>
+          <span class="btn-arrow">→</span>
         }
       </button>
     </form>
 
-    <!-- Footer -->
     <div class="auth-footer">
-      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Regístrate gratis</a></p>
+      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Regístrate aquí</a></p>
     </div>
   </div>
 </div>

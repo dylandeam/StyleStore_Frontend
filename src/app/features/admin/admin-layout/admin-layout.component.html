@@ -1,0 +1,166 @@
+<div class="dashboard-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
+  <!-- Left Sidebar Navigation Bar (Desplegable / Colapsable) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo-container">
+        <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="sidebar-logo-img" />
+        @if (!isSidebarCollapsed()) {
+          <span class="sidebar-brand-name">StyleStore</span>
+        }
+      </div>
+      <button
+        type="button"
+        class="btn-toggle-sidebar"
+        (click)="toggleSidebar()"
+        [title]="isSidebarCollapsed() ? 'Expandir Menú' : 'Colapsar Menú'"
+      >
+        {{ isSidebarCollapsed() ? '⏩' : '⏪' }}
+      </button>
+    </div>
+
+    <!-- MODO COLAPSADO: Solo muestra los íconos de los módulos principales -->
+    @if (isSidebarCollapsed()) {
+      <nav class="sidebar-nav collapsed-nav">
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item icon-only" title="Panel Principal">
+          <span class="nav-icon">🆔</span>
+        </a>
+
+        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Catálogo de Productos">
+          <span class="nav-icon">👕</span>
+        </a>
+
+        <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
+          <span class="nav-icon">🏢</span>
+        </a>
+
+        @if (isAdmin) {
+          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Gestión de Usuarios">
+            <span class="nav-icon">👤</span>
+          </a>
+
+          <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item icon-only" title="Roles y Permisos">
+            <span class="nav-icon">🛡️</span>
+          </a>
+
+          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría">
+            <span class="nav-icon">📒</span>
+          </a>
+        }
+
+        <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item icon-only" title="Seguridad de Cuenta">
+          <span class="nav-icon">🔑</span>
+        </a>
+      </nav>
+    } @else {
+      <!-- MODO DESPLEGADO: Módulos con acordiones y etiquetas -->
+      <nav class="sidebar-nav">
+        <!-- 1. Módulo Información Personal / Dashboard -->
+        <div class="nav-section">
+          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🆔</span>
+            <span class="nav-label">Panel Principal</span>
+          </a>
+        </div>
+
+        <!-- 2. Catálogo de Productos -->
+        <div class="nav-section mt-2">
+          <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👕</span>
+            <span class="nav-label">Productos</span>
+          </a>
+        </div>
+
+        <!-- 3. Módulo de Sucursales -->
+        <div class="nav-section mt-2">
+          <button type="button" class="nav-section-title" (click)="toggleSucursalesSubmenu()">
+            <div class="nav-title-left">
+              <span class="nav-icon">🏢</span>
+              <span class="nav-label-title">SUCURSALES</span>
+            </div>
+            <span class="accordion-arrow">{{ isSucursalesSubmenuOpen() ? '▲' : '▼' }}</span>
+          </button>
+
+          @if (isSucursalesSubmenuOpen()) {
+            <div class="nav-submenu">
+              <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📍</span>
+                <span class="nav-label">Puntos de Venta</span>
+              </a>
+            </div>
+          }
+        </div>
+
+        <!-- 4. Módulos de Administración (Admin Only) -->
+        @if (isAdmin) {
+          <div class="nav-section mt-2">
+            <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">👤</span>
+              <span class="nav-label">Usuarios y Empleados</span>
+            </a>
+          </div>
+
+          <div class="nav-section mt-2">
+            <button type="button" class="nav-section-title" (click)="toggleRolesSubmenu()">
+              <div class="nav-title-left">
+                <span class="nav-icon">🛡️</span>
+                <span class="nav-label-title">ROLES Y PERMISOS</span>
+              </div>
+              <span class="accordion-arrow">{{ isRolesSubmenuOpen() ? '▲' : '▼' }}</span>
+            </button>
+
+            @if (isRolesSubmenuOpen()) {
+              <div class="nav-submenu">
+                <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">📜</span>
+                  <span class="nav-label">Matriz de Roles</span>
+                </a>
+              </div>
+            }
+          </div>
+
+          <div class="nav-section mt-2">
+            <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📒</span>
+              <span class="nav-label">Bitácora de Auditoría</span>
+            </a>
+          </div>
+        }
+
+        <!-- 5. Seguridad de Cuenta -->
+        <div class="nav-section mt-2">
+          <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔑</span>
+            <span class="nav-label">Cambiar Contraseña</span>
+          </a>
+        </div>
+      </nav>
+    }
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      @if (user() && !isSidebarCollapsed()) {
+        <div class="user-profile-preview">
+          <div class="user-avatar-circle">
+            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+          </div>
+          <div class="user-info-text">
+            <span class="user-name-text">{{ user()?.name }}</span>
+            <span class="user-role-text">{{ user()?.role }}</span>
+          </div>
+        </div>
+      }
+
+      <button type="button" class="btn-logout" (click)="onLogout()" [title]="isSidebarCollapsed() ? 'Cerrar Sesión' : ''">
+        <span class="logout-icon">🚪</span>
+        @if (!isSidebarCollapsed()) {
+          <span>Cerrar Sesión</span>
+        }
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

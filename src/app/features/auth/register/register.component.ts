@@ -1,9 +1,26 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+
+export const passwordsMatchValidator: ValidatorFn = (
+  control: AbstractControl
+): ValidationErrors | null => {
+  const password = control.get('password');
+  const confirmPassword = control.get('password_confirmation');
+  if (!password || !confirmPassword) return null;
+  return password.value === confirmPassword.value ? null : { passwordMismatch: true };
+};
 
 @Component({
   selector: 'app-register',
@@ -13,23 +30,39 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './register.component.css',
 })
 export class RegisterComponent {
-  private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
-  private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
-  errorMessage = signal<string | null>(null);
-  successMessage = signal<string | null>(null);
-  isLoading = this.authService.isLoading;
-  showPassword = signal<boolean>(false);
+  readonly errorMessage = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
+  readonly isLoading = this.authService.isLoading;
+  readonly showPassword = signal<boolean>(false);
+  readonly showConfirmPassword = signal<boolean>(false);
 
-  registerForm = this.fb.group({
-    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
-  });
+  readonly registerForm: FormGroup = this.fb.group(
+    {
+      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]).{8,}$/),
+        ],
+      ],
+      password_confirmation: ['', [Validators.required]],
+    },
+    { validators: passwordsMatchValidator }
+  );
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword.update((val) => !val);
   }
 
   onSubmit(): void {
@@ -55,7 +88,7 @@ export class RegisterComponent {
         error: (err) => {
           const detail =
             err.error?.detail || 'Error al registrar usuario. Intenta de nuevo.';
-          this.errorMessage.set(detail);
+          this.errorMessage.set(typeof detail === 'string' ? detail : 'Error al procesar el registro.');
         },
       });
   }
