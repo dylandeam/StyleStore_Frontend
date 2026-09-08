@@ -25,11 +25,38 @@ export class UploadService {
 
   getImageUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
     if (!url || !url.trim()) return '';
-    const trimmed = url.trim();
-    if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    let trimmed = url.trim();
+
+    const baseUrl = environment.apiUrl.replace(/\/api\/v1\/?$/, '');
+
+    // 1. Si la URL guardada apuntaba a localhost (subida desde PC), reemplazarla por la URL pública del backend
+    if (trimmed.includes('localhost:8000') || trimmed.includes('127.0.0.1:8000')) {
+      trimmed = trimmed
+        .replace('http://localhost:8000', baseUrl)
+        .replace('http://127.0.0.1:8000', baseUrl)
+        .replace('https://localhost:8000', baseUrl)
+        .replace('https://127.0.0.1:8000', baseUrl);
+    }
+
+    // 2. Si la URL es HTTP hacia Railway, forzar HTTPS para evitar que Safari en iPhone la bloquee por Mixed Content
+    if (trimmed.startsWith('http://stylestorebackend-production.up.railway.app')) {
+      trimmed = trimmed.replace('http://', 'https://');
+    }
+
+    // 3. Si ya es data URI o URL absoluta HTTPS
+    if (trimmed.startsWith('data:') || trimmed.startsWith('https://')) {
       return trimmed;
     }
-    const baseUrl = environment.apiUrl.replace(/\/api\/v1\/?$/, '');
+
+    // 4. Si es HTTP genérico en sitio HTTPS (Vercel), actualizar a HTTPS
+    if (trimmed.startsWith('http://')) {
+      if (typeof window !== 'undefined' && window.location && window.location.protocol === 'https:') {
+        return trimmed.replace('http://', 'https://');
+      }
+      return trimmed;
+    }
+
+    // 5. Si es una ruta relativa (/uploads/...)
     let path = trimmed;
     if (!path.startsWith('/')) {
       path = `/${path}`;
