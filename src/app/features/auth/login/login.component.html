@@ -1,11 +1,13 @@
 <div class="auth-page">
-  <div class="auth-card glass-panel animate-fade-in">
+  <div class="auth-card solid-card animate-fade-in">
     <div class="brand-header">
       <div class="brand-logo-container">
-        <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="brand-logo-img" />
+        <div class="logo-navy-wrapper">
+          <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="brand-logo-img" />
+        </div>
       </div>
       <h2>Bienvenido de nuevo</h2>
-      <p class="subtitle">Ingresa tus credenciales para acceder a tu panel seguro</p>
+      <p class="subtitle">Inicia sesión para continuar</p>
     </div>
 
     @if (sessionExpiredMessage()) {
@@ -22,7 +24,7 @@
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
       <div class="form-group">
-        <label for="email" class="form-label">Correo Electrónico</label>
+        <label for="email" class="form-label">Correo electrónico</label>
         <div class="input-wrapper">
           <input
             id="email"
@@ -56,11 +58,10 @@
           />
           <button
             type="button"
-            class="toggle-password"
+            class="toggle-password-text"
             (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Ver contraseña'"
           >
-            {{ showPassword() ? '👁️' : '🔒' }}
+            {{ showPassword() ? 'Ocultar' : 'Mostrar' }}
           </button>
         </div>
         @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
@@ -78,14 +79,14 @@
         } @else if (lockoutRemaining() > 0) {
           <span>Esperar ({{ lockoutRemaining() }}s)...</span>
         } @else {
-          <span>Iniciar Sesión</span>
+          <span>Iniciar sesión</span>
           <span class="btn-arrow">→</span>
         }
       </button>
     </form>
 
     <div class="auth-footer">
-      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Regístrate aquí</a></p>
+      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Crear una cuenta</a></p>
     </div>
   </div>
 </div>

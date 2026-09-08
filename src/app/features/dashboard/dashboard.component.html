@@ -1,104 +1,117 @@
 <div class="dashboard-inner-container animate-fade-in">
   @if (isLoading()) {
-    <div class="loading-state glass-panel">
+    <div class="loading-state">
       <div class="spinner"></div>
       <p>Cargando información del sistema...</p>
     </div>
   } @else if (errorMessage()) {
-    <div class="alert alert-danger glass-panel">
+    <div class="alert alert-danger">
       <span>{{ errorMessage() }}</span>
     </div>
   } @else if (user()) {
-    <!-- Welcome Hero Banner -->
-    <section class="welcome-hero glass-panel">
-      <div class="hero-text">
+    <!-- Welcome Hero Banner (Navy #14263D) -->
+    <section class="welcome-hero-navy">
+      <div class="hero-content">
         <div class="hero-badge">
-          <span>Rol: {{ user()?.role }}</span>
+          <span>{{ user()?.role?.toUpperCase() }}</span>
         </div>
         <h1 class="hero-title">¡Bienvenido(a), {{ user()?.name }}!</h1>
         <p class="hero-description">
-          Plataforma de gestión centralizada y administración para <strong>StyleStore</strong>.
+          Plataforma de gestión centralizada y administración para <strong>StyleStore</strong>. Selecciona un módulo para comenzar.
         </p>
+        <div class="hero-actions">
+          <a routerLink="/admin/productos" class="btn-hero-action">
+            <span>👕 Ver Catálogo de Productos</span>
+          </a>
+          @if (isAdmin) {
+            <a routerLink="/admin/bitacora" class="btn-hero-action outline">
+              <span>📒 Bitácora de Auditoría</span>
+            </a>
+          }
+        </div>
       </div>
     </section>
 
     <!-- Modules Navigation Section -->
     <section class="modules-section">
-      <h2 class="section-title">Módulos del Sistema</h2>
+      <div class="section-header">
+        <h2 class="section-title">Módulos del Sistema</h2>
+        <span class="section-subtitle">Acceso rápido a las operaciones disponibles</span>
+      </div>
 
       <div class="module-cards-grid">
         <!-- Products Module -->
         <a routerLink="/admin/productos" class="dash-module-card">
-          <div class="mod-icon purple">
-            <span style="font-size: 28px;">👕</span>
+          <div class="mod-icon">
+            <span>👕</span>
           </div>
           <div class="mod-info">
             <h3>Catálogo de Productos</h3>
             <p>Inventario, tallas, colores, precios y disponibilidad.</p>
+            <span class="mod-link">Ir al módulo &rarr;</span>
           </div>
-          <span class="mod-arrow">&rarr;</span>
         </a>
 
         <!-- Branches Module -->
         <a routerLink="/admin/sucursales" class="dash-module-card">
-          <div class="mod-icon green">
-            <span style="font-size: 28px;">🏢</span>
+          <div class="mod-icon">
+            <span>🏢</span>
           </div>
           <div class="mod-info">
             <h3>Sucursales</h3>
             <p>Puntos de venta físicos, direcciones y teléfonos.</p>
+            <span class="mod-link">Ir al módulo &rarr;</span>
           </div>
-          <span class="mod-arrow">&rarr;</span>
         </a>
 
         <!-- Users Module (Admin only) -->
         @if (isAdmin) {
           <a routerLink="/admin/usuarios" class="dash-module-card">
-            <div class="mod-icon blue">
-              <span style="font-size: 28px;">👤</span>
+            <div class="mod-icon">
+              <span>👤</span>
             </div>
             <div class="mod-info">
-              <h3>Usuarios y Empleados (CU1)</h3>
+              <h3>Usuarios y Empleados</h3>
               <p>Gestión de usuarios y registro de empleados con rol.</p>
+              <span class="mod-link">Ir al módulo &rarr;</span>
             </div>
-            <span class="mod-arrow">&rarr;</span>
           </a>
 
           <!-- Roles Module (Admin only) -->
           <a routerLink="/admin/roles" class="dash-module-card">
-            <div class="mod-icon orange">
-              <span style="font-size: 28px;">🛡️</span>
+            <div class="mod-icon">
+              <span>🛡️</span>
             </div>
             <div class="mod-info">
-              <h3>Roles y Permisos (CU5)</h3>
-              <p>Matriz de permisos de seguridad por módulo.</p>
+              <h3>Roles y Permisos</h3>
+              <p>Matriz de permisos de seguridad y asignación por módulo.</p>
+              <span class="mod-link">Ir al módulo &rarr;</span>
             </div>
-            <span class="mod-arrow">&rarr;</span>
           </a>
 
           <!-- Bitacora Module (Admin only) -->
           <a routerLink="/admin/bitacora" class="dash-module-card">
-            <div class="mod-icon red">
-              <span style="font-size: 28px;">📒</span>
+            <div class="mod-icon">
+              <span>📒</span>
             </div>
             <div class="mod-info">
-              <h3>Bitácora de Auditoría (CU6)</h3>
-              <p>Historial inmutable de eventos y acciones del sistema.</p>
+              <h3>Bitácora de Auditoría</h3>
+              <p>Historial inmutable de eventos, auditoría y accesos.</p>
+              <span class="mod-link">Ir al módulo &rarr;</span>
             </div>
-            <span class="mod-arrow">&rarr;</span>
           </a>
         }
 
         <!-- Change Password Module (Everyone) -->
         <a routerLink="/cuenta/cambiar-password" class="dash-module-card">
-          <div class="mod-icon indigo">
-            <span style="font-size: 28px;">🔑</span>
+          <div class="mod-icon">
+            <span>🔑</span>
           </div>
           <div class="mod-info">
-            <h3>Cambiar Contraseña (CU4)</h3>
-            <p>Seguridad de cuenta con confirmación por correo electrónico.</p>
+            <h3>Cambiar Contraseña</h3>
+            <p>Seguridad de tu cuenta con confirmación y token de verificación.</p>
+            <span class="mod-link">Ir al módulo &rarr;</span>
           </div>
-          <span class="mod-arrow">&rarr;</span>
         </a>
       </div>
     </section>

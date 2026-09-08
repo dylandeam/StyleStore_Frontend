@@ -1,5 +1,5 @@
 <div class="dashboard-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
-  <!-- Left Sidebar Navigation Bar (Desplegable / Colapsable) -->
+  <!-- Left Sidebar Navigation Bar (Navy Sólido #14263D) -->
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo-container">
@@ -18,14 +18,14 @@
       </button>
     </div>
 
-    <!-- MODO COLAPSADO: Solo muestra los íconos de los módulos principales -->
+    <!-- MODO COLAPSADO: Solo íconos centrados -->
     @if (isSidebarCollapsed()) {
       <nav class="sidebar-nav collapsed-nav">
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item icon-only" title="Panel Principal">
-          <span class="nav-icon">🆔</span>
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item icon-only" title="Dashboard">
+          <span class="nav-icon">📊</span>
         </a>
 
-        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Catálogo de Productos">
+        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
           <span class="nav-icon">👕</span>
         </a>
 
@@ -34,7 +34,7 @@
         </a>
 
         @if (isAdmin) {
-          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Gestión de Usuarios">
+          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Usuarios y Empleados">
             <span class="nav-icon">👤</span>
           </a>
 
@@ -47,96 +47,61 @@
           </a>
         }
 
-        <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item icon-only" title="Seguridad de Cuenta">
+        <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item icon-only" title="Cambiar Contraseña">
           <span class="nav-icon">🔑</span>
         </a>
       </nav>
     } @else {
-      <!-- MODO DESPLEGADO: Módulos con acordiones y etiquetas -->
+      <!-- MODO DESPLEGADO: Agrupación en MENÚ PRINCIPAL y SISTEMA -->
       <nav class="sidebar-nav">
-        <!-- 1. Módulo Información Personal / Dashboard -->
-        <div class="nav-section">
-          <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🆔</span>
-            <span class="nav-label">Panel Principal</span>
-          </a>
-        </div>
+        <!-- Sección 1: MENÚ PRINCIPAL -->
+        <div class="nav-group-title">MENÚ PRINCIPAL</div>
 
-        <!-- 2. Catálogo de Productos -->
-        <div class="nav-section mt-2">
-          <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">👕</span>
-            <span class="nav-label">Productos</span>
-          </a>
-        </div>
+        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Dashboard</span>
+        </a>
 
-        <!-- 3. Módulo de Sucursales -->
-        <div class="nav-section mt-2">
-          <button type="button" class="nav-section-title" (click)="toggleSucursalesSubmenu()">
-            <div class="nav-title-left">
-              <span class="nav-icon">🏢</span>
-              <span class="nav-label-title">SUCURSALES</span>
-            </div>
-            <span class="accordion-arrow">{{ isSucursalesSubmenuOpen() ? '▲' : '▼' }}</span>
-          </button>
+        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👕</span>
+          <span class="nav-label">Productos</span>
+        </a>
 
-          @if (isSucursalesSubmenuOpen()) {
-            <div class="nav-submenu">
-              <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">📍</span>
-                <span class="nav-label">Puntos de Venta</span>
-              </a>
-            </div>
-          }
-        </div>
+        <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🏢</span>
+          <span class="nav-label">Sucursales</span>
+        </a>
 
-        <!-- 4. Módulos de Administración (Admin Only) -->
         @if (isAdmin) {
-          <div class="nav-section mt-2">
-            <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">👤</span>
-              <span class="nav-label">Usuarios y Empleados</span>
-            </a>
-          </div>
+          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Usuarios y Empleados</span>
+          </a>
 
-          <div class="nav-section mt-2">
-            <button type="button" class="nav-section-title" (click)="toggleRolesSubmenu()">
-              <div class="nav-title-left">
-                <span class="nav-icon">🛡️</span>
-                <span class="nav-label-title">ROLES Y PERMISOS</span>
-              </div>
-              <span class="accordion-arrow">{{ isRolesSubmenuOpen() ? '▲' : '▼' }}</span>
-            </button>
-
-            @if (isRolesSubmenuOpen()) {
-              <div class="nav-submenu">
-                <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">📜</span>
-                  <span class="nav-label">Matriz de Roles</span>
-                </a>
-              </div>
-            }
-          </div>
-
-          <div class="nav-section mt-2">
-            <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">📒</span>
-              <span class="nav-label">Bitácora de Auditoría</span>
-            </a>
-          </div>
+          <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🛡️</span>
+            <span class="nav-label">Roles y Permisos</span>
+          </a>
         }
 
-        <!-- 5. Seguridad de Cuenta -->
-        <div class="nav-section mt-2">
-          <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🔑</span>
-            <span class="nav-label">Cambiar Contraseña</span>
+        <!-- Sección 2: SISTEMA -->
+        <div class="nav-group-title mt-group">SISTEMA</div>
+
+        @if (isAdmin) {
+          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📒</span>
+            <span class="nav-label">Bitácora de Auditoría</span>
           </a>
-        </div>
+        }
+
+        <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🔑</span>
+          <span class="nav-label">Cambiar Contraseña</span>
+        </a>
       </nav>
     }
 
-    <!-- Sidebar Footer -->
+    <!-- Sidebar Footer: Avatar circular beige + nombre + correo + cerrar sesión -->
     <div class="sidebar-footer">
       @if (user() && !isSidebarCollapsed()) {
         <div class="user-profile-preview">
@@ -145,7 +110,7 @@
           </div>
           <div class="user-info-text">
             <span class="user-name-text">{{ user()?.name }}</span>
-            <span class="user-role-text">{{ user()?.role }}</span>
+            <span class="user-email-text">{{ user()?.email }}</span>
           </div>
         </div>
       }
@@ -159,8 +124,33 @@
     </div>
   </aside>
 
-  <!-- Main Content Area -->
+  <!-- Main Content Area with Header (Beige #EEE7D8) -->
   <main class="main-content">
-    <router-outlet></router-outlet>
+    <!-- Top Content Area Header -->
+    <header class="content-header">
+      <div class="header-left-info">
+        <h1 class="page-main-title">{{ currentTitle() }}</h1>
+        <p class="page-subtitle">{{ currentSubtitle() }}</p>
+      </div>
+
+      <div class="header-right-actions">
+        @if (user()) {
+          <div class="top-user-chip">
+            <div class="top-chip-avatar">
+              {{ user()?.name?.charAt(0)?.toUpperCase() }}
+            </div>
+            <div class="top-chip-info">
+              <span class="top-chip-name">{{ user()?.name }}</span>
+              <span class="top-chip-role">{{ user()?.role }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </header>
+
+    <!-- Routed Components Outlet -->
+    <div class="content-body">
+      <router-outlet></router-outlet>
+    </div>
   </main>
 </div>
