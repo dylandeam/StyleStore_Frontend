@@ -381,14 +381,8 @@
             <div class="form-group">
               <label>Color</label>
               <select [(ngModel)]="newStockColorId" class="form-control">
-                @if (selectedProductForStock?.colores && selectedProductForStock!.colores!.length > 0) {
-                  @for (c of selectedProductForStock!.colores!; track c.id) {
-                    <option [value]="c.id">{{ c.nombre }}</option>
-                  }
-                } @else {
-                  @for (c of colores(); track c.id) {
-                    <option [value]="c.id">{{ c.nombre }}</option>
-                  }
+                @for (c of colores(); track c.id) {
+                  <option [value]="c.id">{{ c.nombre }}</option>
                 }
               </select>
             </div>
@@ -451,7 +445,7 @@
                 @for (item of stockItems(); track item.id || ($index)) {
                   <tr>
                     <td><strong>{{ item.sucursal_nombre || 'Sucursal #' + item.sucursal_id }}</strong></td>
-                    <td><span class="badge-color">{{ item.color_nombre || 'Color #' + item.producto_color_id }}</span></td>
+                    <td><span class="badge-color">{{ item.color_nombre || 'Color #' + (item.color_id || item.producto_color_id) }}</span></td>
                     <td><span class="badge-tag">{{ item.talla_nombre || 'Talla #' + item.talla_id }}</span></td>
                     <td>
                       <input

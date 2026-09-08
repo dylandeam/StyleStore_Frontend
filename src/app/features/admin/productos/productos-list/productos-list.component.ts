@@ -354,17 +354,33 @@ export class ProductosListComponent implements OnInit {
     });
   }
 
+  formatErrorMessage(err: any): string {
+    if (!err) return 'Ocurrió un error inesperado.';
+    const detail = err.error?.detail ?? err.message ?? err;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      return detail.map((d: any) => d.msg || (typeof d === 'string' ? d : JSON.stringify(d))).join(', ');
+    }
+    if (typeof detail === 'object') {
+      return detail.message || detail.msg || JSON.stringify(detail);
+    }
+    return String(detail);
+  }
+
   updateSingleStock(item: StockInventarioItem, newCantidad: number): void {
     if (!this.selectedProductForStock || newCantidad < 0) return;
     item.cantidad = newCantidad;
     this.stockModalError.set('');
     this.stockModalSuccess.set('');
 
+    const targetColor = item.color_id || item.producto_color_id || 0;
+
     this.stockService
       .updateProductStock(this.selectedProductForStock.codigo, {
         items: [
           {
-            producto_color_id: item.producto_color_id,
+            color_id: targetColor,
+            producto_color_id: targetColor,
             talla_id: item.talla_id,
             sucursal_id: item.sucursal_id,
             cantidad: newCantidad,
@@ -377,7 +393,7 @@ export class ProductosListComponent implements OnInit {
           setTimeout(() => this.stockModalSuccess.set(''), 1500);
         },
         error: (err) => {
-          this.stockModalError.set(err.error?.detail || 'Error al actualizar inventario.');
+          this.stockModalError.set(this.formatErrorMessage(err));
         },
       });
   }
@@ -396,14 +412,20 @@ export class ProductosListComponent implements OnInit {
     this.isSubmittingStock.set(true);
     this.stockModalError.set('');
 
+    const colorIdNum = Number(this.newStockColorId);
+    const tallaIdNum = Number(this.newStockTallaId);
+    const sucursalIdNum = Number(this.newStockSucursalId);
+    const cantidadNum = Number(this.newStockCantidad);
+
     this.stockService
       .updateProductStock(this.selectedProductForStock.codigo, {
         items: [
           {
-            producto_color_id: this.newStockColorId,
-            talla_id: this.newStockTallaId,
-            sucursal_id: this.newStockSucursalId,
-            cantidad: this.newStockCantidad,
+            color_id: colorIdNum,
+            producto_color_id: colorIdNum,
+            talla_id: tallaIdNum,
+            sucursal_id: sucursalIdNum,
+            cantidad: cantidadNum,
           },
         ],
       })
@@ -416,7 +438,7 @@ export class ProductosListComponent implements OnInit {
         },
         error: (err) => {
           this.isSubmittingStock.set(false);
-          this.stockModalError.set(err.error?.detail || 'Error al guardar inventario.');
+          this.stockModalError.set(this.formatErrorMessage(err));
         },
       });
   }
