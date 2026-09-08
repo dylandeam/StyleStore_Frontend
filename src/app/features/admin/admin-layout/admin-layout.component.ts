@@ -18,6 +18,7 @@ export class AdminLayoutComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly isSidebarCollapsed = signal<boolean>(false);
+  readonly isMobileMenuOpen = signal<boolean>(false);
   readonly user = this.authService.currentUser;
 
   // Title of current section
@@ -39,6 +40,7 @@ export class AdminLayoutComponent implements OnInit {
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         this.updateHeaderMeta(event.urlAfterRedirects || event.url);
+        this.isMobileMenuOpen.set(false);
       });
   }
 
@@ -99,6 +101,14 @@ export class AdminLayoutComponent implements OnInit {
 
   toggleSidebar(): void {
     this.isSidebarCollapsed.update((val) => !val);
+  }
+
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen.update((val) => !val);
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen.set(false);
   }
 
   onLogout(): void {

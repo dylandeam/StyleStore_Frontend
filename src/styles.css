@@ -67,32 +67,6 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Background Ambient Decorative Circles */
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--bg-decor);
-}
-
-body::before {
-  width: 520px;
-  height: 520px;
-  top: -260px;
-  left: -110px;
-  opacity: 0.55;
-}
-
-body::after {
-  width: 600px;
-  height: 600px;
-  bottom: -300px;
-  right: -140px;
-  opacity: 0.45;
-}
 
 /* Typography Headings with micro-animations */
 h1, h2, h3, h4, h5, h6 {

@@ -1,6 +1,11 @@
 <div class="dashboard-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
+  <!-- Mobile Backdrop Overlay -->
+  @if (isMobileMenuOpen()) {
+    <div class="sidebar-backdrop" (click)="closeMobileMenu()"></div>
+  }
+
   <!-- Left Sidebar Navigation Bar (Navy Sólido #14263D) -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen()">
     <div class="sidebar-header">
       <div class="sidebar-logo-container">
         <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="sidebar-logo-img" />
@@ -8,20 +13,30 @@
           <span class="sidebar-brand-name">StyleStore</span>
         }
       </div>
-      <button
-        type="button"
-        class="btn-toggle-sidebar"
-        (click)="toggleSidebar()"
-        [title]="isSidebarCollapsed() ? 'Expandir Menú' : 'Colapsar Menú'"
-      >
-        {{ isSidebarCollapsed() ? '⏩' : '⏪' }}
-      </button>
+      <div class="sidebar-header-actions">
+        <button
+          type="button"
+          class="btn-toggle-sidebar"
+          (click)="toggleSidebar()"
+          [title]="isSidebarCollapsed() ? 'Expandir Menú' : 'Colapsar Menú'"
+        >
+          {{ isSidebarCollapsed() ? '⏩' : '⏪' }}
+        </button>
+        <button
+          type="button"
+          class="btn-close-mobile-sidebar"
+          (click)="closeMobileMenu()"
+          title="Cerrar Menú"
+        >
+          ✕
+        </button>
+      </div>
     </div>
 
     <!-- MODO COLAPSADO: Solo íconos centrados -->
     @if (isSidebarCollapsed()) {
       <nav class="sidebar-nav collapsed-nav">
-        <a routerLink="/dashboard" routerLinkActive="active" class="nav-item icon-only" title="Dashboard">
+        <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item icon-only" title="Dashboard">
           <span class="nav-icon">📊</span>
         </a>
 
@@ -200,6 +215,27 @@
   <main class="main-content">
     <!-- Top Content Area Header -->
     <header class="content-header">
+      <!-- Mobile Bar con botón de menú hamburguesa -->
+      <div class="mobile-top-bar">
+        <button
+          type="button"
+          class="btn-mobile-menu-toggle"
+          (click)="toggleMobileMenu()"
+          aria-label="Abrir menú de navegación"
+        >
+          <span class="hamburger-icon">☰</span>
+        </button>
+        <div class="mobile-brand">
+          <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="mobile-logo-img" />
+          <span class="mobile-brand-name">StyleStore</span>
+        </div>
+        @if (user()) {
+          <div class="mobile-user-avatar" [title]="user()?.name">
+            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+          </div>
+        }
+      </div>
+
       <div class="header-left-info">
         <h1 class="page-main-title">{{ currentTitle() }}</h1>
         <p class="page-subtitle">{{ currentSubtitle() }}</p>
