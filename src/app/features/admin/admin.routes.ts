@@ -36,22 +36,22 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'categorias',
         component: CategoriasListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {
         path: 'colores',
         component: ColoresListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {
         path: 'tallas',
         component: TallasListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {
         path: 'temporadas',
         component: TemporadasListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       // Administración y Personas
       {

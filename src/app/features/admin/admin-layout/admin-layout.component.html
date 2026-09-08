@@ -25,36 +25,40 @@
           <span class="nav-icon">📊</span>
         </a>
 
-        <!-- Catálogo -->
+        <!-- Catálogo de Productos (Visible para todos) -->
         <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
           <span class="nav-icon">👕</span>
         </a>
-        <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item icon-only" title="Categorías">
-          <span class="nav-icon">📁</span>
-        </a>
-        <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item icon-only" title="Colores">
-          <span class="nav-icon">🎨</span>
-        </a>
-        <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item icon-only" title="Tallas">
-          <span class="nav-icon">📏</span>
-        </a>
-        <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
-          <span class="nav-icon">🗓️</span>
-        </a>
 
-        <!-- Administración -->
+        <!-- Gestión de Catálogo (Solo Administrativos) -->
+        @if (canManageStore) {
+          <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item icon-only" title="Categorías">
+            <span class="nav-icon">📁</span>
+          </a>
+          <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item icon-only" title="Colores">
+            <span class="nav-icon">🎨</span>
+          </a>
+          <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item icon-only" title="Tallas">
+            <span class="nav-icon">📏</span>
+          </a>
+          <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
+            <span class="nav-icon">🗓️</span>
+          </a>
+        }
+
+        <!-- Sucursales (Visible para todos) -->
         <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
           <span class="nav-icon">🏢</span>
         </a>
+
+        <!-- Administración (Solo Administrativos) -->
         @if (canManageStore) {
           <a routerLink="/admin/empleados" routerLinkActive="active" class="nav-item icon-only" title="Empleados">
             <span class="nav-icon">👥</span>
           </a>
-        }
-        <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item icon-only" title="Clientes">
-          <span class="nav-icon">🛍️</span>
-        </a>
-        @if (canManageStore) {
+          <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item icon-only" title="Clientes">
+            <span class="nav-icon">🛍️</span>
+          </a>
           <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item icon-only" title="Proveedores">
             <span class="nav-icon">🏭</span>
           </a>
@@ -93,25 +97,27 @@
           <span class="nav-label">Productos</span>
         </a>
 
-        <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📁</span>
-          <span class="nav-label">Categorías</span>
-        </a>
+        @if (canManageStore) {
+          <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📁</span>
+            <span class="nav-label">Categorías</span>
+          </a>
 
-        <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🎨</span>
-          <span class="nav-label">Colores</span>
-        </a>
+          <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🎨</span>
+            <span class="nav-label">Colores</span>
+          </a>
 
-        <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📏</span>
-          <span class="nav-label">Tallas</span>
-        </a>
+          <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📏</span>
+            <span class="nav-label">Tallas</span>
+          </a>
 
-        <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🗓️</span>
-          <span class="nav-label">Temporadas</span>
-        </a>
+          <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🗓️</span>
+            <span class="nav-label">Temporadas</span>
+          </a>
+        }
 
         <!-- Sección: ADMINISTRACIÓN -->
         <div class="nav-group-title mt-group">ADMINISTRACIÓN</div>
@@ -126,14 +132,12 @@
             <span class="nav-icon">👥</span>
             <span class="nav-label">Empleados</span>
           </a>
-        }
 
-        <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🛍️</span>
-          <span class="nav-label">Clientes</span>
-        </a>
+          <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🛍️</span>
+            <span class="nav-label">Clientes</span>
+          </a>
 
-        @if (canManageStore) {
           <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">🏭</span>
             <span class="nav-label">Proveedores</span>

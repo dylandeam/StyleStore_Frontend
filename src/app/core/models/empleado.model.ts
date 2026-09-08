@@ -23,6 +23,7 @@ export interface EmpleadoCreate {
   ci: string;
   email: string;
   password?: string;
+  role?: string;
   sucursal_id: number;
   edad: number;
   sueldo: number;

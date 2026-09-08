@@ -50,6 +50,16 @@ export class ProductosListComponent implements OnInit {
   searchTerm = '';
   selectedCategoriaFilter: number | '' = '';
   selectedTemporadaFilter: number | '' = '';
+  selectedColorFilter: number | '' = '';
+
+  get filteredProductos(): Producto[] {
+    let list = this.productos();
+    if (this.selectedColorFilter !== '') {
+      const colId = Number(this.selectedColorFilter);
+      list = list.filter((p) => p.colores?.some((c) => c.id === colId));
+    }
+    return list;
+  }
 
   // Modal Producto (Crear / Editar)
   showModal = signal<boolean>(false);

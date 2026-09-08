@@ -175,6 +175,7 @@
                 name="sucursal_id"
                 required
               >
+                <option [value]="0" disabled>-- Seleccione una sucursal --</option>
                 @for (s of sucursales(); track s.id) {
                   <option [value]="s.id">{{ s.name }} ({{ s.city }})</option>
                 }
@@ -182,6 +183,20 @@
             </div>
 
             @if (!isEditing()) {
+              <div class="form-group">
+                <label for="emp-role">Rol del Empleado *</label>
+                <select
+                  id="emp-role"
+                  class="form-control"
+                  [(ngModel)]="formData.role"
+                  name="role"
+                  required
+                >
+                  <option value="encargado_sucursal">Encargado de Sucursal</option>
+                  <option value="cajero">Cajero</option>
+                </select>
+              </div>
+
               <div class="form-group">
                 <label for="emp-email">Correo Electrónico (Acceso) *</label>
                 <input
@@ -196,7 +211,7 @@
               </div>
 
               <div class="form-group">
-                <label for="emp-pass">Contraseña Temporal *</label>
+                <label for="emp-pass">Contraseña Temporal (Mín. 8 caracteres) *</label>
                 <input
                   id="emp-pass"
                   type="password"

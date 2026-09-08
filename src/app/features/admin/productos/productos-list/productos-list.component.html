@@ -2,8 +2,10 @@
   <div class="page-header">
     <div>
       <div class="breadcrumb">Catálogo / <span>Productos</span></div>
-      <h1>Gestión de Productos</h1>
-      <p class="subtitle">Catálogo oficial de prendas, calzados y accesorios (CU10)</p>
+      <h1>{{ canManage ? 'Gestión de Productos' : 'Catálogo de Moda' }}</h1>
+      <p class="subtitle">
+        {{ canManage ? 'Catálogo oficial de prendas, calzados y accesorios (CU10)' : 'Explora nuestra colección exclusiva y filtra por categoría, temporada o color' }}
+      </p>
     </div>
     @if (canManage) {
       <button class="btn btn-primary" (click)="openCreateModal()">
@@ -44,6 +46,16 @@
           }
         </select>
       </div>
+
+      <div class="filter-group">
+        <label for="filtro-col">Color:</label>
+        <select id="filtro-col" [(ngModel)]="selectedColorFilter" class="form-select">
+          <option value="">Todos los Colores</option>
+          @for (col of colores(); track col.id) {
+            <option [value]="col.id">{{ col.nombre }}</option>
+          }
+        </select>
+      </div>
     </div>
   </div>
 
@@ -54,7 +66,7 @@
         <div class="spinner"></div>
         <p>Cargando catálogo de productos...</p>
       </div>
-    } @else if (productos().length === 0) {
+    } @else if (filteredProductos.length === 0) {
       <div class="empty-state">
         <span class="empty-icon">👕</span>
         <h3>No se encontraron productos</h3>
@@ -79,7 +91,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (p of productos(); track p.codigo) {
+            @for (p of filteredProductos; track p.codigo) {
               <tr>
                 <td class="cell-id">
                   <span class="badge-code">{{ p.codigo }}</span>

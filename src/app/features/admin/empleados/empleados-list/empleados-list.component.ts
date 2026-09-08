@@ -71,7 +71,12 @@ export class EmpleadosListComponent implements OnInit {
 
   loadSucursales(): void {
     this.sucursalService.getSucursales().subscribe({
-      next: (data) => this.sucursales.set(data),
+      next: (data) => {
+        this.sucursales.set(data);
+        if (this.formData.sucursal_id === 0 && data.length > 0) {
+          this.formData.sucursal_id = data[0].id;
+        }
+      },
     });
   }
 
@@ -104,6 +109,7 @@ export class EmpleadosListComponent implements OnInit {
       ci: '',
       email: '',
       password: '',
+      role: 'encargado_sucursal',
       sucursal_id: defaultSucursal,
       edad: 25,
       sueldo: 3500,
@@ -125,6 +131,7 @@ export class EmpleadosListComponent implements OnInit {
       ci: emp.ci || '',
       email: emp.email || '',
       password: '',
+      role: emp.role || 'encargado_sucursal',
       sucursal_id: emp.sucursal_id,
       edad: emp.edad,
       sueldo: emp.sueldo,
@@ -144,12 +151,28 @@ export class EmpleadosListComponent implements OnInit {
   }
 
   saveEmpleado(): void {
-    if (!this.formData.nombre.trim() || !this.formData.apellido.trim() || !this.formData.ci.trim()) {
-      this.modalError.set('Nombre, Apellido y CI son obligatorios.');
+    if (!this.formData.nombre.trim() || this.formData.nombre.trim().length < 2) {
+      this.modalError.set('El nombre debe tener al menos 2 caracteres.');
       return;
     }
-    if (!this.formData.sucursal_id) {
-      this.modalError.set('Debe asignar una sucursal al empleado.');
+    if (!this.formData.apellido.trim() || this.formData.apellido.trim().length < 2) {
+      this.modalError.set('El apellido debe tener al menos 2 caracteres.');
+      return;
+    }
+    if (!this.formData.ci.trim() || this.formData.ci.trim().length < 4) {
+      this.modalError.set('La cédula de identidad (CI) debe tener al menos 4 dígitos para generar el código.');
+      return;
+    }
+    if (!this.formData.sucursal_id || this.formData.sucursal_id === 0) {
+      this.modalError.set('Debe seleccionar una sucursal válida.');
+      return;
+    }
+    if (!this.formData.telefono.trim() || this.formData.telefono.trim().length < 5) {
+      this.modalError.set('El teléfono debe contener al menos 5 dígitos.');
+      return;
+    }
+    if (!this.formData.direccion.trim() || this.formData.direccion.trim().length < 3) {
+      this.modalError.set('La dirección debe tener al menos 3 caracteres.');
       return;
     }
 
@@ -158,15 +181,15 @@ export class EmpleadosListComponent implements OnInit {
 
     if (this.isEditing() && this.editingCodigo) {
       const updateData: EmpleadoUpdate = {
-        nombre: this.formData.nombre,
-        apellido: this.formData.apellido,
-        ci: this.formData.ci,
+        nombre: this.formData.nombre.trim(),
+        apellido: this.formData.apellido.trim(),
+        ci: this.formData.ci.trim(),
         sucursal_id: this.formData.sucursal_id,
         edad: this.formData.edad,
         sueldo: this.formData.sueldo,
-        telefono: this.formData.telefono,
-        direccion: this.formData.direccion,
-        foto: this.formData.foto,
+        telefono: this.formData.telefono.trim(),
+        direccion: this.formData.direccion.trim(),
+        foto: this.formData.foto?.trim() || null,
       };
 
       this.empleadosService.updateEmpleado(this.editingCodigo, updateData).subscribe({
@@ -184,9 +207,14 @@ export class EmpleadosListComponent implements OnInit {
         },
       });
     } else {
-      if (!this.formData.email.trim() || !this.formData.password) {
+      if (!this.formData.email.trim()) {
         this.isSubmitting.set(false);
-        this.modalError.set('Email y contraseña temporal son requeridos para nuevos empleados.');
+        this.modalError.set('El correo electrónico de acceso es obligatorio.');
+        return;
+      }
+      if (!this.formData.password || this.formData.password.length < 8) {
+        this.isSubmitting.set(false);
+        this.modalError.set('La contraseña temporal debe tener al menos 8 caracteres.');
         return;
       }
 
