@@ -9,6 +9,13 @@ import { RolPermisosComponent } from './features/admin/roles/rol-permisos/rol-pe
 import { BitacoraListComponent } from './features/admin/bitacora/bitacora-list/bitacora-list.component';
 import { SucursalesListComponent } from './features/admin/sucursales/sucursales-list/sucursales-list.component';
 import { ProductosListComponent } from './features/admin/productos/productos-list/productos-list.component';
+import { CategoriasListComponent } from './features/admin/categorias/categorias-list/categorias-list.component';
+import { ColoresListComponent } from './features/admin/colores/colores-list/colores-list.component';
+import { TallasListComponent } from './features/admin/tallas/tallas-list/tallas-list.component';
+import { TemporadasListComponent } from './features/admin/temporadas/temporadas-list/temporadas-list.component';
+import { EmpleadosListComponent } from './features/admin/empleados/empleados-list/empleados-list.component';
+import { ClientesListComponent } from './features/admin/clientes/clientes-list/clientes-list.component';
+import { ProveedoresListComponent } from './features/admin/proveedores/proveedores-list/proveedores-list.component';
 import { CambiarPasswordComponent } from './features/cuenta/cambiar-password/cambiar-password.component';
 import { ConfirmarPasswordComponent } from './features/cuenta/confirmar-password/confirmar-password.component';
 
@@ -36,15 +43,52 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardComponent,
       },
+      // Catálogo
       {
         path: 'admin/productos',
         component: ProductosListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
       },
       {
+        path: 'admin/categorias',
+        component: CategoriasListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/colores',
+        component: ColoresListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/tallas',
+        component: TallasListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/temporadas',
+        component: TemporadasListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      // Administración y Personas
+      {
         path: 'admin/sucursales',
         component: SucursalesListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+      },
+      {
+        path: 'admin/empleados',
+        component: EmpleadosListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/clientes',
+        component: ClientesListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'admin/proveedores',
+        component: ProveedoresListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {
         path: 'admin/usuarios',
@@ -61,6 +105,7 @@ export const routes: Routes = [
         component: RolPermisosComponent,
         canActivate: [roleGuard(['administrador'])],
       },
+      // Auditoría
       {
         path: 'admin/bitacora',
         component: BitacoraListComponent,
