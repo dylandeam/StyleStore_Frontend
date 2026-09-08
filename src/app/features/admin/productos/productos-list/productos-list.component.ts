@@ -49,6 +49,7 @@ export class ProductosListComponent implements OnInit {
   sucursales = signal<Sucursal[]>([]);
 
   isLoading = signal<boolean>(false);
+  viewMode = signal<'grid' | 'table'>('grid');
   searchTerm = '';
   selectedCategoriaFilter: number | '' = '';
   selectedTemporadaFilter: number | '' = '';
@@ -245,8 +246,23 @@ export class ProductosListComponent implements OnInit {
     this.fotoPreview.set('');
   }
 
+  readonly defaultProductImage =
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><defs><linearGradient id="bgGrad" x1="0%25" y1="0%25" x2="100%25" y2="100%25"><stop offset="0%25" stop-color="%23fdfbf7"/><stop offset="100%25" stop-color="%23ede4d8"/></linearGradient></defs><rect width="400" height="300" fill="url(%23bgGrad)"/><circle cx="200" cy="130" r="62" fill="%2314263d" opacity="0.08"/><text x="200" y="145" font-size="64" text-anchor="middle" dominant-baseline="middle">👕</text><text x="200" y="215" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="%2314263d" text-anchor="middle" letter-spacing="1">STYLESTORE</text><text x="200" y="235" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="%238a7968" text-anchor="middle">Prenda de Catálogo</text></svg>';
+
   getImageUrl(url?: string | null): string {
-    return this.uploadService.getImageUrl(url);
+    const resolved = this.uploadService.getImageUrl(url);
+    return resolved || this.defaultProductImage;
+  }
+
+  handleImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img && img.src !== this.defaultProductImage) {
+      img.src = this.defaultProductImage;
+    }
+  }
+
+  toggleViewMode(mode: 'grid' | 'table'): void {
+    this.viewMode.set(mode);
   }
 
   submitProducto(): void {

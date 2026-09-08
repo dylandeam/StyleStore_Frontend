@@ -203,7 +203,17 @@ export class EmpleadosListComponent implements OnInit {
   }
 
   getFotoUrl(foto?: string | null): string {
-    return this.uploadService.getImageUrl(foto);
+    return this.uploadService.getImageUrl(foto, 'empleados');
+  }
+
+  handleImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img) {
+      img.style.display = 'none';
+      if (img.parentElement) {
+        img.parentElement.innerText = '👤';
+      }
+    }
   }
 
   saveEmpleado(): void {

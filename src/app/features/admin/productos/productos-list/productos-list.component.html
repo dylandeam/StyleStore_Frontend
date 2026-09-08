@@ -14,7 +14,7 @@
     }
   </div>
 
-  <!-- Barra de Filtros -->
+  <!-- Barra de Filtros y Controles de Vista -->
   <div class="card toolbar-card">
     <div class="toolbar-content flex-wrap">
       <div class="search-box">
@@ -27,138 +27,263 @@
         />
       </div>
 
-      <div class="filter-group">
-        <label for="filtro-cat">Categoría:</label>
-        <select id="filtro-cat" [(ngModel)]="selectedCategoriaFilter" (change)="onFilterChange()" class="form-select">
-          <option value="">Todas las Categorías</option>
-          @for (c of categorias(); track c.id) {
-            <option [value]="c.id">{{ c.nombre }}</option>
-          }
-        </select>
+      <div class="filter-controls-group">
+        <div class="filter-select-item">
+          <label for="filtro-cat">Categoría</label>
+          <select id="filtro-cat" [(ngModel)]="selectedCategoriaFilter" (change)="onFilterChange()" class="form-select">
+            <option value="">Todas las Categorías</option>
+            @for (c of categorias(); track c.id) {
+              <option [value]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-select-item">
+          <label for="filtro-temp">Temporada</label>
+          <select id="filtro-temp" [(ngModel)]="selectedTemporadaFilter" (change)="onFilterChange()" class="form-select">
+            <option value="">Todas las Temporadas</option>
+            @for (t of temporadas(); track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="filter-select-item">
+          <label for="filtro-col">Color</label>
+          <select id="filtro-col" [(ngModel)]="selectedColorFilter" class="form-select">
+            <option value="">Todos los Colores</option>
+            @for (col of colores(); track col.id) {
+              <option [value]="col.id">{{ col.nombre }}</option>
+            }
+          </select>
+        </div>
       </div>
 
-      <div class="filter-group">
-        <label for="filtro-temp">Temporada:</label>
-        <select id="filtro-temp" [(ngModel)]="selectedTemporadaFilter" (change)="onFilterChange()" class="form-select">
-          <option value="">Todas las Temporadas</option>
-          @for (t of temporadas(); track t.id) {
-            <option [value]="t.id">{{ t.nombre }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="filtro-col">Color:</label>
-        <select id="filtro-col" [(ngModel)]="selectedColorFilter" class="form-select">
-          <option value="">Todos los Colores</option>
-          @for (col of colores(); track col.id) {
-            <option [value]="col.id">{{ col.nombre }}</option>
-          }
-        </select>
+      <!-- Alternador de Vista: Cuadrícula vs Tabla -->
+      <div class="view-switch-container">
+        <button
+          type="button"
+          class="btn-view-switch"
+          [class.active]="viewMode() === 'grid'"
+          (click)="toggleViewMode('grid')"
+          title="Vista en Tarjetas Cuadradas"
+        >
+          <span class="view-icon">⊞</span> Tarjetas
+        </button>
+        <button
+          type="button"
+          class="btn-view-switch"
+          [class.active]="viewMode() === 'table'"
+          (click)="toggleViewMode('table')"
+          title="Vista en Tabla Compacta"
+        >
+          <span class="view-icon">☰</span> Lista
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Tabla de Productos -->
-  <div class="card table-card">
-    @if (isLoading()) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Cargando catálogo de productos...</p>
-      </div>
-    } @else if (filteredProductos.length === 0) {
-      <div class="empty-state">
-        <span class="empty-icon">👕</span>
-        <h3>No se encontraron productos</h3>
-        <p>No hay artículos registrados o no coinciden con los filtros aplicados.</p>
-      </div>
-    } @else {
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Código</th>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Temporada</th>
-              <th>Colores</th>
-              <th>Precio</th>
-              <th>Stock Total</th>
-              <th>Estado</th>
-              @if (canManage) {
-                <th class="actions-col">Acciones</th>
+  <!-- Contenedor Principal de Productos -->
+  @if (isLoading()) {
+    <div class="card loading-card">
+      <div class="spinner"></div>
+      <p>Cargando catálogo de prendas...</p>
+    </div>
+  } @else if (filteredProductos.length === 0) {
+    <div class="card empty-state-card">
+      <span class="empty-icon-lg">👕</span>
+      <h3>No se encontraron productos</h3>
+      <p>No hay prendas registradas o no coinciden con los filtros aplicados.</p>
+      @if (canManage) {
+        <button class="btn btn-primary mt-3" (click)="openCreateModal()">
+          + Registrar Primer Producto
+        </button>
+      }
+    </div>
+  } @else {
+    <!-- VISTA 1: CUADRÍCULA DE TARJETAS CUADRADAS (GRID) -->
+    @if (viewMode() === 'grid') {
+      <div class="products-grid-container">
+        @for (p of filteredProductos; track p.codigo) {
+          <div class="product-item-card">
+            <!-- Imagen Cuadrada de la Prenda -->
+            <div class="product-card-thumbnail">
+              <img
+                [src]="getImageUrl(p.foto)"
+                [alt]="p.nombre"
+                class="card-img"
+                (error)="handleImageError($event)"
+                loading="lazy"
+              />
+              <div class="thumbnail-overlay-top">
+                <span class="badge-season-card">{{ p.temporada_nombre || 'Temporada' }}</span>
+                <span class="badge-status-card" [class.active]="p.active" [class.inactive]="!p.active">
+                  {{ p.active ? '● Activo' : '○ Inactivo' }}
+                </span>
+              </div>
+              <div class="thumbnail-overlay-bottom">
+                <span class="badge-tag-card">{{ p.categoria_nombre || 'General' }}</span>
+                <span class="badge-sku-card">{{ p.codigo }}</span>
+              </div>
+            </div>
+
+            <!-- Información del Producto -->
+            <div class="product-card-details">
+              <h3 class="card-product-title" [title]="p.nombre">{{ p.nombre }}</h3>
+              @if (p.descripcion) {
+                <p class="card-product-desc">{{ p.descripcion }}</p>
               }
-            </tr>
-          </thead>
-          <tbody>
-            @for (p of filteredProductos; track p.codigo) {
-              <tr>
-                <td class="cell-id">
-                  <span class="badge-code">{{ p.codigo }}</span>
-                </td>
-                <td class="cell-main">
-                  <div class="product-cell-info">
-                    @if (p.foto) {
-                      <img [src]="getImageUrl(p.foto)" [alt]="p.nombre" class="product-thumb-sm" />
-                    } @else {
-                      <div class="product-thumb-placeholder">👕</div>
-                    }
-                    <div>
-                      <strong>{{ p.nombre }}</strong>
-                      @if (p.descripcion) {
-                        <div class="cell-subtext">{{ p.descripcion }}</div>
-                      }
-                    </div>
-                  </div>
-                </td>
-                <td>
-                  <span class="badge-tag">{{ p.categoria_nombre || 'ID: ' + p.categoria_id }}</span>
-                </td>
-                <td>
-                  <span class="badge-season">{{ p.temporada_nombre || 'ID: ' + p.temporada_id }}</span>
-                </td>
-                <td>
-                  <div class="colors-wrap">
-                    @if (p.colores && p.colores.length > 0) {
-                      @for (col of p.colores; track col.id) {
-                        <span class="badge-color">{{ col.nombre }}</span>
-                      }
-                    } @else {
-                      <span class="text-muted">-</span>
-                    }
-                  </div>
-                </td>
-                <td class="cell-price">Bs. {{ p.precio }}</td>
-                <td>
-                  <span class="badge-stock" [class.low-stock]="(p.stock_total || 0) < 5">
-                    {{ p.stock_total || 0 }} uds.
-                  </span>
-                </td>
-                <td>
-                  <span class="status-pill" [class.active]="p.active" [class.inactive]="!p.active">
-                    {{ p.active ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                @if (canManage) {
-                  <td class="actions-col">
-                    <button class="btn-action stock" (click)="openStockModal(p)" title="Gestionar Stock por Sucursal">
-                      📦 Stock
-                    </button>
-                    <button class="btn-action edit" (click)="openEditModal(p)" title="Editar Producto">
-                      ✏️
-                    </button>
-                    <button class="btn-action delete" (click)="deleteProducto(p)" title="Eliminar">
-                      🗑️
-                    </button>
-                  </td>
+
+              <!-- Colores -->
+              <div class="card-colors-row">
+                @if (p.colores && p.colores.length > 0) {
+                  @for (col of p.colores; track col.id) {
+                    <span class="card-color-chip" [title]="col.nombre">{{ col.nombre }}</span>
+                  }
+                } @else {
+                  <span class="text-muted-xs">Sin colores asociados</span>
                 }
-              </tr>
-            }
-          </tbody>
-        </table>
+              </div>
+
+              <!-- Precio y Stock -->
+              <div class="card-price-stock-row">
+                <div class="card-price-block">
+                  <span class="currency">Bs.</span>
+                  <span class="amount">{{ p.precio | number:'1.2-2' }}</span>
+                </div>
+                <div class="card-stock-pill" [class.low-stock]="(p.stock_total || 0) < 5">
+                  <span class="stock-indicator"></span>
+                  {{ p.stock_total || 0 }} uds. en stock
+                </div>
+              </div>
+
+              <!-- Acciones Administrativas -->
+              @if (canManage) {
+                <div class="card-actions-row">
+                  <button
+                    type="button"
+                    class="btn-card-stock"
+                    (click)="openStockModal(p)"
+                    title="Asignar o Modificar Stock por Sucursal"
+                  >
+                    📦 Stock
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-card-icon edit"
+                    (click)="openEditModal(p)"
+                    title="Editar Prenda"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-card-icon delete"
+                    (click)="deleteProducto(p)"
+                    title="Eliminar Prenda"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
     }
-  </div>
+
+    <!-- VISTA 2: MODO LISTA / TABLA -->
+    @if (viewMode() === 'table') {
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Temporada</th>
+                <th>Colores</th>
+                <th>Precio</th>
+                <th>Stock Total</th>
+                <th>Estado</th>
+                @if (canManage) {
+                  <th class="actions-col">Acciones</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of filteredProductos; track p.codigo) {
+                <tr>
+                  <td class="cell-id">
+                    <span class="badge-code">{{ p.codigo }}</span>
+                  </td>
+                  <td class="cell-main">
+                    <div class="product-cell-info">
+                      <img
+                        [src]="getImageUrl(p.foto)"
+                        [alt]="p.nombre"
+                        class="product-thumb-sm"
+                        (error)="handleImageError($event)"
+                        loading="lazy"
+                      />
+                      <div>
+                        <strong>{{ p.nombre }}</strong>
+                        @if (p.descripcion) {
+                          <div class="cell-subtext">{{ p.descripcion }}</div>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge-tag">{{ p.categoria_nombre || 'ID: ' + p.categoria_id }}</span>
+                  </td>
+                  <td>
+                    <span class="badge-season">{{ p.temporada_nombre || 'ID: ' + p.temporada_id }}</span>
+                  </td>
+                  <td>
+                    <div class="colors-wrap">
+                      @if (p.colores && p.colores.length > 0) {
+                        @for (col of p.colores; track col.id) {
+                          <span class="badge-color">{{ col.nombre }}</span>
+                        }
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
+                    </div>
+                  </td>
+                  <td class="cell-price">Bs. {{ p.precio | number:'1.2-2' }}</td>
+                  <td>
+                    <span class="badge-stock" [class.low-stock]="(p.stock_total || 0) < 5">
+                      {{ p.stock_total || 0 }} uds.
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-pill" [class.active]="p.active" [class.inactive]="!p.active">
+                      {{ p.active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  @if (canManage) {
+                    <td class="actions-col">
+                      <button class="btn-action stock" (click)="openStockModal(p)" title="Gestionar Stock por Sucursal">
+                        📦 Stock
+                      </button>
+                      <button class="btn-action edit" (click)="openEditModal(p)" title="Editar Producto">
+                        ✏️
+                      </button>
+                      <button class="btn-action delete" (click)="deleteProducto(p)" title="Eliminar">
+                        🗑️
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
 </div>
 
 <!-- Modal Crear / Editar Producto -->

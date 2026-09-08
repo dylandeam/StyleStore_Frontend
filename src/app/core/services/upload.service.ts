@@ -23,12 +23,20 @@ export class UploadService {
     return this.http.post<UploadResponse>(`${this.apiUrl}?folder=${folder}`, formData);
   }
 
-  getImageUrl(url?: string | null): string {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-      return url;
+  getImageUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
+    if (!url || !url.trim()) return '';
+    const trimmed = url.trim();
+    if (trimmed.startsWith('data:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
     }
     const baseUrl = environment.apiUrl.replace(/\/api\/v1\/?$/, '');
-    return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    let path = trimmed;
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+    if (!path.startsWith('/uploads/')) {
+      path = `/uploads/${folder}${path}`;
+    }
+    return `${baseUrl}${path}`;
   }
 }

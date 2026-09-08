@@ -74,7 +74,7 @@
                   <div class="user-cell-info">
                     <div class="user-avatar-sm">
                       @if (emp.foto) {
-                        <img [src]="getFotoUrl(emp.foto)" [alt]="emp.nombre" class="avatar-img-circle" />
+                        <img [src]="getFotoUrl(emp.foto)" [alt]="emp.nombre" class="avatar-img-circle" (error)="handleImageError($event)" />
                       } @else {
                         {{ emp.nombre?.charAt(0)?.toUpperCase() || 'E' }}
                       }
