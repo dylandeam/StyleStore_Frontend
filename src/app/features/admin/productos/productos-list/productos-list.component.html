@@ -97,10 +97,19 @@
                   <span class="badge-code">{{ p.codigo }}</span>
                 </td>
                 <td class="cell-main">
-                  <strong>{{ p.nombre }}</strong>
-                  @if (p.descripcion) {
-                    <div class="cell-subtext">{{ p.descripcion }}</div>
-                  }
+                  <div class="product-cell-info">
+                    @if (p.foto) {
+                      <img [src]="getImageUrl(p.foto)" [alt]="p.nombre" class="product-thumb-sm" />
+                    } @else {
+                      <div class="product-thumb-placeholder">👕</div>
+                    }
+                    <div>
+                      <strong>{{ p.nombre }}</strong>
+                      @if (p.descripcion) {
+                        <div class="cell-subtext">{{ p.descripcion }}</div>
+                      }
+                    </div>
+                  </div>
                 </td>
                 <td>
                   <span class="badge-tag">{{ p.categoria_nombre || 'ID: ' + p.categoria_id }}</span>
@@ -161,7 +170,7 @@
         <button class="modal-close" (click)="closeModal()">×</button>
       </div>
 
-      <form (ngSubmit)="submitProducto()">
+      <form (ngSubmit)="submitProducto()" autocomplete="off">
         <div class="modal-body">
           @if (modalError()) {
             <div class="alert alert-error">{{ modalError() }}</div>
@@ -169,6 +178,66 @@
           @if (modalSuccess()) {
             <div class="alert alert-success">{{ modalSuccess() }}</div>
           }
+
+          <!-- Componente para Subir Imagen del Producto desde la PC -->
+          <div class="product-photo-upload-card">
+            <label class="photo-section-label">Imagen del Producto (PNG o JPG)</label>
+            <div class="product-photo-upload-row">
+              <div class="product-photo-preview-box">
+                @if (fotoPreview() || formData.foto) {
+                  <img [src]="fotoPreview() || getImageUrl(formData.foto)" alt="Vista previa del producto" />
+                } @else {
+                  <div class="product-photo-empty">
+                    <span class="empty-icon">🖼️</span>
+                    <span class="empty-text">Sin imagen</span>
+                  </div>
+                }
+              </div>
+
+              <div class="product-photo-actions">
+                <input
+                  #prodFileInput
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  style="display: none"
+                  (change)="onFotoSelected($event)"
+                />
+                <div class="photo-buttons-group">
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    (click)="prodFileInput.click()"
+                    [disabled]="isUploadingFoto()"
+                  >
+                    @if (isUploadingFoto()) {
+                      ⏳ Subiendo archivo...
+                    } @else {
+                      📁 Subir imagen desde la PC
+                    }
+                  </button>
+                  @if (formData.foto || fotoPreview()) {
+                    <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFoto()">
+                      🗑️ Quitar imagen
+                    </button>
+                  }
+                </div>
+                <small class="form-hint">Selecciona una imagen PNG o JPG desde tu computadora (máx. 5 MB).</small>
+
+                <!-- Input opcional para pegar URL externa -->
+                <div class="manual-url-wrap">
+                  <label for="prod-foto-url" class="sublabel">O introduce una URL externa:</label>
+                  <input
+                    id="prod-foto-url"
+                    type="text"
+                    class="form-control form-control-sm"
+                    placeholder="https://..."
+                    [(ngModel)]="formData.foto"
+                    name="foto_url"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="form-grid">
             @if (!isEditing()) {
@@ -216,7 +285,7 @@
               </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group full-width">
               <label for="prod-precio">Precio Unitario (Bs.) *</label>
               <input
                 id="prod-precio"
@@ -227,18 +296,6 @@
                 [(ngModel)]="formData.precio"
                 name="precio"
                 required
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="prod-foto">URL de Foto o Imagen</label>
-              <input
-                id="prod-foto"
-                type="text"
-                class="form-control"
-                placeholder="https://..."
-                [(ngModel)]="formData.foto"
-                name="foto"
               />
             </div>
 

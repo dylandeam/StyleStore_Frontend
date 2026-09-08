@@ -73,7 +73,11 @@
                 <td class="cell-main">
                   <div class="user-cell-info">
                     <div class="user-avatar-sm">
-                      {{ emp.nombre?.charAt(0)?.toUpperCase() || 'E' }}
+                      @if (emp.foto) {
+                        <img [src]="getFotoUrl(emp.foto)" [alt]="emp.nombre" class="avatar-img-circle" />
+                      } @else {
+                        {{ emp.nombre?.charAt(0)?.toUpperCase() || 'E' }}
+                      }
                     </div>
                     <div>
                       <strong>{{ emp.nombre }} {{ emp.apellido }}</strong>
@@ -116,7 +120,11 @@
         <button class="modal-close" (click)="closeModal()">×</button>
       </div>
 
-      <form (ngSubmit)="saveEmpleado()">
+      <form (ngSubmit)="saveEmpleado()" autocomplete="off">
+        <!-- Trampas para evitar que el navegador autorellene las credenciales del admin -->
+        <input type="text" name="prevent_autofill_user" tabindex="-1" style="position: absolute; top: -9999px; left: -9999px; opacity: 0; width: 0; height: 0;" autocomplete="username" />
+        <input type="password" name="prevent_autofill_pass" tabindex="-1" style="position: absolute; top: -9999px; left: -9999px; opacity: 0; width: 0; height: 0;" autocomplete="current-password" />
+
         <div class="modal-body">
           @if (modalError()) {
             <div class="alert alert-error">{{ modalError() }}</div>
@@ -124,6 +132,49 @@
           @if (modalSuccess()) {
             <div class="alert alert-success">{{ modalSuccess() }}</div>
           }
+
+          <!-- Subida de fotografía del empleado desde la PC -->
+          <div class="photo-upload-section">
+            <label class="photo-section-label">Fotografía del Empleado (PNG o JPG)</label>
+            <div class="photo-upload-container">
+              <div class="photo-avatar-preview">
+                @if (fotoPreview() || formData.foto) {
+                  <img [src]="fotoPreview() || getFotoUrl(formData.foto)" alt="Foto Empleado" />
+                } @else {
+                  <span class="photo-placeholder-icon">👤</span>
+                }
+              </div>
+              <div class="photo-upload-controls">
+                <input
+                  #empFileInput
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  style="display: none"
+                  (change)="onFotoSelected($event)"
+                />
+                <div class="photo-buttons-row">
+                  <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    (click)="empFileInput.click()"
+                    [disabled]="isUploadingFoto()"
+                  >
+                    @if (isUploadingFoto()) {
+                      ⏳ Subiendo archivo...
+                    } @else {
+                      📁 Subir foto desde la PC
+                    }
+                  </button>
+                  @if (formData.foto || fotoPreview()) {
+                    <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFoto()">
+                      🗑️ Quitar foto
+                    </button>
+                  }
+                </div>
+                <small class="form-hint">Formatos soportados: PNG o JPG (máx. 5 MB). La foto se almacena en el sistema.</small>
+              </div>
+            </div>
+          </div>
 
           <div class="form-grid">
             <div class="form-group">
@@ -134,7 +185,8 @@
                 class="form-control"
                 placeholder="Ej: Carlos"
                 [(ngModel)]="formData.nombre"
-                name="nombre"
+                name="emp_first_name"
+                autocomplete="off"
                 required
               />
             </div>
@@ -147,7 +199,8 @@
                 class="form-control"
                 placeholder="Ej: Mamani"
                 [(ngModel)]="formData.apellido"
-                name="apellido"
+                name="emp_last_name"
+                autocomplete="off"
                 required
               />
             </div>
@@ -160,7 +213,8 @@
                 class="form-control"
                 placeholder="Ej: 8473920"
                 [(ngModel)]="formData.ci"
-                name="ci"
+                name="emp_national_id"
+                autocomplete="off"
                 required
               />
               <small class="form-hint">Se utiliza para calcular automáticamente el código oficial.</small>
@@ -172,7 +226,7 @@
                 id="emp-sucursal"
                 class="form-control"
                 [(ngModel)]="formData.sucursal_id"
-                name="sucursal_id"
+                name="emp_branch_id"
                 required
               >
                 <option [value]="0" disabled>-- Seleccione una sucursal --</option>
@@ -189,7 +243,7 @@
                   id="emp-role"
                   class="form-control"
                   [(ngModel)]="formData.role"
-                  name="role"
+                  name="emp_company_role"
                   required
                 >
                   <option value="encargado_sucursal">Encargado de Sucursal</option>
@@ -205,7 +259,8 @@
                   class="form-control"
                   placeholder="empleado@stylestore.com"
                   [(ngModel)]="formData.email"
-                  name="email"
+                  name="emp_login_email"
+                  autocomplete="off"
                   required
                 />
               </div>
@@ -218,7 +273,8 @@
                   class="form-control"
                   placeholder="Mínimo 8 caracteres"
                   [(ngModel)]="formData.password"
-                  name="password"
+                  name="emp_login_password"
+                  autocomplete="new-password"
                   required
                 />
               </div>
@@ -232,8 +288,9 @@
                 min="18"
                 max="80"
                 class="form-control"
+                placeholder="Ej: 28"
                 [(ngModel)]="formData.edad"
-                name="edad"
+                name="emp_person_age"
                 required
               />
             </div>
@@ -246,8 +303,9 @@
                 step="0.01"
                 min="0"
                 class="form-control"
+                placeholder="Ej: 3500"
                 [(ngModel)]="formData.sueldo"
-                name="sueldo"
+                name="emp_person_salary"
                 required
               />
             </div>
@@ -260,7 +318,8 @@
                 class="form-control"
                 placeholder="Ej: 78901234"
                 [(ngModel)]="formData.telefono"
-                name="telefono"
+                name="emp_person_phone"
+                autocomplete="off"
                 required
               />
             </div>
@@ -273,7 +332,8 @@
                 class="form-control"
                 placeholder="Ej: Av. Heroínas 456"
                 [(ngModel)]="formData.direccion"
-                name="direccion"
+                name="emp_person_address"
+                autocomplete="off"
                 required
               />
             </div>

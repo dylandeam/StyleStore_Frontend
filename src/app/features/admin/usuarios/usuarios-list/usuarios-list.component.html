@@ -110,15 +110,20 @@
           <div class="alert alert-danger">{{ modalError() }}</div>
         }
 
-        <form (ngSubmit)="submitEmployee()">
+        <form (ngSubmit)="submitEmployee()" autocomplete="off">
+          <!-- Trampas para evitar que el navegador autorellene las credenciales del admin -->
+          <input type="text" name="prevent_autofill_user" tabindex="-1" style="position: absolute; top: -9999px; left: -9999px; opacity: 0; width: 0; height: 0;" autocomplete="username" />
+          <input type="password" name="prevent_autofill_pass" tabindex="-1" style="position: absolute; top: -9999px; left: -9999px; opacity: 0; width: 0; height: 0;" autocomplete="current-password" />
+
           <div class="form-group">
             <label>Nombre Completo</label>
             <input
               type="text"
               [(ngModel)]="newEmployee.name"
-              name="name"
+              name="user_full_name"
               class="form-control"
               placeholder="Ej: Laura Méndez"
+              autocomplete="off"
               required
             />
           </div>
@@ -128,9 +133,10 @@
             <input
               type="email"
               [(ngModel)]="newEmployee.email"
-              name="email"
+              name="user_new_email"
               class="form-control"
               placeholder="empleado@stylestore.com"
+              autocomplete="off"
               required
             />
           </div>
@@ -140,9 +146,10 @@
             <input
               type="password"
               [(ngModel)]="newEmployee.password"
-              name="password"
+              name="user_new_password"
               class="form-control"
               placeholder="Mín. 8 caracteres, mayús, minús y símbolo"
+              autocomplete="new-password"
               required
             />
           </div>

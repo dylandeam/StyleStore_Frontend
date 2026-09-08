@@ -9,6 +9,7 @@ import { TallasService } from '../../../../core/services/tallas.service';
 import { SucursalService } from '../../../../core/services/sucursal.service';
 import { StockService } from '../../../../core/services/stock.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { UploadService } from '../../../../core/services/upload.service';
 import { Producto, ProductoCreate, ProductoUpdate } from '../../../../core/models/producto.model';
 import { Categoria } from '../../../../core/models/categoria.model';
 import { Temporada } from '../../../../core/models/temporada.model';
@@ -33,6 +34,7 @@ export class ProductosListComponent implements OnInit {
   private sucursalService = inject(SucursalService);
   private stockService = inject(StockService);
   private authService = inject(AuthService);
+  private uploadService = inject(UploadService);
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
@@ -68,6 +70,8 @@ export class ProductosListComponent implements OnInit {
   isSubmitting = signal<boolean>(false);
   modalError = signal<string>('');
   modalSuccess = signal<string>('');
+  isUploadingFoto = signal<boolean>(false);
+  fotoPreview = signal<string>('');
 
   formData: ProductoCreate = {
     codigo: '',
@@ -149,6 +153,7 @@ export class ProductosListComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing.set(false);
     this.editingCodigo = null;
+    this.fotoPreview.set('');
     const firstCat = this.categorias().length > 0 ? this.categorias()[0].id : 0;
     const firstTemp = this.temporadas().length > 0 ? this.temporadas()[0].id : 0;
 
@@ -171,6 +176,7 @@ export class ProductosListComponent implements OnInit {
   openEditModal(p: Producto): void {
     this.isEditing.set(true);
     this.editingCodigo = p.codigo;
+    this.fotoPreview.set(p.foto ? this.uploadService.getImageUrl(p.foto) : '');
     this.formData = {
       codigo: p.codigo,
       nombre: p.nombre,
@@ -189,6 +195,58 @@ export class ProductosListComponent implements OnInit {
 
   closeModal(): void {
     this.showModal.set(false);
+    this.modalError.set('');
+    this.modalSuccess.set('');
+    this.fotoPreview.set('');
+  }
+
+  onFotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      this.modalError.set('Formato no permitido. Solo se admiten imágenes PNG, JPG o WEBP.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.modalError.set('El tamaño de la imagen no debe superar los 5 MB.');
+      return;
+    }
+
+    // Previsualización local inmediata
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.fotoPreview.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Subida al backend
+    this.isUploadingFoto.set(true);
+    this.modalError.set('');
+    this.uploadService.uploadImage(file, 'productos').subscribe({
+      next: (res) => {
+        this.formData.foto = res.url;
+        this.fotoPreview.set(this.uploadService.getImageUrl(res.url));
+        this.isUploadingFoto.set(false);
+      },
+      error: (err) => {
+        this.isUploadingFoto.set(false);
+        const detail = err.error?.detail || 'Error al subir la imagen del producto.';
+        this.modalError.set(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      },
+    });
+  }
+
+  removeFoto(): void {
+    this.formData.foto = '';
+    this.fotoPreview.set('');
+  }
+
+  getImageUrl(url?: string | null): string {
+    return this.uploadService.getImageUrl(url);
   }
 
   submitProducto(): void {

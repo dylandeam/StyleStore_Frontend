@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { EmpleadosService } from '../../../../core/services/empleados.service';
 import { SucursalService } from '../../../../core/services/sucursal.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { UploadService } from '../../../../core/services/upload.service';
 import { Empleado, EmpleadoCreate, EmpleadoUpdate } from '../../../../core/models/empleado.model';
 import { Sucursal } from '../../../../core/models/sucursal.model';
 
@@ -18,6 +19,7 @@ export class EmpleadosListComponent implements OnInit {
   private empleadosService = inject(EmpleadosService);
   private sucursalService = inject(SucursalService);
   private authService = inject(AuthService);
+  private uploadService = inject(UploadService);
 
   get isAdmin(): boolean {
     return this.authService.currentUser()?.role === 'administrador';
@@ -36,6 +38,8 @@ export class EmpleadosListComponent implements OnInit {
   isSubmitting = signal<boolean>(false);
   modalError = signal<string>('');
   modalSuccess = signal<string>('');
+  isUploadingFoto = signal<boolean>(false);
+  fotoPreview = signal<string>('');
 
   formData: EmpleadoCreate = {
     nombre: '',
@@ -44,8 +48,8 @@ export class EmpleadosListComponent implements OnInit {
     email: '',
     password: '',
     sucursal_id: 0,
-    edad: 25,
-    sueldo: 3500,
+    edad: '' as any,
+    sueldo: '' as any,
     telefono: '',
     direccion: '',
     foto: '',
@@ -102,6 +106,7 @@ export class EmpleadosListComponent implements OnInit {
   openCreateModal(): void {
     this.isEditing.set(false);
     this.editingCodigo = null;
+    this.fotoPreview.set('');
     const defaultSucursal = this.sucursales().length > 0 ? this.sucursales()[0].id : 0;
     this.formData = {
       nombre: '',
@@ -111,8 +116,8 @@ export class EmpleadosListComponent implements OnInit {
       password: '',
       role: 'encargado_sucursal',
       sucursal_id: defaultSucursal,
-      edad: 25,
-      sueldo: 3500,
+      edad: '' as any,
+      sueldo: '' as any,
       telefono: '',
       direccion: '',
       foto: '',
@@ -125,6 +130,7 @@ export class EmpleadosListComponent implements OnInit {
   openEditModal(emp: Empleado): void {
     this.isEditing.set(true);
     this.editingCodigo = emp.codigo;
+    this.fotoPreview.set(emp.foto ? this.uploadService.getImageUrl(emp.foto) : '');
     this.formData = {
       nombre: emp.nombre || '',
       apellido: emp.apellido || '',
@@ -148,6 +154,56 @@ export class EmpleadosListComponent implements OnInit {
     this.showModal.set(false);
     this.modalError.set('');
     this.modalSuccess.set('');
+    this.fotoPreview.set('');
+  }
+
+  onFotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      this.modalError.set('Formato no permitido. Solo se admiten archivos PNG, JPG o WEBP.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.modalError.set('El tamaño de la imagen no debe superar los 5 MB.');
+      return;
+    }
+
+    // Previsualización local inmediata
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.fotoPreview.set(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Subir al backend
+    this.isUploadingFoto.set(true);
+    this.modalError.set('');
+    this.uploadService.uploadImage(file, 'empleados').subscribe({
+      next: (res) => {
+        this.formData.foto = res.url;
+        this.fotoPreview.set(this.uploadService.getImageUrl(res.url));
+        this.isUploadingFoto.set(false);
+      },
+      error: (err) => {
+        this.isUploadingFoto.set(false);
+        const detail = err.error?.detail || 'Error al subir la imagen del empleado.';
+        this.modalError.set(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      },
+    });
+  }
+
+  removeFoto(): void {
+    this.formData.foto = '';
+    this.fotoPreview.set('');
+  }
+
+  getFotoUrl(foto?: string | null): string {
+    return this.uploadService.getImageUrl(foto);
   }
 
   saveEmpleado(): void {
