@@ -1,0 +1,163 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Administración / <span>Proveedores</span></div>
+      <h1>Gestión de Proveedores</h1>
+      <p class="subtitle">Directorio de proveedores y abastecedores para compras (CU9)</p>
+    </div>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span class="btn-icon">+</span> Registrar Proveedor
+      </button>
+    }
+  </div>
+
+  <div class="card toolbar-card">
+    <div class="toolbar-content">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por código, nombre o teléfono..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando proveedores...</p>
+      </div>
+    } @else if (filteredProveedores.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🏭</span>
+        <h3>No se encontraron proveedores</h3>
+        <p>No hay proveedores registrados o no coinciden con la búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Proveedor / Razón Social</th>
+              <th>Contacto</th>
+              <th>Email</th>
+              <th>Teléfono</th>
+              @if (canManage) {
+                <th class="actions-col">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of filteredProveedores; track p.codigo) {
+              <tr>
+                <td class="cell-id">
+                  <span class="badge-code">{{ p.codigo }}</span>
+                </td>
+                <td class="cell-main">
+                  <strong>{{ p.nombre }}</strong>
+                </td>
+                <td>{{ p.apellido || '-' }}</td>
+                <td>{{ p.email || '-' }}</td>
+                <td>{{ p.telefono || '-' }}</td>
+                @if (canManage) {
+                  <td class="actions-col">
+                    <button class="btn-action edit" (click)="openEditModal(p)" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn-action delete" (click)="deleteProveedor(p)" title="Eliminar">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Crear / Editar Proveedor -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing() ? 'Editar Proveedor (' + editingCodigo + ')' : 'Registrar Nuevo Proveedor' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveProveedor()">
+        <div class="modal-body">
+          @if (modalError()) {
+            <div class="alert alert-error">{{ modalError() }}</div>
+          }
+          @if (modalSuccess()) {
+            <div class="alert alert-success">{{ modalSuccess() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="prov-nombre">Nombre de la Empresa o Proveedor *</label>
+            <input
+              id="prov-nombre"
+              type="text"
+              class="form-control"
+              placeholder="Ej: Confecciones El Cóndor SRL"
+              [(ngModel)]="formData.nombre"
+              name="nombre"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="prov-contacto">Contacto (Apellido / Referencia)</label>
+            <input
+              id="prov-contacto"
+              type="text"
+              class="form-control"
+              placeholder="Ej: Perez Morales"
+              [(ngModel)]="formData.apellido"
+              name="apellido"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="prov-email">Correo Electrónico</label>
+            <input
+              id="prov-email"
+              type="email"
+              class="form-control"
+              placeholder="ventas@proveedor.com"
+              [(ngModel)]="formData.email"
+              name="email"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="prov-tel">Teléfono / WhatsApp</label>
+            <input
+              id="prov-tel"
+              type="text"
+              class="form-control"
+              placeholder="Ej: 71234567"
+              [(ngModel)]="formData.telefono"
+              name="telefono"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Registrar Proveedor') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

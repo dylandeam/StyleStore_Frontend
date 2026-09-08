@@ -1,0 +1,119 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Catálogo / <span>Colores</span></div>
+      <h1>Gestión de Colores</h1>
+      <p class="subtitle">Paleta oficial de colores para prendas y productos (CU12)</p>
+    </div>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span class="btn-icon">+</span> Nuevo Color
+      </button>
+    }
+  </div>
+
+  <div class="card toolbar-card">
+    <div class="toolbar-content">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar color por nombre..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando colores...</p>
+      </div>
+    } @else if (filteredColores.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🎨</span>
+        <h3>No se encontraron colores</h3>
+        <p>No hay colores registrados o no coinciden con la búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre de Color</th>
+              @if (canManage) {
+                <th class="actions-col">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (color of filteredColores; track color.id) {
+              <tr>
+                <td class="cell-id">#{{ color.id }}</td>
+                <td class="cell-main">
+                  <strong>{{ color.nombre }}</strong>
+                </td>
+                @if (canManage) {
+                  <td class="actions-col">
+                    <button class="btn-action edit" (click)="openEditModal(color)" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn-action delete" (click)="deleteColor(color)" title="Eliminar">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Crear / Editar -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing() ? 'Editar Color' : 'Nuevo Color' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveColor()">
+        <div class="modal-body">
+          @if (modalError()) {
+            <div class="alert alert-error">{{ modalError() }}</div>
+          }
+          @if (modalSuccess()) {
+            <div class="alert alert-success">{{ modalSuccess() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="nombre">Nombre del Color *</label>
+            <input
+              id="nombre"
+              type="text"
+              class="form-control"
+              placeholder="Ej: Negro, Blanco, Azul Marino, Beige"
+              [(ngModel)]="formData.nombre"
+              name="nombre"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Crear Color') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

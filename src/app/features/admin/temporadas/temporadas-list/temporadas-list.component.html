@@ -1,0 +1,119 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Catálogo / <span>Temporadas</span></div>
+      <h1>Gestión de Temporadas</h1>
+      <p class="subtitle">Períodos y lanzamientos de moda por estación (CU14)</p>
+    </div>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span class="btn-icon">+</span> Nueva Temporada
+      </button>
+    }
+  </div>
+
+  <div class="card toolbar-card">
+    <div class="toolbar-content">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar temporada por nombre..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando temporadas...</p>
+      </div>
+    } @else if (filteredTemporadas.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🗓️</span>
+        <h3>No se encontraron temporadas</h3>
+        <p>No hay temporadas registradas o no coinciden con la búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre de Temporada</th>
+              @if (canManage) {
+                <th class="actions-col">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (temp of filteredTemporadas; track temp.id) {
+              <tr>
+                <td class="cell-id">#{{ temp.id }}</td>
+                <td class="cell-main">
+                  <strong>{{ temp.nombre }}</strong>
+                </td>
+                @if (canManage) {
+                  <td class="actions-col">
+                    <button class="btn-action edit" (click)="openEditModal(temp)" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn-action delete" (click)="deleteTemporada(temp)" title="Eliminar">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Crear / Editar -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing() ? 'Editar Temporada' : 'Nueva Temporada' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveTemporada()">
+        <div class="modal-body">
+          @if (modalError()) {
+            <div class="alert alert-error">{{ modalError() }}</div>
+          }
+          @if (modalSuccess()) {
+            <div class="alert alert-success">{{ modalSuccess() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="nombre">Nombre de la Temporada *</label>
+            <input
+              id="nombre"
+              type="text"
+              class="form-control"
+              placeholder="Ej: Verano 2026, Invierno 2026, Primavera"
+              [(ngModel)]="formData.nombre"
+              name="nombre"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Crear Temporada') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

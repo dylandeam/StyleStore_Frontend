@@ -1,0 +1,5 @@
+@import '../../empleados/empleados-list/empleados-list.component.css';
+
+.full-width {
+  grid-column: 1 / -1;
+}

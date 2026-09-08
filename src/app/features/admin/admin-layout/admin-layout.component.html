@@ -25,24 +25,49 @@
           <span class="nav-icon">📊</span>
         </a>
 
+        <!-- Catálogo -->
         <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
           <span class="nav-icon">👕</span>
         </a>
+        <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item icon-only" title="Categorías">
+          <span class="nav-icon">📁</span>
+        </a>
+        <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item icon-only" title="Colores">
+          <span class="nav-icon">🎨</span>
+        </a>
+        <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item icon-only" title="Tallas">
+          <span class="nav-icon">📏</span>
+        </a>
+        <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
+          <span class="nav-icon">🗓️</span>
+        </a>
 
+        <!-- Administración -->
         <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
           <span class="nav-icon">🏢</span>
         </a>
+        @if (canManageStore) {
+          <a routerLink="/admin/empleados" routerLinkActive="active" class="nav-item icon-only" title="Empleados">
+            <span class="nav-icon">👥</span>
+          </a>
+        }
+        <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item icon-only" title="Clientes">
+          <span class="nav-icon">🛍️</span>
+        </a>
+        @if (canManageStore) {
+          <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item icon-only" title="Proveedores">
+            <span class="nav-icon">🏭</span>
+          </a>
+        }
 
         @if (isAdmin) {
-          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Usuarios y Empleados">
+          <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Usuarios">
             <span class="nav-icon">👤</span>
           </a>
-
           <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item icon-only" title="Roles y Permisos">
             <span class="nav-icon">🛡️</span>
           </a>
-
-          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría">
+          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora">
             <span class="nav-icon">📒</span>
           </a>
         }
@@ -52,30 +77,73 @@
         </a>
       </nav>
     } @else {
-      <!-- MODO DESPLEGADO: Agrupación en MENÚ PRINCIPAL y SISTEMA -->
+      <!-- MODO DESPLEGADO: Agrupación en CATÁLOGO, ADMINISTRACIÓN y SISTEMA -->
       <nav class="sidebar-nav">
-        <!-- Sección 1: MENÚ PRINCIPAL -->
-        <div class="nav-group-title">MENÚ PRINCIPAL</div>
-
+        <!-- Dashboard general -->
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">📊</span>
           <span class="nav-label">Dashboard</span>
         </a>
+
+        <!-- Sección: CATÁLOGO -->
+        <div class="nav-group-title mt-group">CATÁLOGO</div>
 
         <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">👕</span>
           <span class="nav-label">Productos</span>
         </a>
 
+        <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📁</span>
+          <span class="nav-label">Categorías</span>
+        </a>
+
+        <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🎨</span>
+          <span class="nav-label">Colores</span>
+        </a>
+
+        <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📏</span>
+          <span class="nav-label">Tallas</span>
+        </a>
+
+        <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🗓️</span>
+          <span class="nav-label">Temporadas</span>
+        </a>
+
+        <!-- Sección: ADMINISTRACIÓN -->
+        <div class="nav-group-title mt-group">ADMINISTRACIÓN</div>
+
         <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">🏢</span>
           <span class="nav-label">Sucursales</span>
         </a>
 
+        @if (canManageStore) {
+          <a routerLink="/admin/empleados" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Empleados</span>
+          </a>
+        }
+
+        <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🛍️</span>
+          <span class="nav-label">Clientes</span>
+        </a>
+
+        @if (canManageStore) {
+          <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🏭</span>
+            <span class="nav-label">Proveedores</span>
+          </a>
+        }
+
         @if (isAdmin) {
           <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">👤</span>
-            <span class="nav-label">Usuarios y Empleados</span>
+            <span class="nav-label">Usuarios</span>
           </a>
 
           <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
@@ -84,7 +152,7 @@
           </a>
         }
 
-        <!-- Sección 2: SISTEMA -->
+        <!-- Sección: SISTEMA -->
         <div class="nav-group-title mt-group">SISTEMA</div>
 
         @if (isAdmin) {

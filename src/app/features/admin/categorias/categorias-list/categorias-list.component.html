@@ -1,0 +1,119 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Catálogo / <span>Categorías</span></div>
+      <h1>Gestión de Categorías</h1>
+      <p class="subtitle">Clasificación oficial de prendas y artículos (CU11)</p>
+    </div>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span class="btn-icon">+</span> Nueva Categoría
+      </button>
+    }
+  </div>
+
+  <div class="card toolbar-card">
+    <div class="toolbar-content">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar categoría por nombre..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando categorías...</p>
+      </div>
+    } @else if (filteredCategorias.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">📁</span>
+        <h3>No se encontraron categorías</h3>
+        <p>No hay categorías registradas o no coinciden con la búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre de Categoría</th>
+              @if (canManage) {
+                <th class="actions-col">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of filteredCategorias; track cat.id) {
+              <tr>
+                <td class="cell-id">#{{ cat.id }}</td>
+                <td class="cell-main">
+                  <strong>{{ cat.nombre }}</strong>
+                </td>
+                @if (canManage) {
+                  <td class="actions-col">
+                    <button class="btn-action edit" (click)="openEditModal(cat)" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn-action delete" (click)="deleteCategoria(cat)" title="Eliminar">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Crear / Editar -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing() ? 'Editar Categoría' : 'Nueva Categoría' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveCategoria()">
+        <div class="modal-body">
+          @if (modalError()) {
+            <div class="alert alert-error">{{ modalError() }}</div>
+          }
+          @if (modalSuccess()) {
+            <div class="alert alert-success">{{ modalSuccess() }}</div>
+          }
+
+          <div class="form-group">
+            <label for="nombre">Nombre de la Categoría *</label>
+            <input
+              id="nombre"
+              type="text"
+              class="form-control"
+              placeholder="Ej: Calzados, Poleras, Accesorios"
+              [(ngModel)]="formData.nombre"
+              name="nombre"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Crear Categoría') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

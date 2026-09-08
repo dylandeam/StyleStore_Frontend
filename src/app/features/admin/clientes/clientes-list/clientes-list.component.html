@@ -1,0 +1,210 @@
+<div class="admin-page">
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Administración / <span>Clientes</span></div>
+      <h1>Gestión de Clientes</h1>
+      <p class="subtitle">Directorio de clientes para compras y reservas físicas y online (CU8)</p>
+    </div>
+    @if (canManage) {
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span class="btn-icon">+</span> Registrar Cliente
+      </button>
+    }
+  </div>
+
+  <div class="card toolbar-card">
+    <div class="toolbar-content">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          placeholder="Buscar por código, nombre, apellido, CI o teléfono..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando clientes...</p>
+      </div>
+    } @else if (filteredClientes.length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">🛍️</span>
+        <h3>No se encontraron clientes</h3>
+        <p>No hay clientes registrados o no coinciden con la búsqueda.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>CI</th>
+              <th>Teléfono</th>
+              <th>Dirección</th>
+              @if (canManage) {
+                <th class="actions-col">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of filteredClientes; track c.codigo) {
+              <tr>
+                <td class="cell-id">
+                  <span class="badge-code">{{ c.codigo }}</span>
+                </td>
+                <td class="cell-main">
+                  <strong>{{ c.nombre }} {{ c.apellido }}</strong>
+                  <div class="cell-subtext">{{ c.email }}</div>
+                </td>
+                <td>{{ c.ci }}</td>
+                <td>{{ c.telefono }}</td>
+                <td>{{ c.direccion }}</td>
+                @if (canManage) {
+                  <td class="actions-col">
+                    <button class="btn-action edit" (click)="openEditModal(c)" title="Editar">
+                      ✏️
+                    </button>
+                    <button class="btn-action delete" (click)="deleteCliente(c)" title="Eliminar">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal Crear / Editar Cliente -->
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ isEditing() ? 'Editar Cliente (' + editingCodigo + ')' : 'Registrar Nuevo Cliente' }}</h2>
+        <button class="modal-close" (click)="closeModal()">×</button>
+      </div>
+
+      <form (ngSubmit)="saveCliente()">
+        <div class="modal-body">
+          @if (modalError()) {
+            <div class="alert alert-error">{{ modalError() }}</div>
+          }
+          @if (modalSuccess()) {
+            <div class="alert alert-success">{{ modalSuccess() }}</div>
+          }
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="cli-nombre">Nombre *</label>
+              <input
+                id="cli-nombre"
+                type="text"
+                class="form-control"
+                placeholder="Ej: Ana"
+                [(ngModel)]="formData.nombre"
+                name="nombre"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="cli-apellido">Apellido *</label>
+              <input
+                id="cli-apellido"
+                type="text"
+                class="form-control"
+                placeholder="Ej: Perez"
+                [(ngModel)]="formData.apellido"
+                name="apellido"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="cli-ci">Cédula de Identidad (CI) *</label>
+              <input
+                id="cli-ci"
+                type="text"
+                class="form-control"
+                placeholder="Ej: 7654321"
+                [(ngModel)]="formData.ci"
+                name="ci"
+                required
+              />
+              <small class="form-hint">Genera el código de cliente según norma oficial.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="cli-telefono">Teléfono *</label>
+              <input
+                id="cli-telefono"
+                type="text"
+                class="form-control"
+                placeholder="Ej: 71234567"
+                [(ngModel)]="formData.telefono"
+                name="telefono"
+                required
+              />
+            </div>
+
+            @if (!isEditing()) {
+              <div class="form-group">
+                <label for="cli-email">Correo Electrónico *</label>
+                <input
+                  id="cli-email"
+                  type="email"
+                  class="form-control"
+                  placeholder="cliente@ejemplo.com"
+                  [(ngModel)]="formData.email"
+                  name="email"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="cli-pass">Contraseña (Opcional)</label>
+                <input
+                  id="cli-pass"
+                  type="password"
+                  class="form-control"
+                  placeholder="Por defecto: StyleStore123!"
+                  [(ngModel)]="formData.password"
+                  name="password"
+                />
+              </div>
+            }
+
+            <div class="form-group full-width">
+              <label for="cli-dir">Dirección *</label>
+              <input
+                id="cli-dir"
+                type="text"
+                class="form-control"
+                placeholder="Ej: Calle Sucre #789, Cochabamba"
+                [(ngModel)]="formData.direccion"
+                name="direccion"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isSubmitting()">
+            {{ isSubmitting() ? 'Guardando...' : (isEditing() ? 'Guardar Cambios' : 'Registrar Cliente') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

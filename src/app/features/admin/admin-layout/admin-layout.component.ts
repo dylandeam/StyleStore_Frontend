@@ -45,13 +45,34 @@ export class AdminLayoutComponent implements OnInit {
   private updateHeaderMeta(url: string): void {
     if (url.includes('/admin/productos')) {
       this.currentTitle.set('Catálogo de Productos');
-      this.currentSubtitle.set('Inventario, tallas, colores, precios y stock');
+      this.currentSubtitle.set('Prendas, calzados, stock e inventario por sucursal (CU10)');
+    } else if (url.includes('/admin/categorias')) {
+      this.currentTitle.set('Categorías');
+      this.currentSubtitle.set('Clasificación oficial de productos y prendas (CU11)');
+    } else if (url.includes('/admin/colores')) {
+      this.currentTitle.set('Colores');
+      this.currentSubtitle.set('Paleta de colores para variantes de productos (CU12)');
+    } else if (url.includes('/admin/tallas')) {
+      this.currentTitle.set('Tallas');
+      this.currentSubtitle.set('Dimensiones y numeraciones oficiales (CU13)');
+    } else if (url.includes('/admin/temporadas')) {
+      this.currentTitle.set('Temporadas');
+      this.currentSubtitle.set('Estaciones y lanzamientos de colección de moda (CU14)');
     } else if (url.includes('/admin/sucursales')) {
       this.currentTitle.set('Sucursales');
-      this.currentSubtitle.set('Puntos de venta físicos y atención');
+      this.currentSubtitle.set('Puntos de venta físicos y atención al cliente');
+    } else if (url.includes('/admin/empleados')) {
+      this.currentTitle.set('Empleados');
+      this.currentSubtitle.set('Personal con asignación de sucursal y credenciales (CU7)');
+    } else if (url.includes('/admin/clientes')) {
+      this.currentTitle.set('Clientes');
+      this.currentSubtitle.set('Directorio de clientes para compras y reservas (CU8)');
+    } else if (url.includes('/admin/proveedores')) {
+      this.currentTitle.set('Proveedores');
+      this.currentSubtitle.set('Directorio de fabricantes y abastecedores (CU9)');
     } else if (url.includes('/admin/usuarios')) {
-      this.currentTitle.set('Usuarios y Empleados');
-      this.currentSubtitle.set('Gestión de cuentas y asignación de roles (CU1)');
+      this.currentTitle.set('Usuarios del Sistema');
+      this.currentSubtitle.set('Gestión de cuentas y accesos generales (CU1)');
     } else if (url.includes('/admin/roles')) {
       this.currentTitle.set('Roles y Permisos');
       this.currentSubtitle.set('Matriz de seguridad y permisos del sistema (CU5)');
@@ -69,6 +90,11 @@ export class AdminLayoutComponent implements OnInit {
 
   get isAdmin(): boolean {
     return this.user()?.role === 'administrador';
+  }
+
+  get canManageStore(): boolean {
+    const role = this.user()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
   }
 
   toggleSidebar(): void {
