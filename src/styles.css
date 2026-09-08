@@ -342,3 +342,180 @@ h1, .brand-header h2, .section-title {
 .animate-fade-in {
   animation: fadeIn 0.35s ease;
 }
+
+/* ==========================================================================
+   Universal Responsive Modals & Custom Scrollbars (Prevents Clipping)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(20, 38, 61, 0.62) !important;
+  backdrop-filter: blur(6px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1050 !important;
+  padding: 1.5rem 1rem !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+}
+
+.modal-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  width: 100% !important;
+  max-width: 520px;
+  max-height: calc(100vh - 2.5rem) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: 0 24px 60px rgba(20, 38, 61, 0.3) !important;
+  overflow: hidden !important;
+  margin: auto !important;
+  animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative !important;
+}
+
+.modal-card.modal-lg {
+  max-width: 780px !important;
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-card form {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.modal-header {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 1.15rem 1.5rem !important;
+  background: #F5EFE3 !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.modal-header h2 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  color: var(--accent-primary) !important;
+}
+
+.modal-close {
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  padding: 0.25rem !important;
+  transition: color 0.15s ease !important;
+}
+
+.modal-close:hover {
+  color: #d32f2f !important;
+}
+
+.modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 1.5rem !important;
+  overscroll-behavior: contain !important;
+}
+
+.modal-footer {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 1rem 1.5rem !important;
+  background: #F5EFE3 !important;
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+/* Scrollbars Beige & Navy para modales y contenedores */
+.modal-body::-webkit-scrollbar,
+.modal-overlay::-webkit-scrollbar,
+.table-responsive::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track,
+.modal-overlay::-webkit-scrollbar-track,
+.table-responsive::-webkit-scrollbar-track {
+  background: rgba(20, 38, 61, 0.05);
+  border-radius: 999px;
+}
+
+.modal-body::-webkit-scrollbar-thumb,
+.modal-overlay::-webkit-scrollbar-thumb,
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 999px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover,
+.modal-overlay::-webkit-scrollbar-thumb:hover,
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #B59355;
+}
+
+/* Badges de Roles */
+.badge-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.badge-role.admin {
+  background: #14263D;
+  color: #C9A96E;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+}
+
+.badge-role.encargado {
+  background: #EBF3FA;
+  color: #1A4971;
+  border: 1px solid #C4DDEF;
+}
+
+.badge-role.cajero {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.badge-role.cliente {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+

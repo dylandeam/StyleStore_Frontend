@@ -36,6 +36,7 @@ export interface EmpleadoUpdate {
   nombre?: string;
   apellido?: string;
   ci?: string;
+  role?: string | null;
   sucursal_id?: number;
   edad?: number;
   sueldo?: number;

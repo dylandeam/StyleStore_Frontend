@@ -54,6 +54,7 @@
             <tr>
               <th>Código</th>
               <th>Empleado</th>
+              <th>Rol</th>
               <th>CI</th>
               <th>Sucursal</th>
               <th>Edad</th>
@@ -84,6 +85,11 @@
                       <div class="cell-subtext">{{ emp.email }}</div>
                     </div>
                   </div>
+                </td>
+                <td>
+                  <span class="badge-role" [ngClass]="getRoleBadgeClass(emp.role)">
+                    {{ getRoleLabel(emp.role) }}
+                  </span>
                 </td>
                 <td>{{ emp.ci }}</td>
                 <td>
@@ -236,21 +242,22 @@
               </select>
             </div>
 
-            @if (!isEditing()) {
-              <div class="form-group">
-                <label for="emp-role">Rol del Empleado *</label>
-                <select
-                  id="emp-role"
-                  class="form-control"
-                  [(ngModel)]="formData.role"
-                  name="emp_company_role"
-                  required
-                >
-                  <option value="encargado_sucursal">Encargado de Sucursal</option>
-                  <option value="cajero">Cajero</option>
-                </select>
-              </div>
+            <div class="form-group">
+              <label for="emp-role">Rol del Empleado *</label>
+              <select
+                id="emp-role"
+                class="form-control"
+                [(ngModel)]="formData.role"
+                name="emp_company_role"
+                required
+              >
+                <option value="cajero">Cajero</option>
+                <option value="encargado_sucursal">Encargado de Sucursal</option>
+                <option value="administrador">Administrador</option>
+              </select>
+            </div>
 
+            @if (!isEditing()) {
               <div class="form-group">
                 <label for="emp-email">Correo Electrónico (Acceso) *</label>
                 <input

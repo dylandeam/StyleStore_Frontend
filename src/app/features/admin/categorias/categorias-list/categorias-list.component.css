@@ -146,13 +146,17 @@ h1 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(20, 38, 61, 0.45);
-  backdrop-filter: blur(4px);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(20, 38, 61, 0.55);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
+  z-index: 1050;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .modal-card {
@@ -161,9 +165,21 @@ h1 {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 500px;
-  box-shadow: var(--shadow-xl);
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(20, 38, 61, 0.25);
   overflow: hidden;
   animation: modalIn 0.2s ease-out;
+  margin: auto;
+}
+
+.modal-card form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @keyframes modalIn {
@@ -172,6 +188,7 @@ h1 {
 }
 
 .modal-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -198,37 +215,39 @@ h1 {
 
 .modal-body {
   padding: 1.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: calc(85vh - 140px);
+  overscroll-behavior: contain;
 }
 
-.form-group {
-  margin-bottom: 1.25rem;
+/* Barra de desplazamiento elegante para modales */
+.modal-body::-webkit-scrollbar,
+.modal-overlay::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
 }
 
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
+.modal-body::-webkit-scrollbar-track,
+.modal-overlay::-webkit-scrollbar-track {
+  background: rgba(20, 38, 61, 0.05);
+  border-radius: 999px;
 }
 
-.form-control {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: var(--bg-main);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  outline: none;
-  box-sizing: border-box;
+.modal-body::-webkit-scrollbar-thumb,
+.modal-overlay::-webkit-scrollbar-thumb {
+  background: #c9a96e;
+  border-radius: 999px;
 }
 
-.form-control:focus {
-  border-color: var(--accent-primary);
+.modal-body::-webkit-scrollbar-thumb:hover,
+.modal-overlay::-webkit-scrollbar-thumb:hover {
+  background: #b59355;
 }
 
 .modal-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;

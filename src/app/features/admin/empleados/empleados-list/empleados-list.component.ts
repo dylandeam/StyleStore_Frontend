@@ -216,6 +216,32 @@ export class EmpleadosListComponent implements OnInit {
     }
   }
 
+  getRoleBadgeClass(role?: string | null): string {
+    switch (role) {
+      case 'administrador':
+        return 'admin';
+      case 'encargado_sucursal':
+        return 'encargado';
+      case 'cajero':
+        return 'cajero';
+      default:
+        return 'encargado';
+    }
+  }
+
+  getRoleLabel(role?: string | null): string {
+    switch (role) {
+      case 'administrador':
+        return 'Administrador';
+      case 'encargado_sucursal':
+        return 'Encargado de Sucursal';
+      case 'cajero':
+        return 'Cajero';
+      default:
+        return role || 'Personal';
+    }
+  }
+
   saveEmpleado(): void {
     if (!this.formData.nombre.trim() || this.formData.nombre.trim().length < 2) {
       this.modalError.set('El nombre debe tener al menos 2 caracteres.');
@@ -250,6 +276,7 @@ export class EmpleadosListComponent implements OnInit {
         nombre: this.formData.nombre.trim(),
         apellido: this.formData.apellido.trim(),
         ci: this.formData.ci.trim(),
+        role: this.formData.role,
         sucursal_id: this.formData.sucursal_id,
         edad: this.formData.edad,
         sueldo: this.formData.sueldo,

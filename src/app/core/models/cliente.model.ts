@@ -7,6 +7,7 @@ export interface Cliente {
   apellido?: string | null;
   ci?: string | null;
   email?: string | null;
+  role?: string | null;
   created_at?: string;
   updated_at?: string;
 }
