@@ -138,7 +138,7 @@
                 <div class="product-card">
                   <div class="product-img-wrap">
                     @if (prod.foto) {
-                      <img [src]="prod.foto" [alt]="prod.nombre" class="product-img" />
+                      <img [src]="getImagenUrl(prod.foto)" [alt]="prod.nombre" class="product-img" (error)="onImgError($event)" />
                     } @else {
                       <div class="img-placeholder">
                         <span>👔</span>

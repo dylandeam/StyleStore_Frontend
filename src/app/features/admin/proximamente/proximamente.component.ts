@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProximamenteService } from '../../../core/services/proximamente.service';
@@ -7,6 +7,7 @@ import { CategoriasService } from '../../../core/services/categorias.service';
 import { TemporadasService } from '../../../core/services/temporadas.service';
 import { ColeccionService } from '../../../core/services/coleccion.service';
 import { UploadService } from '../../../core/services/upload.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Categoria } from '../../../core/models/categoria.model';
 import { Temporada } from '../../../core/models/temporada.model';
 import { Coleccion } from '../../../core/models/coleccion.model';
@@ -24,6 +25,14 @@ export class ProximamenteComponent implements OnInit {
   private temporadasService = inject(TemporadasService);
   private coleccionService = inject(ColeccionService);
   private uploadService = inject(UploadService);
+  private authService = inject(AuthService);
+
+  // User permissions
+  currentUser = this.authService.currentUser;
+  canManage = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
+  });
 
   items = signal<Proximamente[]>([]);
   categorias = signal<Categoria[]>([]);
@@ -34,7 +43,12 @@ export class ProximamenteComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  // Modal
+  // Client interactive state: Me interesa / Notificar
+  interestedItems = signal<Set<number>>(new Set<number>());
+  detailItem = signal<Proximamente | null>(null);
+  isDetailModalOpen = signal<boolean>(false);
+
+  // Modal Crear / Editar (solo administradores / encargados)
   isModalOpen = signal<boolean>(false);
   isEditing = signal<boolean>(false);
   selectedId = signal<number | null>(null);
@@ -76,7 +90,47 @@ export class ProximamenteComponent implements OnInit {
     });
   }
 
+  getImagenUrl(foto?: string | null): string {
+    return this.uploadService.getImageUrl(foto, 'productos');
+  }
+
+  onImgError(event: Event): void {
+    const el = event.target as HTMLImageElement;
+    el.src = '/assets/images/logo.jpg';
+  }
+
+  // Client interactions
+  toggleInterest(itemId: number, event?: Event): void {
+    if (event) event.stopPropagation();
+    const current = new Set(this.interestedItems());
+    if (current.has(itemId)) {
+      current.delete(itemId);
+      this.successMessage.set('Notificación cancelada.');
+    } else {
+      current.add(itemId);
+      this.successMessage.set('🔔 ¡Anotado! Te avisaremos tan pronto esta prenda llegue a tienda.');
+    }
+    this.interestedItems.set(current);
+    setTimeout(() => this.successMessage.set(null), 3500);
+  }
+
+  isInterested(itemId: number): boolean {
+    return this.interestedItems().has(itemId);
+  }
+
+  openDetailModal(item: Proximamente): void {
+    this.detailItem.set(item);
+    this.isDetailModalOpen.set(true);
+  }
+
+  closeDetailModal(): void {
+    this.isDetailModalOpen.set(false);
+    this.detailItem.set(null);
+  }
+
+  // Admin management actions
   openCreateModal(): void {
+    if (!this.canManage()) return;
     this.isEditing.set(false);
     this.selectedId.set(null);
     this.nombre.set('');
@@ -91,7 +145,9 @@ export class ProximamenteComponent implements OnInit {
     this.isModalOpen.set(true);
   }
 
-  openEditModal(item: Proximamente): void {
+  openEditModal(item: Proximamente, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!this.canManage()) return;
     this.isEditing.set(true);
     this.selectedId.set(item.id);
     this.nombre.set(item.nombre);
@@ -111,6 +167,7 @@ export class ProximamenteComponent implements OnInit {
   }
 
   onFileSelected(event: any): void {
+    if (!this.canManage()) return;
     const file = event.target.files[0];
     if (file) {
       this.uploadService.uploadImage(file, 'productos').subscribe({
@@ -125,6 +182,7 @@ export class ProximamenteComponent implements OnInit {
   }
 
   saveItem(): void {
+    if (!this.canManage()) return;
     if (!this.nombre().trim()) {
       this.errorMessage.set('El nombre de la prenda es obligatorio.');
       return;
@@ -181,7 +239,9 @@ export class ProximamenteComponent implements OnInit {
     }
   }
 
-  deleteItem(item: Proximamente): void {
+  deleteItem(item: Proximamente, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!this.canManage()) return;
     if (!confirm(`¿Eliminar la prenda próxima "${item.nombre}"?`)) return;
 
     this.isLoading.set(true);

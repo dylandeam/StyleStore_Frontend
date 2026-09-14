@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
+import { UploadService } from '../../../core/services/upload.service';
 import { InventarioItem, StockAdjustRequest } from '../../../core/models/inventario.model';
 import { Sucursal } from '../../../core/models/sucursal.model';
 
@@ -16,6 +17,7 @@ import { Sucursal } from '../../../core/models/sucursal.model';
 export class InventarioComponent implements OnInit {
   private inventarioService = inject(InventarioService);
   private sucursalService = inject(SucursalService);
+  private uploadService = inject(UploadService);
 
   // States
   vista = signal<'global' | 'sucursal'>('global');
@@ -152,8 +154,7 @@ export class InventarioComponent implements OnInit {
   }
 
   getImagenUrl(foto?: string): string {
-    if (!foto) return 'assets/images/placeholder-product.png';
-    if (foto.startsWith('http')) return foto;
-    return `http://localhost:8000${foto}`;
+    return this.uploadService.getImageUrl(foto, 'productos');
   }
 }
+

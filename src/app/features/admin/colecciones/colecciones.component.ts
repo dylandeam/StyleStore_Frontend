@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ColeccionService } from '../../../core/services/coleccion.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UploadService } from '../../../core/services/upload.service';
 import { Coleccion, ColeccionCreate, ColeccionUpdate, ProductoColeccion } from '../../../core/models/coleccion.model';
 
 @Component({
@@ -16,6 +17,7 @@ import { Coleccion, ColeccionCreate, ColeccionUpdate, ProductoColeccion } from '
 export class ColeccionesComponent implements OnInit {
   private coleccionService = inject(ColeccionService);
   private authService = inject(AuthService);
+  private uploadService = inject(UploadService);
   private router = inject(Router);
 
   // User permissions
@@ -103,6 +105,15 @@ export class ColeccionesComponent implements OnInit {
 
   verProductoEnCatalogo(prod: ProductoColeccion): void {
     this.router.navigate(['/admin/productos'], { queryParams: { search: prod.nombre } });
+  }
+
+  getImagenUrl(foto?: string | null): string {
+    return this.uploadService.getImageUrl(foto, 'productos');
+  }
+
+  onImgError(event: Event): void {
+    const el = event.target as HTMLImageElement;
+    el.src = '/assets/images/logo.jpg';
   }
 
   openCreateModal(): void {
