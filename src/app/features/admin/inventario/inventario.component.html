@@ -1,0 +1,182 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-titles">
+      <h2>📦 Gestión de Inventario</h2>
+      <p class="subtitle">Control global y por sucursal de existencias por producto, color y talla</p>
+    </div>
+    <div class="header-actions">
+      <div class="segmented-control">
+        <button
+          class="btn-segment"
+          [class.active]="vista() === 'global'"
+          (click)="setVista('global')"
+        >
+          🌐 Global
+        </button>
+        <button
+          class="btn-segment"
+          [class.active]="vista() === 'sucursal'"
+          (click)="setVista('sucursal')"
+        >
+          🏢 Por Sucursal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">{{ errorMessage() }}</div>
+  }
+
+  <!-- BARRA DE FILTROS -->
+  <div class="filter-bar">
+    @if (vista() === 'sucursal') {
+      <div class="filter-group">
+        <label>Sucursal:</label>
+        <select
+          class="form-control select-sucursal"
+          [ngModel]="selectedSucursalId()"
+          (ngModelChange)="onSucursalChange($event)"
+        >
+          @for (suc of sucursales(); track suc.id) {
+            <option [value]="suc.id">{{ suc.name || (suc.city + ' - ' + suc.address) }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="filter-group search-box">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Buscar por producto, código, color o talla..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        (keyup.enter)="onSearch()"
+      />
+      <button class="btn btn-secondary" (click)="onSearch()">🔍 Buscar</button>
+    </div>
+  </div>
+
+  <!-- TABLA DE INVENTARIO -->
+  <div class="table-card">
+    @if (isLoading()) {
+      <div class="loading-state">Consultando existencias de inventario...</div>
+    } @else if (items().length === 0) {
+      <div class="empty-state">
+        <p>No se encontraron existencias para el criterio seleccionado.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Color / Talla</th>
+              @if (vista() === 'global') {
+                <th>Sucursal</th>
+                <th>Clasificación</th>
+              }
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items(); track item.stock_inventario_id) {
+              <tr>
+                <td class="cell-product">
+                  <div class="product-info-wrap">
+                    <img [src]="getImagenUrl(item.foto)" [alt]="item.producto_nombre" class="product-thumb" />
+                    <div>
+                      <div class="product-name font-semibold">{{ item.producto_nombre || 'Producto' }}</div>
+                      <div class="product-code text-muted">{{ item.producto_codigo }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="spec-tag color-tag">{{ item.color || 'Único' }}</span>
+                  <span class="spec-tag talla-tag">{{ item.talla || 'Estándar' }}</span>
+                </td>
+                @if (vista() === 'global') {
+                  <td class="cell-branch">{{ item.sucursal || 'Central' }}</td>
+                  <td class="cell-meta text-xs">
+                    <div><span class="meta-label">Cat:</span> {{ item.categoria || '-' }}</div>
+                    @if (item.coleccion) {
+                      <div><span class="meta-label">Col:</span> {{ item.coleccion }}</div>
+                    }
+                  </td>
+                }
+                <td class="cell-price font-semibold">Bs {{ (item.precio || 0) | number:'1.2-2' }}</td>
+                <td>
+                  <span
+                    class="badge-stock"
+                    [class.stock-empty]="item.cantidad === 0"
+                    [class.stock-low]="item.cantidad > 0 && item.cantidad <= 3"
+                    [class.stock-ok]="item.cantidad > 3"
+                  >
+                    {{ item.cantidad }} un.
+                  </span>
+                </td>
+                <td class="cell-actions">
+                  <button class="btn btn-sm btn-outline" (click)="openAdjustModal(item)">
+                    ✏️ Ajustar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- MODAL AJUSTAR STOCK -->
+  @if (isAdjustModalOpen() && selectedItem()) {
+    <div class="modal-backdrop" (click)="closeAdjustModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Ajustar Existencia de Inventario</h3>
+          <button class="btn-close" (click)="closeAdjustModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="item-summary-box">
+            <img [src]="getImagenUrl(selectedItem()!.foto)" class="summary-thumb" />
+            <div>
+              <h4 class="font-semibold">{{ selectedItem()!.producto_nombre }}</h4>
+              <p class="text-sm text-muted">Código: {{ selectedItem()!.producto_codigo }}</p>
+              <p class="text-sm">Color: <strong>{{ selectedItem()!.color }}</strong> | Talla: <strong>{{ selectedItem()!.talla }}</strong></p>
+              @if (selectedItem()!.sucursal) {
+                <p class="text-sm text-muted">Sucursal: {{ selectedItem()!.sucursal }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="form-group mt-4">
+            <label>Cantidad en Existencia <span class="req">*</span></label>
+            <input
+              type="number"
+              min="0"
+              class="form-control"
+              [ngModel]="nuevaCantidad()"
+              (ngModelChange)="nuevaCantidad.set(+$event)"
+              required
+            />
+            <small class="text-muted">Ajuste directo en unidades para auditoría física de almacén.</small>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeAdjustModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="guardarAjuste()" [disabled]="isLoading()">
+            Guardar Existencia
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

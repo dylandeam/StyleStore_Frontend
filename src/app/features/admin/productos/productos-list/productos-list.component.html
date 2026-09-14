@@ -410,6 +410,16 @@
               </select>
             </div>
 
+            <div class="form-group">
+              <label for="prod-coleccion">Colección (Opcional)</label>
+              <select id="prod-coleccion" class="form-control" [(ngModel)]="formData.coleccion_id" name="coleccion_id">
+                <option [ngValue]="null">-- Sin Colección --</option>
+                @for (col of colecciones(); track col.id) {
+                  <option [value]="col.id">{{ col.nombre }}</option>
+                }
+              </select>
+            </div>
+
             <div class="form-group full-width">
               <label for="prod-precio">Precio Unitario (Bs.) *</label>
               <input
@@ -428,15 +438,14 @@
               <label>Colores Disponibles para esta Prenda</label>
               <div class="colors-selection-grid">
                 @for (col of colores(); track col.id) {
-                  <button
-                    type="button"
-                    class="btn-color-tag"
-                    [class.selected]="isColorSelected(col.id)"
-                    (click)="toggleColor(col.id)"
-                  >
-                    {{ col.nombre }}
-                    @if (isColorSelected(col.id)) { ✓ }
-                  </button>
+                  <label class="color-checkbox-item">
+                    <input
+                      type="checkbox"
+                      [checked]="isColorSelected(col.id)"
+                      (change)="toggleColor(col.id)"
+                    />
+                    <span class="color-label">{{ col.nombre }}</span>
+                  </label>
                 }
               </div>
             </div>
@@ -456,7 +465,14 @@
             <div class="form-group full-width">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="formData.active" name="active" />
-                Producto activo en catálogo
+                Producto activo
+              </label>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="formData.visible_en_catalogo" name="visible_en_catalogo" />
+                Visible en Catálogo de Clientes
               </label>
             </div>
           </div>

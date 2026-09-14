@@ -48,6 +48,12 @@ export class AdminLayoutComponent implements OnInit {
     if (url.includes('/admin/productos')) {
       this.currentTitle.set('Catálogo de Productos');
       this.currentSubtitle.set('Prendas, calzados, stock e inventario por sucursal (CU10)');
+    } else if (url.includes('/admin/colecciones')) {
+      this.currentTitle.set('Colecciones');
+      this.currentSubtitle.set('Lanzamientos temáticos y líneas de temporada (CU15)');
+    } else if (url.includes('/admin/proximamente')) {
+      this.currentTitle.set('Próximamente');
+      this.currentSubtitle.set('Prendas exclusivas de próximo lanzamiento');
     } else if (url.includes('/admin/categorias')) {
       this.currentTitle.set('Categorías');
       this.currentSubtitle.set('Clasificación oficial de productos y prendas (CU11)');
@@ -60,6 +66,18 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/admin/temporadas')) {
       this.currentTitle.set('Temporadas');
       this.currentSubtitle.set('Estaciones y lanzamientos de colección de moda (CU14)');
+    } else if (url.includes('/admin/inventario')) {
+      this.currentTitle.set('Control de Inventario');
+      this.currentSubtitle.set('Stock global y existencias por sucursal');
+    } else if (url.includes('/admin/reservas')) {
+      this.currentTitle.set('Gestión de Reservas');
+      this.currentSubtitle.set('Control de reservas, entregas y tickets');
+    } else if (url.includes('/admin/ventas')) {
+      this.currentTitle.set('Gestión de Ventas');
+      this.currentSubtitle.set('Reporte consolidado de ventas presenciales y online');
+    } else if (url.includes('/admin/envios')) {
+      this.currentTitle.set('Despachos y Envíos');
+      this.currentSubtitle.set('Control de entregas a domicilio y tarifas');
     } else if (url.includes('/admin/sucursales')) {
       this.currentTitle.set('Sucursales');
       this.currentSubtitle.set('Puntos de venta físicos y atención al cliente');
@@ -77,10 +95,13 @@ export class AdminLayoutComponent implements OnInit {
       this.currentSubtitle.set('Gestión de cuentas y accesos generales (CU1)');
     } else if (url.includes('/admin/roles')) {
       this.currentTitle.set('Roles y Permisos');
-      this.currentSubtitle.set('Matriz de seguridad y permisos del sistema (CU5)');
+      this.currentSubtitle.set('Matriz de seguridad y permisos dinámicos (CU5)');
     } else if (url.includes('/admin/bitacora')) {
       this.currentTitle.set('Bitácora de Auditoría');
       this.currentSubtitle.set('Historial inmutable de eventos del sistema (CU6)');
+    } else if (url.includes('/cuenta/perfil')) {
+      this.currentTitle.set('Información Personal');
+      this.currentSubtitle.set('Perfil de usuario y datos de contacto (CU2)');
     } else if (url.includes('/cuenta/cambiar-password')) {
       this.currentTitle.set('Seguridad de Cuenta');
       this.currentSubtitle.set('Cambio de contraseña con confirmación por correo (CU4)');

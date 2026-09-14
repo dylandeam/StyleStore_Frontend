@@ -72,6 +72,23 @@ export class AuthService {
     return this.http.post<User>(`${this.API_URL}/users`, payload);
   }
 
+  updateProfile(data: {
+    name?: string;
+    apellido?: string;
+    email?: string;
+    telefono?: string;
+    direccion?: string;
+    foto?: string;
+  }): Observable<User> {
+    return this.http.patch<User>(`${this.API_URL}/users/me`, data).pipe(
+      tap((updatedUser) => this.currentUser.set(updatedUser))
+    );
+  }
+
+  updateUserByAdmin(userId: number, data: any): Observable<User> {
+    return this.http.put<User>(`${this.API_URL}/users/${userId}`, data);
+  }
+
   logout(): void {
     const token = this.tokenService.getAccessToken();
     if (token) {

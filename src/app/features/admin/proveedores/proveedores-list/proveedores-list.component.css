@@ -1,1 +1,91 @@
 @import '../../categorias/categorias-list/categorias-list.component.css';
+
+.modal-lg {
+  max-width: 680px !important;
+  width: 95% !important;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.badge-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cat-badge {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+.temp-badge {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.col-badge {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.multi-section {
+  background: #FAF8F5;
+  border: 1px solid #E2D9CC;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.multi-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #14263D;
+}
+
+.chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.15s;
+}
+
+.chip-btn:hover {
+  border-color: #14263D;
+}
+
+.chip-selected {
+  background: #14263D;
+  color: #FFFFFF;
+  border-color: #14263D;
+}
+
+.mt-3 {
+  margin-top: 12px;
+}

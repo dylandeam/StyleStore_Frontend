@@ -10,6 +10,9 @@ export interface Producto {
   categoria_nombre?: string | null;
   temporada_id: number;
   temporada_nombre?: string | null;
+  coleccion_id?: number | null;
+  coleccion_nombre?: string | null;
+  visible_en_catalogo?: boolean;
   active: boolean;
   colores?: Color[];
   stock_total?: number;
@@ -25,6 +28,8 @@ export interface ProductoCreate {
   precio: number;
   categoria_id: number;
   temporada_id: number;
+  coleccion_id?: number | null;
+  visible_en_catalogo?: boolean;
   color_ids?: number[];
   active?: boolean;
 }
@@ -36,6 +41,8 @@ export interface ProductoUpdate {
   precio?: number;
   categoria_id?: number;
   temporada_id?: number;
+  coleccion_id?: number | null;
+  visible_en_catalogo?: boolean;
   color_ids?: number[];
   active?: boolean;
 }

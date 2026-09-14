@@ -7,12 +7,14 @@ import { TemporadasService } from '../../../../core/services/temporadas.service'
 import { ColoresService } from '../../../../core/services/colores.service';
 import { TallasService } from '../../../../core/services/tallas.service';
 import { SucursalService } from '../../../../core/services/sucursal.service';
+import { ColeccionService } from '../../../../core/services/coleccion.service';
 import { StockService } from '../../../../core/services/stock.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UploadService } from '../../../../core/services/upload.service';
 import { Producto, ProductoCreate, ProductoUpdate } from '../../../../core/models/producto.model';
 import { Categoria } from '../../../../core/models/categoria.model';
 import { Temporada } from '../../../../core/models/temporada.model';
+import { Coleccion } from '../../../../core/models/coleccion.model';
 import { Color } from '../../../../core/models/color.model';
 import { Talla } from '../../../../core/models/talla.model';
 import { Sucursal } from '../../../../core/models/sucursal.model';
@@ -29,6 +31,7 @@ export class ProductosListComponent implements OnInit {
   private productoService = inject(ProductoService);
   private categoriasService = inject(CategoriasService);
   private temporadasService = inject(TemporadasService);
+  private coleccionService = inject(ColeccionService);
   private coloresService = inject(ColoresService);
   private tallasService = inject(TallasService);
   private sucursalService = inject(SucursalService);
@@ -44,6 +47,7 @@ export class ProductosListComponent implements OnInit {
   productos = signal<Producto[]>([]);
   categorias = signal<Categoria[]>([]);
   temporadas = signal<Temporada[]>([]);
+  colecciones = signal<Coleccion[]>([]);
   colores = signal<Color[]>([]);
   tallas = signal<Talla[]>([]);
   sucursales = signal<Sucursal[]>([]);
@@ -82,6 +86,8 @@ export class ProductosListComponent implements OnInit {
     precio: 0,
     categoria_id: 0,
     temporada_id: 0,
+    coleccion_id: null,
+    visible_en_catalogo: true,
     color_ids: [],
     active: true,
   };
@@ -109,6 +115,7 @@ export class ProductosListComponent implements OnInit {
   loadCatalogos(): void {
     this.categoriasService.getCategorias().subscribe((data) => this.categorias.set(data));
     this.temporadasService.getTemporadas().subscribe((data) => this.temporadas.set(data));
+    this.coleccionService.getColecciones().subscribe((data) => this.colecciones.set(data));
     this.coloresService.getColores().subscribe((data) => this.colores.set(data));
     this.tallasService.getTallas().subscribe((data) => this.tallas.set(data));
     this.sucursalService.getSucursales().subscribe((data) => this.sucursales.set(data));
@@ -166,6 +173,8 @@ export class ProductosListComponent implements OnInit {
       precio: 0,
       categoria_id: firstCat,
       temporada_id: firstTemp,
+      coleccion_id: null,
+      visible_en_catalogo: true,
       color_ids: [],
       active: true,
     };
@@ -186,6 +195,8 @@ export class ProductosListComponent implements OnInit {
       precio: p.precio,
       categoria_id: p.categoria_id,
       temporada_id: p.temporada_id,
+      coleccion_id: p.coleccion_id || null,
+      visible_en_catalogo: p.visible_en_catalogo ?? true,
       color_ids: p.colores ? p.colores.map((c) => c.id) : [],
       active: p.active,
     };
@@ -274,14 +285,18 @@ export class ProductosListComponent implements OnInit {
     this.isSubmitting.set(true);
     this.modalError.set('');
 
+    const colId = this.formData.coleccion_id ? Number(this.formData.coleccion_id) : null;
+
     if (this.isEditing() && this.editingCodigo) {
       const updateData: ProductoUpdate = {
         nombre: this.formData.nombre,
         descripcion: this.formData.descripcion,
         foto: this.formData.foto,
         precio: this.formData.precio,
-        categoria_id: this.formData.categoria_id,
-        temporada_id: this.formData.temporada_id,
+        categoria_id: Number(this.formData.categoria_id),
+        temporada_id: Number(this.formData.temporada_id),
+        coleccion_id: colId,
+        visible_en_catalogo: this.formData.visible_en_catalogo,
         color_ids: this.formData.color_ids,
         active: this.formData.active,
       };
@@ -301,7 +316,14 @@ export class ProductosListComponent implements OnInit {
         },
       });
     } else {
-      this.productoService.createProducto(this.formData).subscribe({
+      const createData: ProductoCreate = {
+        ...this.formData,
+        categoria_id: Number(this.formData.categoria_id),
+        temporada_id: Number(this.formData.temporada_id),
+        coleccion_id: colId,
+      };
+
+      this.productoService.createProducto(createData).subscribe({
         next: () => {
           this.isSubmitting.set(false);
           this.modalSuccess.set('Producto registrado exitosamente.');

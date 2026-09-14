@@ -1,0 +1,143 @@
+<div class="profile-container">
+  <div class="profile-card">
+    <div class="profile-header">
+      <div class="avatar-section">
+        <div class="avatar-wrapper">
+          <img
+            [src]="foto() || 'assets/images/placeholder-avatar.png'"
+            alt="Avatar de usuario"
+            class="avatar-image"
+          />
+          <label class="avatar-upload-btn" title="Subir imagen">
+            📷
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+          </label>
+        </div>
+        <div class="avatar-meta">
+          <h2>{{ nombre() }} {{ apellido() }}</h2>
+          <span class="role-badge">{{ rol() }}</span>
+        </div>
+      </div>
+    </div>
+
+    @if (successMessage()) {
+      <div class="alert alert-success">{{ successMessage() }}</div>
+    }
+    @if (errorMessage()) {
+      <div class="alert alert-error">{{ errorMessage() }}</div>
+    }
+
+    <form (ngSubmit)="saveProfile()" class="profile-form">
+      <div class="form-grid">
+        <!-- CI (Inmutable) -->
+        <div class="form-group">
+          <label>Cédula de Identidad (CI)</label>
+          <input
+            type="text"
+            class="form-control field-readonly"
+            [value]="ci()"
+            disabled
+            readonly
+          />
+          <small class="field-hint">🔒 El CI no puede ser modificado por seguridad de identidad.</small>
+        </div>
+
+        <!-- Rol (Inmutable) -->
+        <div class="form-group">
+          <label>Rol en el Sistema</label>
+          <input
+            type="text"
+            class="form-control field-readonly"
+            [value]="rol()"
+            disabled
+            readonly
+          />
+        </div>
+
+        <!-- Nombre -->
+        <div class="form-group">
+          <label>Nombre <span class="req">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="nombre()"
+            (ngModelChange)="nombre.set($event)"
+            name="nombre"
+            required
+          />
+        </div>
+
+        <!-- Apellido -->
+        <div class="form-group">
+          <label>Apellido <span class="req">*</span></label>
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="apellido()"
+            (ngModelChange)="apellido.set($event)"
+            name="apellido"
+            required
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label>Correo Electrónico <span class="req">*</span></label>
+          <input
+            type="email"
+            class="form-control"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            name="email"
+            required
+          />
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+          <label>Teléfono / Celular</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="+591 70000000"
+            [ngModel]="telefono()"
+            (ngModelChange)="telefono.set($event)"
+            name="telefono"
+          />
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group full-width">
+          <label>Dirección de Residencia</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Av. Principal #123, Zona Central"
+            [ngModel]="direccion()"
+            (ngModelChange)="direccion.set($event)"
+            name="direccion"
+          />
+        </div>
+
+        <!-- URL Foto de Perfil Opcional -->
+        <div class="form-group full-width">
+          <label>URL Foto de Perfil</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="https://ejemplo.com/mifoto.jpg"
+            [ngModel]="foto()"
+            (ngModelChange)="foto.set($event)"
+            name="foto"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          {{ isSaving() ? 'Guardando...' : '💾 Guardar Cambios' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -43,9 +43,11 @@
           <thead>
             <tr>
               <th>Código</th>
+              <th>CI</th>
               <th>Proveedor / Razón Social</th>
               <th>Contacto</th>
-              <th>Email</th>
+              <th>Categorías / Temporadas</th>
+              <th>Colecciones</th>
               <th>Teléfono</th>
               @if (canManage) {
                 <th class="actions-col">Acciones</th>
@@ -58,11 +60,29 @@
                 <td class="cell-id">
                   <span class="badge-code">{{ p.codigo }}</span>
                 </td>
+                <td class="font-mono text-xs">{{ p.ci || '-' }}</td>
                 <td class="cell-main">
                   <strong>{{ p.nombre }}</strong>
+                  <div class="text-xs text-muted">{{ p.email || '' }}</div>
                 </td>
                 <td>{{ p.apellido || '-' }}</td>
-                <td>{{ p.email || '-' }}</td>
+                <td>
+                  <div class="tag-group">
+                    @for (c of p.categorias || []; track c.id) {
+                      <span class="badge-tag cat-badge">{{ c.nombre }}</span>
+                    }
+                    @for (t of p.temporadas || []; track t.id) {
+                      <span class="badge-tag temp-badge">{{ t.nombre }}</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="tag-group">
+                    @for (col of p.colecciones || []; track col.id) {
+                      <span class="badge-tag col-badge">{{ col.nombre }}</span>
+                    }
+                  </div>
+                </td>
                 <td>{{ p.telefono || '-' }}</td>
                 @if (canManage) {
                   <td class="actions-col">
@@ -70,7 +90,7 @@
                       ✏️
                     </button>
                     <button class="btn-action delete" (click)="deleteProveedor(p)" title="Eliminar">
-                      🗑️
+                       🗑️
                     </button>
                   </td>
                 }
@@ -86,9 +106,9 @@
 <!-- Modal Crear / Editar Proveedor -->
 @if (showModal()) {
   <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>{{ isEditing() ? 'Editar Proveedor (' + editingCodigo + ')' : 'Registrar Nuevo Proveedor' }}</h2>
+        <h2>{{ isEditing() ? 'Editar Proveedor (' + editingCodigo + ')' : 'Registrar Nuevo Proveedor (CU16)' }}</h2>
         <button class="modal-close" (click)="closeModal()">×</button>
       </div>
 
@@ -101,53 +121,121 @@
             <div class="alert alert-success">{{ modalSuccess() }}</div>
           }
 
-          <div class="form-group">
-            <label for="prov-nombre">Nombre de la Empresa o Proveedor *</label>
-            <input
-              id="prov-nombre"
-              type="text"
-              class="form-control"
-              placeholder="Ej: Confecciones El Cóndor SRL"
-              [(ngModel)]="formData.nombre"
-              name="nombre"
-              required
-            />
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="prov-ci">Cédula de Identidad (CI) *</label>
+              <input
+                id="prov-ci"
+                type="text"
+                class="form-control"
+                placeholder="Ej: 8392014"
+                [(ngModel)]="formData.ci"
+                name="ci"
+                [disabled]="isEditing()"
+                required
+              />
+              <small class="text-muted">Generará código PR-NOMAPE-CI</small>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="prov-nombre">Nombre de la Empresa o Contacto *</label>
+              <input
+                id="prov-nombre"
+                type="text"
+                class="form-control"
+                placeholder="Ej: Confecciones El Cóndor"
+                [(ngModel)]="formData.nombre"
+                name="nombre"
+                required
+              />
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="prov-contacto">Contacto (Apellido / Referencia)</label>
-            <input
-              id="prov-contacto"
-              type="text"
-              class="form-control"
-              placeholder="Ej: Perez Morales"
-              [(ngModel)]="formData.apellido"
-              name="apellido"
-            />
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="prov-contacto">Apellido / Referencia</label>
+              <input
+                id="prov-contacto"
+                type="text"
+                class="form-control"
+                placeholder="Ej: SRL o Perez"
+                [(ngModel)]="formData.apellido"
+                name="apellido"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="prov-email">Correo Electrónico</label>
+              <input
+                id="prov-email"
+                type="email"
+                class="form-control"
+                placeholder="ventas@proveedor.com"
+                [(ngModel)]="formData.email"
+                name="email"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="prov-tel">Teléfono / WhatsApp</label>
+              <input
+                id="prov-tel"
+                type="text"
+                class="form-control"
+                placeholder="Ej: 71234567"
+                [(ngModel)]="formData.telefono"
+                name="telefono"
+              />
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="prov-email">Correo Electrónico</label>
-            <input
-              id="prov-email"
-              type="email"
-              class="form-control"
-              placeholder="ventas@proveedor.com"
-              [(ngModel)]="formData.email"
-              name="email"
-            />
+          <!-- MULTIASOCIACIONES (CATEGORIAS, TEMPORADAS, COLECCIONES) -->
+          <div class="multi-section">
+            <h4>🏷️ Categorías Suministradas</h4>
+            <div class="chips-container">
+              @for (cat of categorias(); track cat.id) {
+                <button
+                  type="button"
+                  class="chip-btn"
+                  [class.chip-selected]="formData.categoria_ids?.includes(cat.id)"
+                  (click)="toggleCategoria(cat.id)"
+                >
+                  {{ cat.nombre }}
+                </button>
+              }
+            </div>
           </div>
 
-          <div class="form-group">
-            <label for="prov-tel">Teléfono / WhatsApp</label>
-            <input
-              id="prov-tel"
-              type="text"
-              class="form-control"
-              placeholder="Ej: 71234567"
-              [(ngModel)]="formData.telefono"
-              name="telefono"
-            />
+          <div class="multi-section mt-3">
+            <h4>⛅ Temporadas Suministradas</h4>
+            <div class="chips-container">
+              @for (temp of temporadas(); track temp.id) {
+                <button
+                  type="button"
+                  class="chip-btn"
+                  [class.chip-selected]="formData.temporada_ids?.includes(temp.id)"
+                  (click)="toggleTemporada(temp.id)"
+                >
+                  {{ temp.nombre }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="multi-section mt-3">
+            <h4>🧵 Colecciones Suministradas</h4>
+            <div class="chips-container">
+              @for (col of colecciones(); track col.id) {
+                <button
+                  type="button"
+                  class="chip-btn"
+                  [class.chip-selected]="formData.coleccion_ids?.includes(col.id)"
+                  (click)="toggleColeccion(col.id)"
+                >
+                  {{ col.nombre }}
+                </button>
+              }
+            </div>
           </div>
         </div>
 

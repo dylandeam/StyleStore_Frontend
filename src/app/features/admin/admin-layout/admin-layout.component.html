@@ -45,6 +45,16 @@
           <span class="nav-icon">👕</span>
         </a>
 
+        <!-- Colecciones -->
+        <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item icon-only" title="Colecciones">
+          <span class="nav-icon">🧵</span>
+        </a>
+
+        <!-- Próximamente -->
+        <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item icon-only" title="Próximamente">
+          <span class="nav-icon">⏳</span>
+        </a>
+
         <!-- Gestión de Catálogo (Solo Administrativos) -->
         @if (canManageStore) {
           <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item icon-only" title="Categorías">
@@ -58,6 +68,20 @@
           </a>
           <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
             <span class="nav-icon">🗓️</span>
+          </a>
+          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item icon-only" title="Inventario">
+            <span class="nav-icon">📦</span>
+          </a>
+
+          <!-- Ventas, Reservas y Envíos -->
+          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item icon-only" title="Reservas">
+            <span class="nav-icon">🔖</span>
+          </a>
+          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas">
+            <span class="nav-icon">💼</span>
+          </a>
+          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item icon-only" title="Envíos">
+            <span class="nav-icon">🚚</span>
           </a>
         }
 
@@ -91,12 +115,16 @@
           </a>
         }
 
+        <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item icon-only" title="Mi Perfil">
+          <span class="nav-icon">👤</span>
+        </a>
+
         <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item icon-only" title="Cambiar Contraseña">
           <span class="nav-icon">🔑</span>
         </a>
       </nav>
     } @else {
-      <!-- MODO DESPLEGADO: Agrupación en CATÁLOGO, ADMINISTRACIÓN y SISTEMA -->
+      <!-- MODO DESPLEGADO: Agrupación en CATÁLOGO, VENTAS, ADMINISTRACIÓN y SISTEMA -->
       <nav class="sidebar-nav">
         <!-- Dashboard general -->
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
@@ -110,6 +138,16 @@
         <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">👕</span>
           <span class="nav-label">Productos</span>
+        </a>
+
+        <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🧵</span>
+          <span class="nav-label">Colecciones</span>
+        </a>
+
+        <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">⏳</span>
+          <span class="nav-label">Próximamente</span>
         </a>
 
         @if (canManageStore) {
@@ -131,6 +169,31 @@
           <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">🗓️</span>
             <span class="nav-label">Temporadas</span>
+          </a>
+
+          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Inventario</span>
+          </a>
+        }
+
+        <!-- Sección: VENTAS Y PEDIDOS -->
+        @if (canManageStore) {
+          <div class="nav-group-title mt-group">VENTAS Y PEDIDOS</div>
+
+          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔖</span>
+            <span class="nav-label">Reservas</span>
+          </a>
+
+          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">💼</span>
+            <span class="nav-label">Ventas</span>
+          </a>
+
+          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🚚</span>
+            <span class="nav-label">Envíos</span>
           </a>
         }
 
@@ -173,6 +236,11 @@
 
         <!-- Sección: SISTEMA -->
         <div class="nav-group-title mt-group">SISTEMA</div>
+
+        <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">Mi Perfil</span>
+        </a>
 
         @if (isAdmin) {
           <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">

@@ -6,11 +6,19 @@ export interface Permission {
 }
 
 export interface RoleItem {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  active: boolean;
   role: string;
   permission_count: number;
+  user_count?: number;
+  created_at?: string;
 }
 
 export interface RolePermissions {
+  id?: number;
+  nombre?: string;
   role: string;
   permissions: Permission[];
 }

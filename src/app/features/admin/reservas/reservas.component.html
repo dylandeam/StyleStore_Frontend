@@ -1,0 +1,176 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-titles">
+      <h2>🔖 Gestión de Reservas</h2>
+      <p class="subtitle">Monitoreo de prendas reservadas por clientes y emisión de tickets (Sección 16)</p>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">{{ errorMessage() }}</div>
+  }
+
+  <div class="table-card">
+    @if (isLoading()) {
+      <div class="loading-state">Cargando reservas...</div>
+    } @else if (reservas().length === 0) {
+      <div class="empty-state">
+        <p>No hay reservas registradas en el sistema.</p>
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Estado</th>
+              <th>Código Cliente</th>
+              <th>Sucursal</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of reservas(); track r.id) {
+              <tr>
+                <td class="cell-id">#{{ r.id }}</td>
+                <td>{{ r.fecha }}</td>
+                <td>{{ r.hora }}</td>
+                <td>
+                  <span class="badge"
+                    [class.badge-pending]="r.estado === 'pendiente'"
+                    [class.badge-completed]="r.estado === 'completada'"
+                    [class.badge-canceled]="r.estado === 'cancelada'">
+                    {{ r.estado | uppercase }}
+                  </span>
+                </td>
+                <td class="font-semibold text-navy">{{ r.codigo_cliente }}</td>
+                <td>{{ r.sucursal_ciudad || 'Sucursal #' + r.sucursal_id }}</td>
+                <td class="cell-actions">
+                  <button class="btn-icon" (click)="openDetail(r)" title="Ver Detalle">👁️</button>
+                  <button class="btn-icon btn-print" (click)="openTicket(r)" title="Imprimir Ticket">🎟️ Ticket</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- MODAL DETALLE DE RESERVA -->
+  @if (isDetailModalOpen() && selectedReserva()) {
+    <div class="modal-backdrop" (click)="closeDetail()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Detalle de Reserva #{{ selectedReserva()!.id }}</h3>
+          <button class="btn-close" (click)="closeDetail()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="reserva-meta-grid">
+            <div><strong>Cliente:</strong> {{ selectedReserva()!.cliente_nombre || selectedReserva()!.codigo_cliente }}</div>
+            <div><strong>Sucursal:</strong> {{ selectedReserva()!.sucursal_ciudad }} - {{ selectedReserva()!.sucursal_direccion }}</div>
+            <div><strong>Fecha/Hora:</strong> {{ selectedReserva()!.fecha }} {{ selectedReserva()!.hora }}</div>
+            <div><strong>Estado:</strong>
+              <span class="badge"
+                [class.badge-pending]="selectedReserva()!.estado === 'pendiente'"
+                [class.badge-completed]="selectedReserva()!.estado === 'completada'"
+                [class.badge-canceled]="selectedReserva()!.estado === 'cancelada'">
+                {{ selectedReserva()!.estado | uppercase }}
+              </span>
+            </div>
+          </div>
+
+          <h4 class="mt-4 mb-2 text-navy">Prendas Reservadas:</h4>
+          <div class="items-list">
+            @for (d of selectedReserva()!.detalles; track d.id) {
+              <div class="item-row">
+                <div class="item-info">
+                  <strong>{{ d.producto_nombre || 'Prenda' }}</strong> (Cod: {{ d.producto_codigo }})
+                  <div class="text-xs text-muted">Color: {{ d.color_nombre }} | Talla: {{ d.talla_nombre }}</div>
+                </div>
+                <div class="item-cant badge badge-info">{{ d.cantidad }} ud(s)</div>
+              </div>
+            }
+          </div>
+
+          <div class="status-change-box mt-4">
+            <label><strong>Cambiar Estado:</strong></label>
+            <div class="status-actions">
+              <button
+                class="btn btn-sm btn-success"
+                [disabled]="selectedReserva()!.estado === 'completada'"
+                (click)="updateEstado(selectedReserva()!.id, 'completada')">
+                Marcar Completada
+              </button>
+              <button
+                class="btn btn-sm btn-danger"
+                [disabled]="selectedReserva()!.estado === 'cancelada'"
+                (click)="updateEstado(selectedReserva()!.id, 'cancelada')">
+                Cancelar Reserva
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeDetail()">Cerrar</button>
+          <button class="btn btn-primary" (click)="openTicket(selectedReserva()!)">Ver Ticket</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL TICKET IMPRIMIBLE (v5 sección 15 y 16) -->
+  @if (isTicketModalOpen() && selectedReserva()) {
+    <div class="modal-backdrop" (click)="closeTicket()">
+      <div class="modal-card ticket-card" (click)="$event.stopPropagation()">
+        <div class="ticket-header print-area">
+          <img src="/assets/images/logo.jpg" alt="StyleStore" class="ticket-logo" />
+          <h3 class="ticket-brand">STYLESTORE</h3>
+          <p class="ticket-subtitle">COMPROBANTE OFICIAL DE RESERVA</p>
+          <div class="ticket-divider"></div>
+        </div>
+
+        <div class="ticket-body print-area">
+          <div class="ticket-field"><strong>Nº Reserva:</strong> #{{ selectedReserva()!.id }}</div>
+          <div class="ticket-field"><strong>Fecha:</strong> {{ selectedReserva()!.fecha }}</div>
+          <div class="ticket-field"><strong>Hora:</strong> {{ selectedReserva()!.hora }}</div>
+          <div class="ticket-field"><strong>Sucursal:</strong> {{ selectedReserva()!.sucursal_ciudad }}</div>
+          <div class="ticket-field"><strong>Cliente:</strong> {{ selectedReserva()!.cliente_nombre || selectedReserva()!.codigo_cliente }}</div>
+          <div class="ticket-field"><strong>Estado:</strong> {{ selectedReserva()!.estado | uppercase }}</div>
+
+          <div class="ticket-divider"></div>
+          <table class="ticket-table">
+            <thead>
+              <tr>
+                <th>Prenda</th>
+                <th>Talla</th>
+                <th>Cant</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of selectedReserva()!.detalles; track d.id) {
+                <tr>
+                  <td>{{ d.producto_nombre }}</td>
+                  <td>{{ d.talla_nombre }}</td>
+                  <td>{{ d.cantidad }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <div class="ticket-divider"></div>
+          <p class="ticket-footer-text">Presente este ticket en mostrador para retirar sus prendas. ¡Gracias por su preferencia!</p>
+        </div>
+
+        <div class="modal-footer no-print">
+          <button class="btn btn-secondary" (click)="closeTicket()">Cerrar</button>
+          <button class="btn btn-primary" (click)="printTicket()">🖨️ Imprimir Ticket</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
