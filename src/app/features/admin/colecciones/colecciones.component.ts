@@ -1,8 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ColeccionService } from '../../../core/services/coleccion.service';
-import { Coleccion, ColeccionCreate, ColeccionUpdate } from '../../../core/models/coleccion.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { Coleccion, ColeccionCreate, ColeccionUpdate, ProductoColeccion } from '../../../core/models/coleccion.model';
 
 @Component({
   selector: 'app-colecciones',
@@ -13,13 +15,29 @@ import { Coleccion, ColeccionCreate, ColeccionUpdate } from '../../../core/model
 })
 export class ColeccionesComponent implements OnInit {
   private coleccionService = inject(ColeccionService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
+  // User permissions
+  currentUser = this.authService.currentUser;
+  canManage = computed(() => {
+    const role = this.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
+  });
+
+  // State
   colecciones = signal<Coleccion[]>([]);
+  selectedColeccion = signal<Coleccion | null>(null);
+  productos = signal<ProductoColeccion[]>([]);
   isLoading = signal<boolean>(false);
+  isLoadingProductos = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  // Modal
+  // View toggle for admins: 'catalogo' (interactive gallery) or 'tabla' (crud list)
+  vistaModo = signal<'catalogo' | 'tabla'>('catalogo');
+
+  // Modal Crear / Editar
   isModalOpen = signal<boolean>(false);
   isEditing = signal<boolean>(false);
   selectedId = signal<number | null>(null);
@@ -38,12 +56,53 @@ export class ColeccionesComponent implements OnInit {
       next: (data) => {
         this.colecciones.set(data);
         this.isLoading.set(false);
+
+        // Auto-select first or maintain selection
+        const currentSel = this.selectedColeccion();
+        if (data.length > 0) {
+          if (currentSel) {
+            const updated = data.find((c) => c.id === currentSel.id);
+            if (updated) {
+              this.selectColeccion(updated);
+            } else {
+              this.selectColeccion(data[0]);
+            }
+          } else {
+            this.selectColeccion(data[0]);
+          }
+        } else {
+          this.selectedColeccion.set(null);
+          this.productos.set([]);
+        }
       },
       error: (err) => {
-        this.errorMessage.set('Error al cargar las colecciones.');
+        this.errorMessage.set('Error al cargar las colecciones de moda.');
         this.isLoading.set(false);
       },
     });
+  }
+
+  selectColeccion(col: Coleccion): void {
+    this.selectedColeccion.set(col);
+    this.loadProductos(col.id);
+  }
+
+  loadProductos(coleccionId: number): void {
+    this.isLoadingProductos.set(true);
+    this.coleccionService.getProductosByColeccion(coleccionId).subscribe({
+      next: (prods) => {
+        this.productos.set(prods);
+        this.isLoadingProductos.set(false);
+      },
+      error: () => {
+        this.productos.set([]);
+        this.isLoadingProductos.set(false);
+      },
+    });
+  }
+
+  verProductoEnCatalogo(prod: ProductoColeccion): void {
+    this.router.navigate(['/admin/productos'], { queryParams: { search: prod.nombre } });
   }
 
   openCreateModal(): void {
@@ -56,7 +115,10 @@ export class ColeccionesComponent implements OnInit {
     this.isModalOpen.set(true);
   }
 
-  openEditModal(col: Coleccion): void {
+  openEditModal(col: Coleccion, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.isEditing.set(true);
     this.selectedId.set(col.id);
     this.nombre.set(col.nombre);
@@ -86,7 +148,7 @@ export class ColeccionesComponent implements OnInit {
         active: this.active(),
       };
       this.coleccionService.updateColeccion(this.selectedId()!, updateData).subscribe({
-        next: () => {
+        next: (res) => {
           this.successMessage.set('Colección actualizada con éxito.');
           this.closeModal();
           this.loadColecciones();
@@ -103,7 +165,7 @@ export class ColeccionesComponent implements OnInit {
         descripcion: this.descripcion().trim() || undefined,
       };
       this.coleccionService.createColeccion(createData).subscribe({
-        next: () => {
+        next: (res) => {
           this.successMessage.set('Colección creada con éxito.');
           this.closeModal();
           this.loadColecciones();
@@ -117,7 +179,10 @@ export class ColeccionesComponent implements OnInit {
     }
   }
 
-  deleteColeccion(col: Coleccion): void {
+  deleteColeccion(col: Coleccion, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     if (!confirm(`¿Está seguro de eliminar la colección "${col.nombre}"?`)) {
       return;
     }

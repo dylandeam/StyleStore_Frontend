@@ -19,6 +19,10 @@ export class ColeccionService {
     return this.http.get<Coleccion>(`${this.apiUrl}/${id}`);
   }
 
+  getProductosByColeccion(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${id}/productos`);
+  }
+
   createColeccion(data: ColeccionCreate): Observable<Coleccion> {
     return this.http.post<Coleccion>(this.apiUrl, data);
   }
@@ -31,3 +35,4 @@ export class ColeccionService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 }
+

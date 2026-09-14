@@ -1,12 +1,37 @@
 <div class="page-container">
+  <!-- Page Header -->
   <div class="page-header">
     <div class="header-titles">
       <h2>🧵 Colecciones de Moda</h2>
-      <p class="subtitle">Líneas temáticas y lanzamientos de prendas (CU15)</p>
+      <p class="subtitle">Explora nuestras líneas temáticas y descubre las prendas de cada colección</p>
     </div>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <span>➕</span> Nueva Colección
-    </button>
+
+    <div class="header-actions">
+      @if (canManage()) {
+        <div class="view-toggle">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="vistaModo() === 'catalogo'"
+            (click)="vistaModo.set('catalogo')"
+          >
+            🖼️ Explorar
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="vistaModo() === 'tabla'"
+            (click)="vistaModo.set('tabla')"
+          >
+            📋 Gestión
+          </button>
+        </div>
+
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <span>➕</span> Nueva Colección
+        </button>
+      }
+    </div>
   </div>
 
   @if (successMessage()) {
@@ -16,48 +41,184 @@
     <div class="alert alert-error">{{ errorMessage() }}</div>
   }
 
-  <div class="table-card">
-    @if (isLoading()) {
-      <div class="loading-state">Cargando colecciones...</div>
-    } @else if (colecciones().length === 0) {
-      <div class="empty-state">
-        <p>No hay colecciones registradas todavía.</p>
-        <button class="btn btn-secondary" (click)="openCreateModal()">Crear la primera colección</button>
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando colecciones...</p>
+    </div>
+  } @else if (colecciones().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🧵</span>
+      <h3>No hay colecciones disponibles</h3>
+      <p>Pronto tendremos nuevas colecciones temáticas con prendas exclusivas.</p>
+      @if (canManage()) {
+        <button class="btn btn-primary mt-3" (click)="openCreateModal()">Crear la primera colección</button>
+      }
+    </div>
+  } @else {
+    <!-- VISTA EXPLORADOR DE COLECCIONES Y PRENDAS -->
+    @if (vistaModo() === 'catalogo') {
+      <!-- 1. Carrusel / Lista de Colecciones Disponibles -->
+      <div class="collections-selector-section">
+        <h3 class="section-title">Selecciona una Colección:</h3>
+        <div class="collections-grid">
+          @for (col of colecciones(); track col.id) {
+            <div
+              class="collection-chip-card"
+              [class.selected]="selectedColeccion()?.id === col.id"
+              (click)="selectColeccion(col)"
+            >
+              <div class="chip-top">
+                <span class="chip-icon">🧵</span>
+                <span class="chip-badge" [class.badge-active]="col.active" [class.badge-inactive]="!col.active">
+                  {{ col.active ? 'Activa' : 'Inactiva' }}
+                </span>
+              </div>
+              <h4 class="chip-name">{{ col.nombre }}</h4>
+              <p class="chip-desc">{{ col.descripcion || 'Línea de temporada exclusiva' }}</p>
+              
+              <div class="chip-footer">
+                <span class="chip-count">
+                  {{ col.productos_count !== undefined ? col.productos_count : (selectedColeccion()?.id === col.id ? productos().length : '') }} prendas
+                </span>
+
+                @if (canManage()) {
+                  <div class="chip-admin-actions" (click)="$event.stopPropagation()">
+                    <button class="btn-chip-action" (click)="openEditModal(col, $event)" title="Editar">✏️</button>
+                    <button class="btn-chip-action delete" (click)="deleteColeccion(col, $event)" title="Eliminar">🗑️</button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
       </div>
+
+      <!-- 2. Prendas de la Colección Seleccionada -->
+      @if (selectedColeccion(); as sel) {
+        <div class="collection-showcase-card">
+          <div class="showcase-header">
+            <div class="showcase-title-area">
+              <span class="showcase-tag">Colección Seleccionada</span>
+              <h3 class="showcase-name">{{ sel.nombre }}</h3>
+              @if (sel.descripcion) {
+                <p class="showcase-desc">{{ sel.descripcion }}</p>
+              }
+            </div>
+            <div class="showcase-meta">
+              <span class="badge-total">{{ productos().length }} prenda(s) en esta colección</span>
+              @if (canManage()) {
+                <button class="btn btn-secondary btn-sm" (click)="openEditModal(sel)">
+                  ✏️ Editar Colección
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Grid de Productos de la Colección -->
+          @if (isLoadingProductos()) {
+            <div class="loading-state-small">
+              <div class="spinner"></div>
+              <p>Cargando prendas de la colección {{ sel.nombre }}...</p>
+            </div>
+          } @else if (productos().length === 0) {
+            <div class="empty-products-state">
+              <span class="empty-icon-small">👗</span>
+              <h4>Aún no hay prendas asignadas a esta colección</h4>
+              <p>Las prendas vinculadas a <strong>{{ sel.nombre }}</strong> aparecerán aquí.</p>
+              @if (canManage()) {
+                <a routerLink="/admin/productos" class="btn btn-secondary btn-sm mt-2">
+                  Ir a Gestión de Productos para Asignar
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="products-grid">
+              @for (prod of productos(); track prod.codigo) {
+                <div class="product-card">
+                  <div class="product-img-wrap">
+                    @if (prod.foto) {
+                      <img [src]="prod.foto" [alt]="prod.nombre" class="product-img" />
+                    } @else {
+                      <div class="img-placeholder">
+                        <span>👔</span>
+                      </div>
+                    }
+                    @if (prod.categoria) {
+                      <span class="product-cat-tag">{{ prod.categoria }}</span>
+                    }
+                  </div>
+
+                  <div class="product-info">
+                    <div class="product-code">#{{ prod.codigo }}</div>
+                    <h4 class="product-name" [title]="prod.nombre">{{ prod.nombre }}</h4>
+
+                    @if (prod.temporada) {
+                      <div class="product-temporada">🗓️ {{ prod.temporada }}</div>
+                    }
+
+                    @if (prod.colores && prod.colores.length > 0) {
+                      <div class="product-colors">
+                        @for (col of prod.colores; track col) {
+                          <span class="color-badge">{{ col }}</span>
+                        }
+                      </div>
+                    }
+
+                    <div class="product-footer">
+                      <div class="product-price">Bs {{ prod.precio | number:'1.2-2' }}</div>
+                      <button class="btn btn-view" (click)="verProductoEnCatalogo(prod)">
+                        Ver Detalle ➔
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     } @else {
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (col of colecciones(); track col.id) {
+      <!-- VISTA TABLA ADMINISTRATIVA (SOLO ADMINS) -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
               <tr>
-                <td class="cell-id">#{{ col.id }}</td>
-                <td class="cell-name font-semibold">{{ col.nombre }}</td>
-                <td class="cell-desc">{{ col.descripcion || 'Sin descripción' }}</td>
-                <td>
-                  <span class="badge" [class.badge-active]="col.active" [class.badge-inactive]="!col.active">
-                    {{ col.active ? 'Activa' : 'Inactiva' }}
-                  </span>
-                </td>
-                <td class="cell-actions">
-                  <button class="btn-icon btn-edit" (click)="openEditModal(col)" title="Editar">✏️</button>
-                  <button class="btn-icon btn-delete" (click)="deleteColeccion(col)" title="Eliminar">🗑️</button>
-                </td>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Prendas</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              @for (col of colecciones(); track col.id) {
+                <tr>
+                  <td class="cell-id">#{{ col.id }}</td>
+                  <td class="cell-name font-semibold">{{ col.nombre }}</td>
+                  <td class="cell-desc">{{ col.descripcion || 'Sin descripción' }}</td>
+                  <td>
+                    <span class="badge badge-info">{{ col.productos_count || 0 }} productos</span>
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-active]="col.active" [class.badge-inactive]="!col.active">
+                      {{ col.active ? 'Activa' : 'Inactiva' }}
+                    </span>
+                  </td>
+                  <td class="cell-actions">
+                    <button class="btn-icon btn-edit" (click)="openEditModal(col)" title="Editar">✏️</button>
+                    <button class="btn-icon btn-delete" (click)="deleteColeccion(col)" title="Eliminar">🗑️</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
-  </div>
+  }
 
   <!-- MODAL CREAR / EDITAR -->
   @if (isModalOpen()) {
@@ -74,7 +235,7 @@
             <input
               type="text"
               class="form-control"
-              placeholder="Ej: Colección Vintage 2026"
+              placeholder="Ej: Colección Urbana Otoño 2026"
               [ngModel]="nombre()"
               (ngModelChange)="nombre.set($event)"
               required
@@ -86,7 +247,7 @@
             <textarea
               class="form-control"
               rows="3"
-              placeholder="Descripción de la colección..."
+              placeholder="Descripción temática de la colección..."
               [ngModel]="descripcion()"
               (ngModelChange)="descripcion.set($event)"
             ></textarea>

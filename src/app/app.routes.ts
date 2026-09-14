@@ -59,12 +59,12 @@ export const routes: Routes = [
       {
         path: 'admin/colecciones',
         component: ColeccionesComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
       },
       {
         path: 'admin/proximamente',
         component: ProximamenteComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
       },
       {
         path: 'admin/inventario',
