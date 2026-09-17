@@ -17,6 +17,10 @@ export class BitacoraListComponent implements OnInit {
 
   logs = signal<Bitacora[]>([]);
   isLoading = signal<boolean>(false);
+  isUnlocked = signal<boolean>(false);
+  masterKeyInput = '';
+  unlockError = signal<string>('');
+  unlocking = signal<boolean>(false);
 
   // Filters
   userFilter = '';
@@ -27,7 +31,39 @@ export class BitacoraListComponent implements OnInit {
   pages = signal<number>(1);
 
   ngOnInit(): void {
-    this.loadLogs();
+    // La bitácora permanece bloqueada hasta ingresar la llave
+  }
+
+  desbloquearBitacora(): void {
+    if (!this.masterKeyInput.trim()) {
+      this.unlockError.set('Por favor ingresa la llave de seguridad.');
+      return;
+    }
+
+    this.unlocking.set(true);
+    this.unlockError.set('');
+
+    this.bitacoraService.verificarLlave(this.masterKeyInput).subscribe({
+      next: (res) => {
+        this.unlocking.set(false);
+        if (res.valid) {
+          this.isUnlocked.set(true);
+          this.loadLogs();
+        } else {
+          this.unlockError.set(res.message || 'Llave incorrecta.');
+        }
+      },
+      error: () => {
+        this.unlocking.set(false);
+        this.unlockError.set('Error al validar la llave de seguridad.');
+      },
+    });
+  }
+
+  bloquearBitacora(): void {
+    this.isUnlocked.set(false);
+    this.masterKeyInput = '';
+    this.unlockError.set('');
   }
 
   loadLogs(): void {

@@ -106,4 +106,12 @@ export class CarritoService {
 
     return this.http.get<CatalogoItem[]>(this.catalogoUrl, { params });
   }
+
+  getProductoDetalle(codigo: string): Observable<CatalogoItem> {
+    return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`);
+  }
+
+  getRecomendadosIA(codigo: string, limit: number = 4): Observable<any[]> {
+    return this.http.get<any[]>(`${this.catalogoUrl}/${codigo}/recomendados?limit=${limit}`);
+  }
 }

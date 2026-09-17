@@ -29,4 +29,25 @@ export class BitacoraService {
 
     return this.http.get<BitacoraPageResponse>(this.apiUrl, { params });
   }
+
+  verificarLlave(key: string): Observable<{ valid: boolean; message: string; ip?: string }> {
+    return this.http.post<{ valid: boolean; message: string; ip?: string }>(`${this.apiUrl}/verificar-llave`, { key });
+  }
+
+  cambiarClaveBitacora(currentPassword: string, newBitacoraPassword: string): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/cambiar-clave`, {
+      current_password: currentPassword,
+      new_bitacora_password: newBitacoraPassword,
+    });
+  }
+
+  restablecerClaveBitacora(currentPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/restablecer-clave`, {
+      current_password: currentPassword,
+    });
+  }
+
+  getEstadoClave(): Observable<{ is_custom: boolean; type: string }> {
+    return this.http.get<{ is_custom: boolean; type: string }>(`${this.apiUrl}/estado-clave`);
+  }
 }

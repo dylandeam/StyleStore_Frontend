@@ -21,13 +21,57 @@ export class EnviosComponent implements OnInit {
 
   selectedEnvio = signal<Envio | null>(null);
   isEditModalOpen = signal<boolean>(false);
+  isYangoModalOpen = signal<boolean>(false);
   editEstado = signal<string>('pendiente');
   editDireccion = signal<string>('');
   editCiudad = signal<string>('');
   editCosto = signal<number>(0);
 
+  // Yango Delivery Tracking
+  editYangoCode = signal<string>('');
+  editYangoUrl = signal<string>('');
+  editDeliveryConductor = signal<string>('');
+
   ngOnInit(): void {
     this.loadEnvios();
+  }
+
+  openYangoModal(e: Envio): void {
+    this.selectedEnvio.set(e);
+    this.editYangoCode.set(e.yango_tracking_code || '');
+    this.editYangoUrl.set(e.yango_tracking_url || '');
+    this.editDeliveryConductor.set(e.delivery_conductor || '');
+    this.editEstado.set(e.estado || 'en camino');
+    this.isYangoModalOpen.set(true);
+  }
+
+  closeYangoModal(): void {
+    this.isYangoModalOpen.set(false);
+  }
+
+  saveYangoTracking(): void {
+    if (!this.selectedEnvio()) return;
+    this.isLoading.set(true);
+
+    this.envioService
+      .updateYangoTracking(this.selectedEnvio()!.id, {
+        yango_tracking_code: this.editYangoCode().trim(),
+        yango_tracking_url: this.editYangoUrl().trim(),
+        delivery_conductor: this.editDeliveryConductor().trim(),
+        estado: this.editEstado(),
+      })
+      .subscribe({
+        next: () => {
+          this.successMessage.set(`Tracking Yango asignado al Envío #${this.selectedEnvio()!.id}`);
+          this.closeYangoModal();
+          this.loadEnvios();
+          setTimeout(() => this.successMessage.set(null), 3000);
+        },
+        error: (err) => {
+          this.errorMessage.set(err.error?.detail || 'Error al actualizar tracking Yango.');
+          this.isLoading.set(false);
+        },
+      });
   }
 
   loadEnvios(): void {

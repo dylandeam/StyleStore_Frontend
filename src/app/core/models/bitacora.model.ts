@@ -4,6 +4,7 @@ export interface Bitacora {
   user_snapshot: string;
   action: string;
   module?: string | null;
+  ip_address?: string | null;
   created_at: string;
 }
 

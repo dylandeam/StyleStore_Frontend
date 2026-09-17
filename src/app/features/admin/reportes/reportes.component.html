@@ -1,0 +1,127 @@
+<div class="reportes-page">
+  <!-- Toast Notificación -->
+  <div class="toast-notification" *ngIf="mensajeToast">
+    <span>{{ mensajeToast }}</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Administración / <span>Reportes Dinámicos</span></div>
+      <h1>Generación y Exportación de Reportes</h1>
+      <p class="subtitle">Descarga reportes consolidados en Excel (.xlsx con openpyxl) y PDF (.pdf con reportlab).</p>
+    </div>
+  </div>
+
+  <div class="reportes-grid">
+    <!-- 1. Reporte de Ventas -->
+    <div class="card reporte-card">
+      <div class="card-icon-header">
+        <span class="report-icon">📊</span>
+        <div>
+          <h2>Reporte General de Ventas</h2>
+          <p>Consolidado de ventas, tickets emitidos, clientes y métodos de pago.</p>
+        </div>
+      </div>
+
+      <div class="filtros-box">
+        <div class="filtro-row">
+          <div class="form-group">
+            <label>Fecha Desde</label>
+            <input type="date" class="form-control" [(ngModel)]="ventasFechaInicio" />
+          </div>
+          <div class="form-group">
+            <label>Fecha Hasta</label>
+            <input type="date" class="form-control" [(ngModel)]="ventasFechaFin" />
+          </div>
+        </div>
+
+        <div class="filtro-row">
+          <div class="form-group">
+            <label>Sucursal</label>
+            <select class="form-control" [(ngModel)]="ventasSucursalId">
+              <option value="">Todas las Sucursales</option>
+              <option *ngFor="let s of sucursales" [value]="s.id">{{ s.name }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Método de Pago</label>
+            <select class="form-control" [(ngModel)]="ventasMetodoPago">
+              <option value="">Todos los Métodos</option>
+              <option value="efectivo">Efectivo / Caja POS</option>
+              <option value="paypal">PayPal Orders v2</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <button
+          type="button"
+          class="btn-export btn-excel"
+          [disabled]="descargando"
+          (click)="descargarVentasExcel()"
+        >
+          <span>📗</span> Exportar a Excel (.xlsx)
+        </button>
+
+        <button
+          type="button"
+          class="btn-export btn-pdf"
+          [disabled]="descargando"
+          (click)="descargarVentasPDF()"
+        >
+          <span>📕</span> Exportar a PDF (.pdf)
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Reporte de Inventario y Stock Crítico -->
+    <div class="card reporte-card">
+      <div class="card-icon-header">
+        <span class="report-icon">📦</span>
+        <div>
+          <h2>Reporte de Inventario & Stock</h2>
+          <p>Existencias por producto, color, talla y sucursal con alertas de reabastecimiento.</p>
+        </div>
+      </div>
+
+      <div class="filtros-box">
+        <div class="form-group">
+          <label>Sucursal</label>
+          <select class="form-control" [(ngModel)]="invSucursalId">
+            <option value="">Todas las Sucursales</option>
+            <option *ngFor="let s of sucursales" [value]="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+
+        <div class="checkbox-box">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="invSoloBajoStock" />
+            <span>Filtrar solo prendas con <strong>stock crítico (≤ 5 unidades)</strong></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="export-actions">
+        <button
+          type="button"
+          class="btn-export btn-excel"
+          [disabled]="descargando"
+          (click)="descargarInventarioExcel()"
+        >
+          <span>📗</span> Exportar Inventario (.xlsx)
+        </button>
+
+        <button
+          type="button"
+          class="btn-export btn-pdf"
+          [disabled]="descargando"
+          (click)="descargarInventarioPDF()"
+        >
+          <span>📕</span> Exportar Inventario (.pdf)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

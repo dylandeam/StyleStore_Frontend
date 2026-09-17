@@ -34,6 +34,14 @@ export class EnvioService {
     return this.http.patch<Envio>(`${this.apiUrl}/${id}/completar`, {});
   }
 
+  updateYangoTracking(id: number, data: any): Observable<Envio> {
+    return this.http.patch<Envio>(`${this.apiUrl}/${id}/yango`, data);
+  }
+
+  getEnvioByOrden(ordenId: number): Observable<Envio> {
+    return this.http.get<Envio>(`${this.apiUrl}/orden/${ordenId}`);
+  }
+
   deleteEnvio(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }

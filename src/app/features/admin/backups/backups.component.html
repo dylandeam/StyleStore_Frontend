@@ -1,0 +1,113 @@
+<div class="backups-page">
+  <!-- Toast Notificación -->
+  <div class="toast-notification" *ngIf="mensajeToast">
+    <span>{{ mensajeToast }}</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Seguridad / <span>Copias de Seguridad</span></div>
+      <h1>Respaldo y Auditoría Criptográfica SHA-256</h1>
+      <p class="subtitle">Generación de snapshots de base de datos con verificación de integridad por hashing SHA-256.</p>
+    </div>
+
+    <button
+      class="btn-generar"
+      [disabled]="generando"
+      (click)="generarBackup()"
+    >
+      <span *ngIf="!generando">⚡ Crear Copia de Seguridad Inmediata</span>
+      <span *ngIf="generando">Generando snapshot & SHA-256...</span>
+    </button>
+  </div>
+
+  <!-- Tarjeta Informativa de Seguridad -->
+  <div class="card info-banner">
+    <div class="info-icon">🛡️</div>
+    <div>
+      <strong>Integridad de Datos Garantizada</strong>
+      <p>Cada archivo de respaldo exportado en formato JSON contiene la totalidad de tablas de StyleStore y un hash SHA-256 de 256 bits para prevenir alteraciones o corrupciones en el almacenamiento.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="card loading-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando historial de respaldos...</p>
+  </div>
+
+  <!-- Tabla de Backups -->
+  <div class="card table-card" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Archivo</th>
+            <th>Hash SHA-256</th>
+            <th>Tamaño</th>
+            <th>Tipo</th>
+            <th>Fecha</th>
+            <th>Estado / Integridad</th>
+            <th class="actions-col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of backups">
+            <td class="cell-id">#{{ b.id }}</td>
+            <td class="cell-filename">
+              <strong>{{ b.nombre_archivo }}</strong>
+            </td>
+            <td>
+              <div class="hash-wrap" (click)="copiarHash(b.sha256_hash)" title="Clic para copiar hash completo">
+                <code>{{ b.sha256_hash.substring(0, 16) }}...{{ b.sha256_hash.substring(b.sha256_hash.length - 8) }}</code>
+                <span class="copy-icon">📋</span>
+              </div>
+            </td>
+            <td>{{ (b.tamano_bytes / 1024) | number:'1.1-1' }} KB</td>
+            <td>
+              <span class="badge-tipo">{{ b.tipo }}</span>
+            </td>
+            <td class="cell-date">{{ b.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <div *ngIf="!resultadoVerificacion[b.id]">
+                <span class="badge-status-ok">Registrado</span>
+              </div>
+              <div *ngIf="resultadoVerificacion[b.id]">
+                <span class="badge-verified" *ngIf="resultadoVerificacion[b.id].valido">
+                  ✓ SHA-256 Válido
+                </span>
+                <span class="badge-corrupt" *ngIf="!resultadoVerificacion[b.id].valido">
+                  ✕ Hash no coincide
+                </span>
+              </div>
+            </td>
+            <td class="actions-col">
+              <button
+                class="btn-action download"
+                (click)="descargar(b)"
+                title="Descargar archivo .json"
+              >
+                📥 Descargar
+              </button>
+              <button
+                class="btn-action verify"
+                [disabled]="verificandoId === b.id"
+                (click)="verificar(b)"
+                title="Verificar integridad con SHA-256"
+              >
+                {{ verificandoId === b.id ? '⏳' : '🔍 Verificar' }}
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="backups.length === 0">
+            <td colspan="8" class="text-center py-4 text-muted">
+              No hay copias de seguridad registradas aún. Haz clic en "Crear Copia de Seguridad Inmediata".
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -136,6 +136,44 @@
           </div>
         </a>
 
+        <!-- Bolsa / Carrito Module -->
+        <a routerLink="/carrito" class="dash-module-card">
+          <div class="mod-icon">
+            <span>🛒</span>
+          </div>
+          <div class="mod-info">
+            <h3>Bolsa de Compras</h3>
+            <p>Carrito de compras interactivo y pasarela de pago digital.</p>
+            <span class="mod-link">Ir a la bolsa &rarr;</span>
+          </div>
+        </a>
+
+        @if (isStaff) {
+          <!-- Caja POS Module -->
+          <a routerLink="/admin/caja" class="dash-module-card">
+            <div class="mod-icon">
+              <span>💵</span>
+            </div>
+            <div class="mod-info">
+              <h3>Caja / Cobros POS</h3>
+              <p>Punto de venta presencial con cálculo de vuelto y tickets.</p>
+              <span class="mod-link">Ir a caja &rarr;</span>
+            </div>
+          </a>
+
+          <!-- Reportes Module -->
+          <a routerLink="/admin/reportes" class="dash-module-card">
+            <div class="mod-icon">
+              <span>📊</span>
+            </div>
+            <div class="mod-info">
+              <h3>Reportes Dinámicos</h3>
+              <p>Exportación estadística de ventas e inventario a Excel y PDF.</p>
+              <span class="mod-link">Ir a reportes &rarr;</span>
+            </div>
+          </a>
+        }
+
         <!-- Users Module (Admin only) -->
         @if (isAdmin) {
           <a routerLink="/admin/usuarios" class="dash-module-card">
@@ -161,18 +199,30 @@
             </div>
           </a>
 
-          <!-- Bitacora Module (Admin only) -->
-          <a routerLink="/admin/bitacora" class="dash-module-card">
+          <!-- Backups Module (Admin only) -->
+          <a routerLink="/admin/backups" class="dash-module-card">
             <div class="mod-icon">
-              <span>📒</span>
+              <span>💾</span>
             </div>
             <div class="mod-info">
-              <h3>Bitácora de Auditoría</h3>
-              <p>Historial inmutable de eventos, auditoría y accesos.</p>
-              <span class="mod-link">Ir al módulo &rarr;</span>
+              <h3>Copias de Seguridad (SHA-256)</h3>
+              <p>Snapshots criptográficos con verificación de integridad.</p>
+              <span class="mod-link">Ir a backups &rarr;</span>
             </div>
           </a>
         }
+
+        <!-- Bitacora Module (Visible para todos, protegida con Llave Maestra) -->
+        <a routerLink="/admin/bitacora" class="dash-module-card">
+          <div class="mod-icon">
+            <span>📒</span>
+          </div>
+          <div class="mod-info">
+            <h3>Bitácora de Auditoría</h3>
+            <p>Historial inmutable protegido con llave maestra / clave admin.</p>
+            <span class="mod-link">Acceso protegido &rarr;</span>
+          </div>
+        </a>
 
         <!-- Perfil Module (Everyone) -->
         <a routerLink="/cuenta/perfil" class="dash-module-card">

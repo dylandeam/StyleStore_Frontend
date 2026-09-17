@@ -9,6 +9,9 @@ export interface Envio {
   fecha: string;
   created_at: string;
   cliente_nombre?: string;
+  yango_tracking_code?: string;
+  yango_tracking_url?: string;
+  delivery_conductor?: string;
 }
 
 export interface EnvioCreate {
@@ -25,5 +28,15 @@ export interface EnvioUpdate {
   ciudad?: string;
   referencia?: string;
   costo?: number;
+  estado?: string;
+  yango_tracking_code?: string;
+  yango_tracking_url?: string;
+  delivery_conductor?: string;
+}
+
+export interface EnvioYangoUpdate {
+  yango_tracking_code?: string;
+  yango_tracking_url?: string;
+  delivery_conductor?: string;
   estado?: string;
 }

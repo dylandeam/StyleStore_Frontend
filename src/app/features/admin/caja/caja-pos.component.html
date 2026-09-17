@@ -1,0 +1,173 @@
+<div class="pos-container">
+  <!-- Toast Notificación -->
+  <div class="toast-notification" *ngIf="mensajeToast">
+    <span>{{ mensajeToast }}</span>
+  </div>
+
+  <div class="pos-header">
+    <div>
+      <div class="breadcrumb">Administración / <span>Punto de Venta</span></div>
+      <h1>Caja y Cobros POS en Efectivo</h1>
+      <p class="subtitle">Cobro presencial de órdenes con cálculo automático de vuelto y emisión de tickets numerados.</p>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal POS en 2 Columnas -->
+  <div class="pos-grid">
+    <!-- Columna Izquierda: Órdenes Pendientes de Cobro -->
+    <div class="pos-orders-list">
+      <div class="card header-card">
+        <h3>Órdenes Pendientes de Pago ({{ ordenesPendientes.length }})</h3>
+      </div>
+
+      <div class="orders-scroll-area">
+        <div class="empty-notice" *ngIf="!loading && ordenesPendientes.length === 0">
+          <p>No hay órdenes pendientes de cobro en este momento.</p>
+        </div>
+
+        <div
+          class="order-card-item"
+          *ngFor="let o of ordenesPendientes"
+          [class.selected]="ordenSeleccionada?.id === o.id"
+          (click)="seleccionarOrden(o)"
+        >
+          <div class="order-top">
+            <span class="order-number">Orden #{{ o.id }}</span>
+            <span class="order-date">{{ o.fecha }}</span>
+          </div>
+
+          <div class="order-client">
+            <strong>{{ o.cliente_nombre || 'Cliente General' }}</strong>
+            <span class="client-subtext">Código: {{ o.codigo_cliente }}</span>
+          </div>
+
+          <div class="order-items-preview" *ngIf="o.detalles && o.detalles.length > 0">
+            <span class="items-count">{{ o.detalles.length }} artículo(s)</span>
+          </div>
+
+          <div class="order-total-row">
+            <span class="total-label">Total:</span>
+            <span class="total-val">${{ o.total | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Panel de Cobro & Emisión de Ticket -->
+    <div class="pos-checkout-panel">
+      <!-- Si no hay orden seleccionada -->
+      <div class="card empty-selection-card" *ngIf="!ordenSeleccionada && !ticketEmitido">
+        <div class="pos-icon">💵</div>
+        <h3>Selecciona una orden</h3>
+        <p>Haz clic en una orden pendiente de la lista izquierda para iniciar el cobro en efectivo.</p>
+      </div>
+
+      <!-- Formulario de Cobro Activo -->
+      <div class="card checkout-card" *ngIf="ordenSeleccionada && !ticketEmitido">
+        <div class="checkout-header">
+          <h2>Cobro: Orden #{{ ordenSeleccionada.id }}</h2>
+          <span class="badge-status">Pendiente de Pago</span>
+        </div>
+
+        <div class="client-bar">
+          <span>Cliente: <strong>{{ ordenSeleccionada.cliente_nombre || ordenSeleccionada.codigo_cliente }}</strong></span>
+        </div>
+
+        <!-- Total a Pagar -->
+        <div class="amount-to-pay-display">
+          <span class="label">TOTAL A COBRAR</span>
+          <span class="value">${{ ordenSeleccionada.total | number:'1.2-2' }}</span>
+        </div>
+
+        <!-- Alerta de Error -->
+        <div class="alert-box error" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <!-- Input de Efectivo Recibido -->
+        <div class="cash-input-group">
+          <label>Efectivo Recibido ($)</label>
+          <input
+            type="number"
+            step="1"
+            min="0"
+            class="cash-input"
+            [(ngModel)]="efectivoRecibido"
+          />
+
+          <!-- Botones de Billetes Rápidos -->
+          <div class="quick-cash-buttons">
+            <button type="button" class="btn-cash" (click)="addBilletes(10)">+$10</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(20)">+$20</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(50)">+$50</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(100)">+$100</button>
+            <button type="button" class="btn-cash exact" (click)="setBilletes(ordenSeleccionada.total)">Exacto</button>
+          </div>
+        </div>
+
+        <!-- Indicador de Vuelto / Cambio -->
+        <div class="cambio-display" [class.valid]="puedeCobrar">
+          <div class="cambio-label">CAMBIO A DEVOLVER:</div>
+          <div class="cambio-value">${{ cambio | number:'1.2-2' }}</div>
+        </div>
+
+        <!-- Botón Procesar Cobro -->
+        <button
+          type="button"
+          class="btn-emitir-ticket"
+          [disabled]="!puedeCobrar || procesando"
+          (click)="procesarCobro()"
+        >
+          <span *ngIf="!procesando">✓ Cobrar y Emitir Ticket</span>
+          <span *ngIf="procesando">Registrando cobro...</span>
+        </button>
+      </div>
+
+      <!-- Ticket Emitido / Imprimible -->
+      <div class="card ticket-card" *ngIf="ticketEmitido">
+        <div class="ticket-thermal-receipt" id="ticket-pos-print">
+          <div class="receipt-header">
+            <h2 class="receipt-brand">STYLESTORE</h2>
+            <p class="receipt-address">Moda & Alta Calidad</p>
+            <div class="receipt-divider">================================</div>
+            <div class="receipt-line"><strong>TICKET DE CAJA</strong></div>
+            <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
+            <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
+            <div class="receipt-divider">--------------------------------</div>
+          </div>
+
+          <div class="receipt-body">
+            <div class="receipt-row">
+              <span>TOTAL PAGADO:</span>
+              <strong>${{ ticketEmitido.total | number:'1.2-2' }}</strong>
+            </div>
+            <div class="receipt-row">
+              <span>EFECTIVO RECIBIDO:</span>
+              <span>${{ ticketEmitido.efectivo_recibido | number:'1.2-2' }}</span>
+            </div>
+            <div class="receipt-row cambio-row">
+              <span>CAMBIO / VUELTO:</span>
+              <strong>${{ ticketEmitido.cambio_devuelto | number:'1.2-2' }}</strong>
+            </div>
+            <div class="receipt-divider">================================</div>
+          </div>
+
+          <div class="receipt-footer">
+            <p>¡Gracias por su compra en StyleStore!</p>
+            <p class="receipt-small">Este comprobante certifica su pago en efectivo.</p>
+          </div>
+        </div>
+
+        <div class="ticket-actions no-print">
+          <button type="button" class="btn btn-print" (click)="imprimirTicket()">
+            🖨️ Imprimir Ticket
+          </button>
+          <button type="button" class="btn btn-new-sale" (click)="nuevaVenta()">
+            + Nuevo Cobro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -55,6 +55,16 @@
           <span class="nav-icon">⏳</span>
         </a>
 
+        <!-- Bolsa / Carrito -->
+        <a routerLink="/carrito" routerLinkActive="active" class="nav-item icon-only" title="Bolsa de Compras">
+          <span class="nav-icon">🛒</span>
+        </a>
+
+        <!-- Inventario (Visible para todos) -->
+        <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item icon-only" title="Inventario">
+          <span class="nav-icon">📦</span>
+        </a>
+
         <!-- Gestión de Catálogo (Solo Administrativos) -->
         @if (canManageStore) {
           <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item icon-only" title="Categorías">
@@ -69,21 +79,24 @@
           <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
             <span class="nav-icon">🗓️</span>
           </a>
-          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item icon-only" title="Inventario">
-            <span class="nav-icon">📦</span>
+          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Caja POS">
+            <span class="nav-icon">💵</span>
           </a>
-
-          <!-- Ventas, Reservas y Envíos -->
-          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item icon-only" title="Reservas">
-            <span class="nav-icon">🔖</span>
-          </a>
-          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas">
-            <span class="nav-icon">💼</span>
-          </a>
-          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item icon-only" title="Envíos">
-            <span class="nav-icon">🚚</span>
+          <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item icon-only" title="Reportes">
+            <span class="nav-icon">📊</span>
           </a>
         }
+
+        <!-- Ventas, Reservas y Envíos (Visible para todos) -->
+        <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas y Pedidos">
+          <span class="nav-icon">💼</span>
+        </a>
+        <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item icon-only" title="Reservas">
+          <span class="nav-icon">🔖</span>
+        </a>
+        <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item icon-only" title="Envíos & Yango">
+          <span class="nav-icon">🚚</span>
+        </a>
 
         <!-- Sucursales (Visible para todos) -->
         <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
@@ -110,10 +123,15 @@
           <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item icon-only" title="Roles y Permisos">
             <span class="nav-icon">🛡️</span>
           </a>
-          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora">
-            <span class="nav-icon">📒</span>
+          <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item icon-only" title="Backups SHA-256">
+            <span class="nav-icon">💾</span>
           </a>
         }
+
+        <!-- Bitácora de Auditoría (Protegida con Llave Maestra) -->
+        <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría (Protegida)">
+          <span class="nav-icon">📒</span>
+        </a>
 
         <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item icon-only" title="Mi Perfil">
           <span class="nav-icon">👤</span>
@@ -150,6 +168,18 @@
           <span class="nav-label">Próximamente</span>
         </a>
 
+        <!-- Bolsa de compras para clientes y usuarios -->
+        <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🛒</span>
+          <span class="nav-label">Bolsa de Compras</span>
+        </a>
+
+        <!-- Control de Inventario (Visible para todos) -->
+        <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📦</span>
+          <span class="nav-label">Inventario</span>
+        </a>
+
         @if (canManageStore) {
           <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">📁</span>
@@ -170,32 +200,37 @@
             <span class="nav-icon">🗓️</span>
             <span class="nav-label">Temporadas</span>
           </a>
-
-          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">📦</span>
-            <span class="nav-label">Inventario</span>
-          </a>
         }
 
         <!-- Sección: VENTAS Y PEDIDOS -->
+        <div class="nav-group-title mt-group">VENTAS Y PEDIDOS</div>
+
         @if (canManageStore) {
-          <div class="nav-group-title mt-group">VENTAS Y PEDIDOS</div>
-
-          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🔖</span>
-            <span class="nav-label">Reservas</span>
+          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">💵</span>
+            <span class="nav-label">Caja POS</span>
           </a>
 
-          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">💼</span>
-            <span class="nav-label">Ventas</span>
-          </a>
-
-          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🚚</span>
-            <span class="nav-label">Envíos</span>
+          <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Reportes (Excel & PDF)</span>
           </a>
         }
+
+        <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">💼</span>
+          <span class="nav-label">Gestión de Ventas</span>
+        </a>
+
+        <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🔖</span>
+          <span class="nav-label">Reservas y Tickets</span>
+        </a>
+
+        <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">🚚</span>
+          <span class="nav-label">Despachos y Envíos (Yango)</span>
+        </a>
 
         <!-- Sección: ADMINISTRACIÓN -->
         <div class="nav-group-title mt-group">ADMINISTRACIÓN</div>
@@ -232,22 +267,26 @@
             <span class="nav-icon">🛡️</span>
             <span class="nav-label">Roles y Permisos</span>
           </a>
+
+          <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">💾</span>
+            <span class="nav-label">Backups (SHA-256)</span>
+          </a>
         }
 
         <!-- Sección: SISTEMA -->
         <div class="nav-group-title mt-group">SISTEMA</div>
 
+        <!-- Bitácora de Auditoría (Protegida con Llave Maestra) -->
+        <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
+          <span class="nav-icon">📒</span>
+          <span class="nav-label">Bitácora de Auditoría</span>
+        </a>
+
         <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">👤</span>
           <span class="nav-label">Mi Perfil</span>
         </a>
-
-        @if (isAdmin) {
-          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">📒</span>
-            <span class="nav-label">Bitácora de Auditoría</span>
-          </a>
-        }
 
         <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">🔑</span>
@@ -310,6 +349,12 @@
       </div>
 
       <div class="header-right-actions">
+        <!-- Botón Rápido Bolsa / Carrito -->
+        <a routerLink="/carrito" class="top-cart-btn" title="Bolsa de Compras">
+          <span class="cart-emoji">🛒</span>
+          <span class="cart-label">Bolsa</span>
+        </a>
+
         @if (user()) {
           <div class="top-user-chip">
             <div class="top-chip-avatar">

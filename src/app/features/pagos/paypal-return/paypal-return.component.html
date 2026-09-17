@@ -1,0 +1,34 @@
+<div class="paypal-return-container">
+  <div class="card result-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <h2>Confirmando pago con PayPal...</h2>
+    <p>Por favor espera un instante mientras validamos tu transacción.</p>
+  </div>
+
+  <div class="card result-card success" *ngIf="!loading && exito">
+    <div class="check-icon">✓</div>
+    <h2>¡Pago Completado con Éxito!</h2>
+    <p class="desc">Hemos procesado tu pago a través de PayPal correctamente.</p>
+
+    <div class="details-box">
+      <div>Orden StyleStore: <strong>#{{ ordenId }}</strong></div>
+      <div *ngIf="captureId">ID de Transacción PayPal: <span class="mono">{{ captureId }}</span></div>
+      <div>Monto: <strong>${{ monto | number:'1.2-2' }}</strong></div>
+      <div>Estado: <span class="badge-success">APROBADO</span></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" routerLink="/admin/ventas">Ver Mis Pedidos</button>
+      <button class="btn btn-secondary" routerLink="/admin/productos">Seguir Comprando</button>
+    </div>
+  </div>
+
+  <div class="card result-card error" *ngIf="!loading && error">
+    <div class="error-icon">✕</div>
+    <h2>Hubo un inconveniente</h2>
+    <p>{{ error }}</p>
+    <div class="actions">
+      <button class="btn btn-primary" routerLink="/carrito">Volver al Carrito</button>
+    </div>
+  </div>
+</div>

@@ -140,4 +140,104 @@
       </div>
     </form>
   </div>
+
+  <!-- SECCIÓN EXCLUSIVA DE ADMINISTRADOR: SEGURIDAD DE LA BITÁCORA -->
+  @if (isAdmin()) {
+    <div class="profile-card bitacora-security-card">
+      <div class="security-card-header">
+        <div class="security-header-info">
+          <span class="security-icon">🔐</span>
+          <div>
+            <h3>Seguridad de la Bitácora de Auditoría</h3>
+            <p class="security-desc">
+              Configura una clave de acceso específica para el módulo de auditoría y visualización de direcciones IP.
+            </p>
+          </div>
+        </div>
+        <div class="key-status-badge-wrap">
+          <span class="status-badge" [ngClass]="bitacoraKeyStatus()?.is_custom ? 'badge-custom' : 'badge-default'">
+            {{ bitacoraKeyStatus()?.is_custom ? '🔑 Clave Personalizada' : '🛡️ Clave Predeterminada (Cuenta)' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="security-alert alert-info">
+        ℹ️ <strong>Información:</strong> Por defecto, la contraseña para ingresar a la bitácora es <strong>la misma contraseña de tu cuenta</strong>. Si deseas una clave diferente por mayor privacidad o delegación, puedes cambiarla verificando previamente tu contraseña actual de cuenta.
+      </div>
+
+      @if (bitacoraSuccessMessage()) {
+        <div class="alert alert-success">{{ bitacoraSuccessMessage() }}</div>
+      }
+      @if (bitacoraErrorMessage()) {
+        <div class="alert alert-error">{{ bitacoraErrorMessage() }}</div>
+      }
+
+      <form (ngSubmit)="updateBitacoraPassword()" class="security-form">
+        <div class="form-grid">
+          <!-- Contraseña actual de cuenta requerida -->
+          <div class="form-group full-width">
+            <label>Contraseña Actual de tu Cuenta <span class="req">*</span></label>
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Introduce la contraseña con la que inicias sesión"
+              [ngModel]="bitacoraCurrentPassword()"
+              (ngModelChange)="bitacoraCurrentPassword.set($event)"
+              name="bitacoraCurrentPassword"
+              required
+            />
+            <small class="field-hint">Obligatorio para verificar que eres el titular de la cuenta administradora.</small>
+          </div>
+
+          <!-- Nueva clave de bitácora -->
+          <div class="form-group">
+            <label>Nueva Contraseña de Bitácora <span class="req">*</span></label>
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Mínimo 4 caracteres"
+              [ngModel]="bitacoraNewPassword()"
+              (ngModelChange)="bitacoraNewPassword.set($event)"
+              name="bitacoraNewPassword"
+              minlength="4"
+            />
+          </div>
+
+          <!-- Confirmar nueva clave -->
+          <div class="form-group">
+            <label>Confirmar Nueva Contraseña <span class="req">*</span></label>
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Repite la nueva contraseña"
+              [ngModel]="bitacoraConfirmPassword()"
+              (ngModelChange)="bitacoraConfirmPassword.set($event)"
+              name="bitacoraConfirmPassword"
+            />
+          </div>
+        </div>
+
+        <div class="security-form-actions">
+          @if (bitacoraKeyStatus()?.is_custom) {
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              [disabled]="isSavingBitacoraKey() || !bitacoraCurrentPassword()"
+              (click)="resetBitacoraPassword()"
+            >
+              🔄 Restablecer a Clave de Cuenta
+            </button>
+          }
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isSavingBitacoraKey() || !bitacoraCurrentPassword() || !bitacoraNewPassword()"
+          >
+            {{ isSavingBitacoraKey() ? 'Guardando...' : '🔒 Actualizar Clave de Bitácora' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
 </div>

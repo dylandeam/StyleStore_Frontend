@@ -1,0 +1,222 @@
+<div class="producto-detalle-container">
+  <!-- Toast Notificación -->
+  <div class="toast-notification" *ngIf="mensajeToast">
+    <span>{{ mensajeToast }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando detalles de la prenda...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !loading">
+    <p>{{ error }}</p>
+    <button class="btn-secondary" routerLink="/admin/productos">Volver al Catálogo</button>
+  </div>
+
+  <!-- Contenido del Producto -->
+  <div class="producto-main" *ngIf="producto && !loading">
+    <!-- Migas de pan -->
+    <nav class="breadcrumb">
+      <a routerLink="/dashboard">Inicio</a>
+      <span class="sep">/</span>
+      <a routerLink="/admin/productos">Catálogo</a>
+      <span class="sep">/</span>
+      <span *ngIf="producto.categoria_nombre">{{ producto.categoria_nombre }}</span>
+      <span class="sep" *ngIf="producto.categoria_nombre">/</span>
+      <span class="current">{{ producto.nombre }}</span>
+    </nav>
+
+    <div class="grid-layout">
+      <!-- Columna Izquierda: Galería e Imagen -->
+      <div class="galeria-seccion">
+        <div class="imagen-wrapper">
+          <img [src]="getImageUrl(producto.foto)" [alt]="producto.nombre" class="producto-img" />
+          <div class="badges-overlay">
+            <span class="badge-tag badge-coleccion" *ngIf="producto.coleccion_nombre">
+              Colección: {{ producto.coleccion_nombre }}
+            </span>
+            <span class="badge-tag badge-temporada" *ngIf="producto.temporada_nombre">
+              {{ producto.temporada_nombre }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Información y Compra -->
+      <div class="info-seccion">
+        <div class="categoria-subtitle">{{ producto.categoria_nombre || 'Exclusivo StyleStore' }}</div>
+        <h1 class="producto-titulo">{{ producto.nombre }}</h1>
+        <div class="codigo-ref">Ref: <strong>{{ producto.codigo }}</strong></div>
+
+        <div class="precio-block">
+          <span class="moneda">$</span>
+          <span class="precio-valor">{{ producto.precio | number:'1.2-2' }}</span>
+        </div>
+
+        <p class="producto-descripcion" *ngIf="producto.descripcion">
+          {{ producto.descripcion }}
+        </p>
+
+        <hr class="divider" />
+
+        <!-- 1. Selector de Color -->
+        <div class="selector-grupo" *ngIf="producto.variantes && producto.variantes.length > 0">
+          <label class="grupo-label">
+            Color: <strong>{{ varianteColorSeleccionada?.color_nombre || 'Seleccione un color' }}</strong>
+          </label>
+          <div class="colores-pills">
+            <button
+              type="button"
+              class="color-btn"
+              *ngFor="let v of producto.variantes"
+              [class.active]="varianteColorSeleccionada?.color_id === v.color_id"
+              (click)="seleccionarColor(v)"
+              [title]="v.color_nombre"
+            >
+              <span
+                class="color-swatch"
+                [style.background-color]="v.color_hex || '#444'"
+              ></span>
+              <span class="color-text">{{ v.color_nombre }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Selector de Tallas para el Color Elegido -->
+        <div class="selector-grupo" *ngIf="varianteColorSeleccionada?.existencias?.length > 0">
+          <label class="grupo-label">
+            Talla: <strong>{{ existenciaSeleccionada?.talla_nombre || 'Seleccione una talla' }}</strong>
+            <span class="stock-badge" [class.sin-stock]="existenciaSeleccionada?.cantidad <= 0">
+              ({{ existenciaSeleccionada?.cantidad > 0 ? existenciaSeleccionada.cantidad + ' disponibles' : 'Agotado' }})
+            </span>
+          </label>
+          <div class="tallas-grid">
+            <button
+              type="button"
+              class="talla-btn"
+              *ngFor="let ex of varianteColorSeleccionada.existencias"
+              [class.active]="existenciaSeleccionada?.stock_inventario_id === ex.stock_inventario_id"
+              [disabled]="ex.cantidad <= 0"
+              (click)="seleccionarTalla(ex)"
+            >
+              {{ ex.talla_nombre || 'U' }}
+              <span class="sucursal-tag" *ngIf="ex.sucursal_ciudad">({{ ex.sucursal_ciudad }})</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Selector de Cantidad -->
+        <div class="selector-grupo cantidad-seccion" *ngIf="existenciaSeleccionada && existenciaSeleccionada.cantidad > 0">
+          <label class="grupo-label">Cantidad:</label>
+          <div class="cantidad-control">
+            <button type="button" class="btn-qty" (click)="decrementar()" [disabled]="cantidad <= 1">-</button>
+            <span class="qty-display">{{ cantidad }}</span>
+            <button type="button" class="btn-qty" (click)="incrementar()" [disabled]="cantidad >= existenciaSeleccionada.cantidad">+</button>
+          </div>
+        </div>
+
+        <!-- 4. Botones de Acción -->
+        <div class="acciones-compra">
+          <button
+            type="button"
+            class="btn-cart"
+            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0"
+            (click)="agregarAlCarrito(false)"
+          >
+            <span *ngIf="!agregando">🛒 Añadir al Carrito</span>
+            <span *ngIf="agregando">Añadiendo...</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-buy-now"
+            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0"
+            (click)="agregarAlCarrito(true)"
+          >
+            ⚡ Comprar Ahora
+          </button>
+        </div>
+
+        <!-- Beneficios y Garantías -->
+        <div class="beneficios-card">
+          <div class="beneficio-item">
+            <span class="b-icon">🚚</span>
+            <div>
+              <strong>Rastreo en Vivo con Yango Delivery</strong>
+              <p>Seguimiento puerta a puerta de tu pedido con conductor asignado.</p>
+            </div>
+          </div>
+          <div class="beneficio-item">
+            <span class="b-icon">💳</span>
+            <div>
+              <strong>Pagos Seguros</strong>
+              <p>Paga online mediante PayPal v2 o en efectivo contra entrega / caja POS.</p>
+            </div>
+          </div>
+          <div class="beneficio-item">
+            <span class="b-icon">✨</span>
+            <div>
+              <strong>Garantía de Calidad StyleStore</strong>
+              <p>Prendas seleccionadas con los mejores materiales de temporada.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN DE RECOMENDADOS POR IA LOCAL       -->
+    <!-- ========================================== -->
+    <div class="ia-recomendados-container">
+      <div class="ia-header">
+        <div class="ia-badge">
+          <span class="sparkle">✦</span> MOTOR DE IA LOCAL STYLESTORE
+        </div>
+        <h2 class="ia-title">Prendas Recomendadas para Ti</h2>
+        <p class="ia-subtitle">
+          Nuestra inteligencia artificial analizó el estilo, la paleta y características de esta prenda para ofrecerte combinaciones afines.
+        </p>
+      </div>
+
+      <div class="ia-loading" *ngIf="loadingRecomendaciones">
+        <p>Analizando compatibilidad con IA...</p>
+      </div>
+
+      <div class="ia-grid" *ngIf="!loadingRecomendaciones && recomendaciones.length > 0">
+        <div
+          class="ia-card"
+          *ngFor="let rec of recomendaciones"
+          (click)="navegarAProducto(rec.codigo)"
+        >
+          <div class="ia-card-img-wrap">
+            <img [src]="getImageUrl(rec.foto)" [alt]="rec.nombre" class="ia-card-img" />
+            <span class="afinidad-badge">
+              {{ (rec.score_afinidad * 100) | number:'1.0-0' }}% Afinidad
+            </span>
+          </div>
+
+          <div class="ia-card-body">
+            <span class="ia-card-cat">{{ rec.categoria_nombre || 'Prenda' }}</span>
+            <h3 class="ia-card-title">{{ rec.nombre }}</h3>
+            
+            <div class="ia-razon">
+              <span class="ia-brain-icon">💡</span> {{ rec.razon_recomendacion }}
+            </div>
+
+            <div class="ia-card-footer">
+              <span class="ia-precio">${{ rec.precio | number:'1.2-2' }}</span>
+              <button class="btn-ver-mas">Ver Prenda →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ia-empty" *ngIf="!loadingRecomendaciones && recomendaciones.length === 0">
+        <p>Explora más productos en nuestro catálogo para descubrir nuevas recomendaciones.</p>
+      </div>
+    </div>
+  </div>
+</div>

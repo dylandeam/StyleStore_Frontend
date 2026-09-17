@@ -107,7 +107,7 @@
         @for (p of filteredProductos; track p.codigo) {
           <div class="product-item-card">
             <!-- Imagen Cuadrada de la Prenda -->
-            <div class="product-card-thumbnail">
+            <div class="product-card-thumbnail" (click)="verDetalleProducto(p.codigo)" style="cursor: pointer;" title="Ver Detalle de la Prenda">
               <img
                 [src]="getImageUrl(p.foto)"
                 [alt]="p.nombre"
@@ -129,7 +129,7 @@
 
             <!-- Información del Producto -->
             <div class="product-card-details">
-              <h3 class="card-product-title" [title]="p.nombre">{{ p.nombre }}</h3>
+              <h3 class="card-product-title" (click)="verDetalleProducto(p.codigo)" style="cursor: pointer;" [title]="p.nombre">{{ p.nombre }}</h3>
               @if (p.descripcion) {
                 <p class="card-product-desc">{{ p.descripcion }}</p>
               }
@@ -155,6 +155,17 @@
                   <span class="stock-indicator"></span>
                   {{ p.stock_total || 0 }} uds. en stock
                 </div>
+              </div>
+
+              <!-- Botón Ver Detalle & Comprar -->
+              <div class="card-buy-action">
+                <button
+                  type="button"
+                  class="btn-card-detalle-comprar"
+                  (click)="verDetalleProducto(p.codigo)"
+                >
+                  🔍 Ver Detalle & Comprar
+                </button>
               </div>
 
               <!-- Acciones Administrativas -->

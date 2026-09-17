@@ -183,8 +183,113 @@
   color: #991B1B;
 }
 
+/* BITACORA SECURITY CARD */
+.bitacora-security-card {
+  margin-top: 24px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #14263D;
+}
+
+.security-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.security-header-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.security-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.security-card-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.2rem;
+  color: #14263D;
+  font-weight: 700;
+}
+
+.security-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #64748B;
+}
+
+.key-status-badge-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.badge-default {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.badge-custom {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.security-alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.alert-info {
+  background: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.security-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: #dc2626;
+  border: 1px solid #f87171;
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
 @media (max-width: 640px) {
   .form-grid {
     grid-template-columns: 1fr;
+  }
+  .security-card-header {
+    flex-direction: column;
   }
 }

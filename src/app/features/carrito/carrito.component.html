@@ -1,0 +1,211 @@
+<div class="carrito-page-container">
+  <!-- Toast Notificación -->
+  <div class="toast-notification" *ngIf="mensajeToast">
+    <span>{{ mensajeToast }}</span>
+  </div>
+
+  <div class="page-title-wrap">
+    <h1 class="cart-heading">Bolsa de Compras</h1>
+    <p class="cart-subheading">Revisa tus artículos seleccionados antes de completar tu pedido.</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando tu bolsa de compras...</p>
+  </div>
+
+  <!-- Pantalla de Éxito / Orden Registrada -->
+  <div class="success-order-card" *ngIf="ordenGenerada">
+    <div class="success-icon">🎉</div>
+    <h2>¡Pedido Registrado con Éxito!</h2>
+    <p class="order-id-highlight">Orden de Venta: <strong>#{{ ordenGenerada.orden_id }}</strong></p>
+    <p>{{ ordenGenerada.mensaje }}</p>
+    <div class="order-summary-box">
+      <div>Total a abonar: <strong>${{ ordenGenerada.total | number:'1.2-2' }}</strong></div>
+      <div>Método seleccionado: <strong>Efectivo / En Caja POS</strong></div>
+      <div *ngIf="conEnvio">
+        Despacho: <strong>Yango Delivery (Conductor asignado en camino)</strong>
+      </div>
+    </div>
+    <div class="success-actions">
+      <button class="btn-primary" routerLink="/admin/ventas">Ver Mis Pedidos</button>
+      <button class="btn-secondary" routerLink="/admin/productos">Seguir Comprando</button>
+    </div>
+  </div>
+
+  <!-- Carrito Vacío -->
+  <div class="empty-cart-card" *ngIf="!loading && !ordenGenerada && (!carrito?.items || carrito?.items?.length === 0)">
+    <span class="empty-cart-icon">🛍️</span>
+    <h2>Tu bolsa está vacía</h2>
+    <p>Aún no has añadido prendas a tu bolsa de compras.</p>
+    <button class="btn-primary" routerLink="/admin/productos">Explorar Catálogo de Moda</button>
+  </div>
+
+  <!-- Contenido con Artículos -->
+  <div class="cart-grid" *ngIf="!loading && !ordenGenerada && carrito?.items && carrito!.items.length > 0">
+    <!-- Columna Izquierda: Lista de Ítems -->
+    <div class="cart-items-section">
+      <div class="cart-item-card" *ngFor="let item of carrito!.items">
+        <div class="item-thumbnail">
+          <img [src]="getImageUrl(item.foto)" [alt]="item.producto_nombre" />
+        </div>
+
+        <div class="item-details">
+          <h3 class="item-name">{{ item.producto_nombre }}</h3>
+          
+          <div class="item-attributes">
+            <span class="attr-pill" *ngIf="item.color_nombre">
+              Color: <strong>{{ item.color_nombre }}</strong>
+            </span>
+            <span class="attr-pill" *ngIf="item.talla_nombre">
+              Talla: <strong>{{ item.talla_nombre }}</strong>
+            </span>
+            <span class="attr-pill sucursal" *ngIf="item.sucursal_nombre">
+              📍 {{ item.sucursal_nombre }}
+            </span>
+          </div>
+
+          <div class="item-price-unit">
+            ${{ item.precio_unitario | number:'1.2-2' }} c/u
+          </div>
+        </div>
+
+        <!-- Control de Cantidad -->
+        <div class="item-quantity-block">
+          <div class="qty-selector">
+            <button type="button" class="btn-qty" (click)="cambiarCantidad(item, -1)">-</button>
+            <span class="qty-num">{{ item.cantidad }}</span>
+            <button type="button" class="btn-qty" (click)="cambiarCantidad(item, 1)">+</button>
+          </div>
+          <div class="item-subtotal">
+            ${{ item.subtotal | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <!-- Botón Quitar -->
+        <button type="button" class="btn-remove" (click)="eliminarItem(item)" title="Eliminar de la bolsa">
+          ✕
+        </button>
+      </div>
+
+      <div class="cart-footer-actions">
+        <button class="btn-continue" routerLink="/admin/productos">
+          ← Continuar Comprando
+        </button>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Checkout y Resumen -->
+    <div class="checkout-summary-section">
+      <div class="summary-card">
+        <h2 class="summary-title">Resumen de Compra</h2>
+
+        <!-- Checkbox Despacho Yango -->
+        <div class="envio-toggle-box">
+          <label class="toggle-label">
+            <input type="checkbox" [(ngModel)]="conEnvio" />
+            <span class="toggle-custom"></span>
+            <span class="toggle-text">
+              <strong>🚚 Despacho a Domicilio con Yango</strong>
+              <small>Entrega express con rastreo de conductor en vivo.</small>
+            </span>
+          </label>
+
+          <!-- Formulario de Entrega -->
+          <div class="envio-form" *ngIf="conEnvio">
+            <div class="form-group">
+              <label>Ciudad</label>
+              <input type="text" class="form-control" [(ngModel)]="ciudad" placeholder="Ej: Santa Cruz" />
+            </div>
+
+            <div class="form-group">
+              <label>Dirección Completa</label>
+              <input type="text" class="form-control" [(ngModel)]="direccion" placeholder="Calle, Av, Número de casa..." />
+            </div>
+
+            <div class="form-group">
+              <label>Referencia de ubicación</label>
+              <input type="text" class="form-control" [(ngModel)]="referencia" placeholder="Frente al parque, portón blanco..." />
+            </div>
+
+            <div class="form-group distancia-row">
+              <div>
+                <label>Distancia estimada (km)</label>
+                <input type="number" step="0.5" min="0.5" class="form-control" [(ngModel)]="distanciaKm" (change)="cotizarEnvio()" />
+              </div>
+              <div class="costo-preview">
+                <label>Tarifa Yango</label>
+                <span class="costo-tag">+${{ costoEnvio | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selección de Método de Pago -->
+        <div class="metodos-pago-box">
+          <h3 class="box-subtitle">Selecciona Método de Pago</h3>
+
+          <label class="metodo-radio-option" [class.selected]="metodoPago === 'paypal'">
+            <input type="radio" name="pago" [(ngModel)]="metodoPago" value="paypal" />
+            <div class="metodo-content">
+              <div class="metodo-header">
+                <strong>PayPal Orders v2</strong>
+                <span class="badge-online">En Línea</span>
+              </div>
+              <p>Paga con saldo de PayPal, tarjeta de crédito o débito internacional con protección al comprador.</p>
+            </div>
+          </label>
+
+          <label class="metodo-radio-option" [class.selected]="metodoPago === 'efectivo'">
+            <input type="radio" name="pago" [(ngModel)]="metodoPago" value="efectivo" />
+            <div class="metodo-content">
+              <div class="metodo-header">
+                <strong>Efectivo / Caja POS</strong>
+                <span class="badge-cash">Contra Entrega / Sucursal</span>
+              </div>
+              <p>Abona tu compra presencialmente en efectivo al recibirla o al recogerla en caja con ticket numerado.</p>
+            </div>
+          </label>
+        </div>
+
+        <!-- Desglose de Totales -->
+        <div class="totals-breakdown">
+          <div class="total-row">
+            <span>Subtotal de Prendas</span>
+            <span>${{ (carrito?.total || 0) | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="total-row" *ngIf="conEnvio">
+            <span>Envío Yango Delivery</span>
+            <span>+${{ costoEnvio | number:'1.2-2' }}</span>
+          </div>
+
+          <hr class="summary-divider" />
+
+          <div class="total-row final">
+            <span>Total Final</span>
+            <span class="total-amount">${{ totalFinal | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <!-- Botón Procesar Pago -->
+        <button
+          type="button"
+          class="btn-checkout"
+          [disabled]="procesando"
+          (click)="procesarCheckout()"
+        >
+          <span *ngIf="!procesando">
+            {{ metodoPago === 'paypal' ? '💳 Pagar con PayPal' : '✓ Confirmar Pedido en Efectivo' }}
+          </span>
+          <span *ngIf="procesando">Procesando tu pedido...</span>
+        </button>
+
+        <p class="secure-checkout-notice">
+          🔒 Transacción encriptada y segura. Conforme a políticas StyleStore.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

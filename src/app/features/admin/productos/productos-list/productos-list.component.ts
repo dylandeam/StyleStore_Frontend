@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ProductoService } from '../../../../core/services/producto.service';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { TemporadasService } from '../../../../core/services/temporadas.service';
@@ -28,6 +29,7 @@ import { StockInventarioItem } from '../../../../core/models/stock.model';
   styleUrls: ['./productos-list.component.css'],
 })
 export class ProductosListComponent implements OnInit {
+  private router = inject(Router);
   private productoService = inject(ProductoService);
   private categoriasService = inject(CategoriasService);
   private temporadasService = inject(TemporadasService);
@@ -479,5 +481,9 @@ export class ProductosListComponent implements OnInit {
           this.stockModalError.set(this.formatErrorMessage(err));
         },
       });
+  }
+
+  verDetalleProducto(codigo: string): void {
+    this.router.navigate(['/catalogo/producto', codigo]);
   }
 }
