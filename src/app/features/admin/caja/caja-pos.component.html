@@ -16,11 +16,19 @@
   <div class="pos-grid">
     <!-- Columna Izquierda: Órdenes Pendientes de Cobro -->
     <div class="pos-orders-list">
-      <div class="card header-card">
+      <div class="card header-card pos-header-card">
         <h3>Órdenes Pendientes de Pago ({{ ordenesPendientes.length }})</h3>
+        <button type="button" class="btn-refresh-pos" (click)="cargarOrdenesPendientes()" [disabled]="loading" title="Recargar órdenes">
+          <span [class.spinning]="loading">🔄</span>
+        </button>
       </div>
 
       <div class="orders-scroll-area">
+        <div class="loading-notice" *ngIf="loading">
+          <div class="spinner-sm"></div>
+          <p>Cargando órdenes pendientes...</p>
+        </div>
+
         <div class="empty-notice" *ngIf="!loading && ordenesPendientes.length === 0">
           <p>No hay órdenes pendientes de cobro en este momento.</p>
         </div>
