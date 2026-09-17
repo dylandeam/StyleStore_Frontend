@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProximamenteService } from '../../../core/services/proximamente.service';
@@ -26,8 +26,9 @@ export class ProximamenteComponent implements OnInit {
   private coleccionService = inject(ColeccionService);
   private uploadService = inject(UploadService);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
 
-  // User permissions
+  // Permisos de usuario
   currentUser = this.authService.currentUser;
   canManage = computed(() => {
     const role = this.currentUser()?.role;
@@ -40,10 +41,12 @@ export class ProximamenteComponent implements OnInit {
   colecciones = signal<Coleccion[]>([]);
 
   isLoading = signal<boolean>(false);
+  isUploadingFoto = signal<boolean>(false);
+  fotoPreview = signal<string>('');
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
-  // Client interactive state: Me interesa / Notificar
+  // Estado interactivo del cliente: Me interesa / Notificar
   interestedItems = signal<Set<number>>(new Set<number>());
   detailItem = signal<Proximamente | null>(null);
   isDetailModalOpen = signal<boolean>(false);
@@ -68,25 +71,39 @@ export class ProximamenteComponent implements OnInit {
 
   loadData(): void {
     this.isLoading.set(true);
+    this.cdr.markForCheck();
     this.proximamenteService.getProximamente().subscribe({
       next: (data) => {
         this.items.set(data);
         this.isLoading.set(false);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage.set('Error al cargar prendas próximas.');
         this.isLoading.set(false);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
 
     this.categoriasService.getCategorias().subscribe({
-      next: (cats: Categoria[]) => this.categorias.set(cats),
+      next: (cats: Categoria[]) => {
+        this.categorias.set(cats);
+        this.cdr.markForCheck();
+      },
     });
     this.temporadasService.getTemporadas().subscribe({
-      next: (temps: Temporada[]) => this.temporadas.set(temps),
+      next: (temps: Temporada[]) => {
+        this.temporadas.set(temps);
+        this.cdr.markForCheck();
+      },
     });
     this.coleccionService.getColecciones().subscribe({
-      next: (cols: Coleccion[]) => this.colecciones.set(cols),
+      next: (cols: Coleccion[]) => {
+        this.colecciones.set(cols);
+        this.cdr.markForCheck();
+      },
     });
   }
 
@@ -96,6 +113,7 @@ export class ProximamenteComponent implements OnInit {
 
   onImgError(event: Event): void {
     const el = event.target as HTMLImageElement;
+    if (el.src && el.src.includes('logo.jpg')) return;
     el.src = '/assets/images/logo.jpg';
   }
 
@@ -111,7 +129,13 @@ export class ProximamenteComponent implements OnInit {
       this.successMessage.set('🔔 ¡Anotado! Te avisaremos tan pronto esta prenda llegue a tienda.');
     }
     this.interestedItems.set(current);
-    setTimeout(() => this.successMessage.set(null), 3500);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+    setTimeout(() => {
+      this.successMessage.set(null);
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+    }, 3500);
   }
 
   isInterested(itemId: number): boolean {
@@ -121,11 +145,15 @@ export class ProximamenteComponent implements OnInit {
   openDetailModal(item: Proximamente): void {
     this.detailItem.set(item);
     this.isDetailModalOpen.set(true);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   closeDetailModal(): void {
     this.isDetailModalOpen.set(false);
     this.detailItem.set(null);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   // Admin management actions
@@ -136,6 +164,8 @@ export class ProximamenteComponent implements OnInit {
     this.nombre.set('');
     this.descripcion.set('');
     this.foto.set('');
+    this.fotoPreview.set('');
+    this.isUploadingFoto.set(false);
     this.fechaEstimada.set('');
     this.categoriaId.set(null);
     this.temporadaId.set(null);
@@ -143,6 +173,8 @@ export class ProximamenteComponent implements OnInit {
     this.active.set(true);
     this.errorMessage.set(null);
     this.isModalOpen.set(true);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   openEditModal(item: Proximamente, event?: Event): void {
@@ -153,6 +185,8 @@ export class ProximamenteComponent implements OnInit {
     this.nombre.set(item.nombre);
     this.descripcion.set(item.descripcion || '');
     this.foto.set(item.foto || '');
+    this.fotoPreview.set(item.foto ? this.getImagenUrl(item.foto) : '');
+    this.isUploadingFoto.set(false);
     this.fechaEstimada.set(item.fecha_estimada_llegada || '');
     this.categoriaId.set(item.categoria_id || null);
     this.temporadaId.set(item.temporada_id || null);
@@ -160,25 +194,63 @@ export class ProximamenteComponent implements OnInit {
     this.active.set(item.active);
     this.errorMessage.set(null);
     this.isModalOpen.set(true);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   closeModal(): void {
     this.isModalOpen.set(false);
+    this.fotoPreview.set('');
+    this.isUploadingFoto.set(false);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   onFileSelected(event: any): void {
     if (!this.canManage()) return;
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (file) {
+      // Previsualización local inmediata con FileReader
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.fotoPreview.set(e.target?.result as string);
+        this.cdr.markForCheck();
+      };
+      reader.readAsDataURL(file);
+
+      this.isUploadingFoto.set(true);
+      this.errorMessage.set(null);
+      this.cdr.markForCheck();
+
       this.uploadService.uploadImage(file, 'productos').subscribe({
         next: (res) => {
           this.foto.set(res.url);
+          this.fotoPreview.set(this.getImagenUrl(res.url));
+          this.isUploadingFoto.set(false);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
         error: () => {
-          this.errorMessage.set('Error al subir la imagen.');
+          this.errorMessage.set('Error al subir la imagen al servidor.');
+          this.isUploadingFoto.set(false);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
       });
     }
+  }
+
+  removeFoto(): void {
+    this.foto.set('');
+    this.fotoPreview.set('');
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  onFotoUrlChange(url: string): void {
+    this.foto.set(url);
+    this.fotoPreview.set(url ? this.getImagenUrl(url) : '');
+    this.cdr.markForCheck();
   }
 
   saveItem(): void {
@@ -188,8 +260,14 @@ export class ProximamenteComponent implements OnInit {
       return;
     }
 
+    if (this.isUploadingFoto()) {
+      this.errorMessage.set('Por favor espera a que la imagen termine de subirse.');
+      return;
+    }
+
     this.isLoading.set(true);
     this.errorMessage.set(null);
+    this.cdr.markForCheck();
 
     if (this.isEditing() && this.selectedId()) {
       const updateData: ProximamenteUpdate = {
@@ -204,14 +282,20 @@ export class ProximamenteComponent implements OnInit {
       };
       this.proximamenteService.updateProximamente(this.selectedId()!, updateData).subscribe({
         next: () => {
-          this.successMessage.set('Prenda próxima actualizada.');
+          this.successMessage.set('Prenda próxima actualizada con éxito.');
           this.closeModal();
           this.loadData();
-          setTimeout(() => this.successMessage.set(null), 3000);
+          setTimeout(() => {
+            this.successMessage.set(null);
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          }, 3000);
         },
         error: (err) => {
           this.errorMessage.set(err.error?.detail || 'Error al actualizar.');
           this.isLoading.set(false);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
       });
     } else {
@@ -226,14 +310,20 @@ export class ProximamenteComponent implements OnInit {
       };
       this.proximamenteService.createProximamente(createData).subscribe({
         next: () => {
-          this.successMessage.set('Prenda próxima registrada.');
+          this.successMessage.set('Prenda próxima registrada con éxito.');
           this.closeModal();
           this.loadData();
-          setTimeout(() => this.successMessage.set(null), 3000);
+          setTimeout(() => {
+            this.successMessage.set(null);
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          }, 3000);
         },
         error: (err) => {
           this.errorMessage.set(err.error?.detail || 'Error al registrar.');
           this.isLoading.set(false);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
       });
     }
@@ -245,15 +335,22 @@ export class ProximamenteComponent implements OnInit {
     if (!confirm(`¿Eliminar la prenda próxima "${item.nombre}"?`)) return;
 
     this.isLoading.set(true);
+    this.cdr.markForCheck();
     this.proximamenteService.deleteProximamente(item.id).subscribe({
       next: () => {
         this.successMessage.set('Prenda próxima eliminada.');
         this.loadData();
-        setTimeout(() => this.successMessage.set(null), 3000);
+        setTimeout(() => {
+          this.successMessage.set(null);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 3000);
       },
       error: (err) => {
         this.errorMessage.set(err.error?.detail || 'No se pudo eliminar.');
         this.isLoading.set(false);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }

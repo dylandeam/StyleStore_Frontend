@@ -252,12 +252,29 @@
 
           <div class="form-group">
             <label>Foto de la Prenda</label>
-            <input type="file" accept="image/*" class="form-control" (change)="onFileSelected($event)" />
-            @if (foto()) {
-              <div class="preview-wrap mt-2">
-                <img [src]="getImagenUrl(foto())" alt="Vista previa" class="preview-img" (error)="onImgError($event)" />
+            @if (fotoPreview() || foto()) {
+              <div class="photo-preview-container mb-2">
+                <img [src]="fotoPreview() || getImagenUrl(foto())" alt="Vista previa" class="preview-img" (error)="onImgError($event)" />
+                <button type="button" class="btn-remove-foto" (click)="removeFoto()" [disabled]="isUploadingFoto()">
+                  ✕ Quitar foto
+                </button>
               </div>
             }
+            <input type="file" accept="image/*" class="form-control" (change)="onFileSelected($event)" [disabled]="isUploadingFoto()" />
+            @if (isUploadingFoto()) {
+              <div class="upload-indicator mt-1">
+                <span class="spinner-sm"></span> Subiendo imagen al servidor...
+              </div>
+            }
+            <label class="sublabel mt-2">O introduce una URL de imagen directa:</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Ej: /uploads/productos/... o https://..."
+              [ngModel]="foto()"
+              (ngModelChange)="onFotoUrlChange($event)"
+              [disabled]="isUploadingFoto()"
+            />
           </div>
 
           @if (isEditing()) {
@@ -276,7 +293,7 @@
 
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button class="btn btn-primary" (click)="saveItem()" [disabled]="isLoading()">
+          <button class="btn btn-primary" (click)="saveItem()" [disabled]="isLoading() || isUploadingFoto()">
             {{ isEditing() ? 'Guardar Cambios' : 'Registrar Prenda' }}
           </button>
         </div>
