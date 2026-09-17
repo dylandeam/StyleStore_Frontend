@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BackupsService, BackupItem, BackupConfig, RestoreResponse } from '../../../core/services/backups.service';
@@ -12,6 +12,7 @@ import { BackupsService, BackupItem, BackupConfig, RestoreResponse } from '../..
 })
 export class BackupsComponent implements OnInit {
   private backupsService = inject(BackupsService);
+  private cdr = inject(ChangeDetectorRef);
 
   backups: BackupItem[] = [];
   loading: boolean = true;
@@ -59,14 +60,19 @@ export class BackupsComponent implements OnInit {
 
   cargarBackups(): void {
     this.loading = true;
+    this.cdr.markForCheck();
     this.backupsService.listarBackups().subscribe({
       next: (data) => {
         this.backups = data;
         this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
         this.mostrarToast('Error al cargar la lista de respaldos del servidor.', 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -78,6 +84,8 @@ export class BackupsComponent implements OnInit {
         this.frequency_hours = cfg.frequency_hours;
         this.retention_days = cfg.retention_days;
         this.last_auto_backup = cfg.last_auto_backup;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         // En caso de que aún no exista o falle, mantener defaults seguros
@@ -87,6 +95,7 @@ export class BackupsComponent implements OnInit {
 
   guardarConfig(): void {
     this.guardandoConfig = true;
+    this.cdr.markForCheck();
     this.backupsService
       .updateConfig({
         auto_backup_enabled: this.auto_backup_enabled,
@@ -100,25 +109,34 @@ export class BackupsComponent implements OnInit {
           this.frequency_hours = cfg.frequency_hours;
           this.retention_days = cfg.retention_days;
           this.mostrarToast('Configuración de respaldos automáticos guardada correctamente.', 'success');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
         error: () => {
           this.guardandoConfig = false;
           this.mostrarToast('Error al guardar la configuración de periodicidad.', 'error');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
         },
       });
   }
 
   generarBackup(): void {
     this.generando = true;
+    this.cdr.markForCheck();
     this.backupsService.generarBackup().subscribe({
       next: (res) => {
         this.generando = false;
         this.mostrarToast(`¡Respaldo integral generado con éxito! Archivo: ${res.nombre_archivo}`, 'success');
         this.cargarBackups();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.generando = false;
         this.mostrarToast('Error al generar la copia de seguridad.', 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -164,6 +182,7 @@ export class BackupsComponent implements OnInit {
     const id = this.backupToRestore.id;
     this.restaurandoId = id;
     this.restaurando = true;
+    this.cdr.markForCheck();
     this.backupsService.restaurarDesdeServidor(id).subscribe({
       next: (res) => {
         this.restaurando = false;
@@ -172,12 +191,16 @@ export class BackupsComponent implements OnInit {
         this.restoreSuccessData = res;
         this.mostrarToast('Base de datos restaurada integralmente con éxito.', 'success');
         this.cargarBackups();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.restaurando = false;
         this.restaurandoId = null;
         const msg = err?.error?.detail || 'Error crítico al restaurar la copia de seguridad.';
         this.mostrarToast(msg, 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -198,6 +221,7 @@ export class BackupsComponent implements OnInit {
   confirmarRestaurarUpload(): void {
     if (!this.selectedFile) return;
     this.restaurando = true;
+    this.cdr.markForCheck();
     this.backupsService.subirYRestaurar(this.selectedFile).subscribe({
       next: (res) => {
         this.restaurando = false;
@@ -206,11 +230,15 @@ export class BackupsComponent implements OnInit {
         this.restoreSuccessData = res;
         this.mostrarToast('¡Archivo verificado y base de datos restaurada con éxito!', 'success');
         this.cargarBackups();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.restaurando = false;
         const msg = err?.error?.detail || 'Error al restaurar desde el archivo cargado. Verifique el formato e integridad SHA-256.';
         this.mostrarToast(msg, 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -231,9 +259,13 @@ export class BackupsComponent implements OnInit {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         this.mostrarToast(`Descarga iniciada: ${item.nombre_archivo}`, 'success');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.mostrarToast('Error al descargar el archivo de respaldo.', 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -243,21 +275,27 @@ export class BackupsComponent implements OnInit {
       return;
     }
     this.eliminandoId = item.id;
+    this.cdr.markForCheck();
     this.backupsService.eliminarBackup(item.id).subscribe({
       next: () => {
         this.eliminandoId = null;
         this.mostrarToast('Copia de seguridad eliminada del historial y del servidor.', 'info');
         this.cargarBackups();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.eliminandoId = null;
         this.mostrarToast('Error al eliminar la copia de seguridad.', 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
 
   verificar(item: BackupItem): void {
     this.verificandoId = item.id;
+    this.cdr.markForCheck();
     this.backupsService.verificarIntegridad(item.id, item.sha256_hash).subscribe({
       next: (res) => {
         this.verificandoId = null;
@@ -266,6 +304,8 @@ export class BackupsComponent implements OnInit {
           mensaje: res.mensaje,
         };
         this.mostrarToast(res.mensaje, res.es_valido ? 'success' : 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.verificandoId = null;
@@ -274,6 +314,8 @@ export class BackupsComponent implements OnInit {
           mensaje: 'Error de verificación en el servidor.',
         };
         this.mostrarToast('Error al verificar hash en el servidor.', 'error');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -294,8 +336,12 @@ export class BackupsComponent implements OnInit {
   mostrarToast(msg: string, type: 'success' | 'error' | 'info' = 'info'): void {
     this.mensajeToast = msg;
     this.toastType = type;
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.mensajeToast = null;
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }, 4000);
   }
 }
