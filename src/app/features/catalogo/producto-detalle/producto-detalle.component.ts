@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CarritoService, CatalogoItem } from '../../../core/services/carrito.service';
+import { ProductoService } from '../../../core/services/producto.service';
 import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
@@ -16,97 +17,187 @@ export class ProductoDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private carritoService = inject(CarritoService);
+  private productoService = inject(ProductoService);
   private uploadService = inject(UploadService);
+  private cdr = inject(ChangeDetectorRef);
 
-  codigo: string = '';
-  producto: CatalogoItem | null = null;
-  recomendaciones: any[] = [];
-  loading: boolean = true;
-  loadingRecomendaciones: boolean = true;
-  error: string | null = null;
+  // Estados reactivos con Signals para compatibilidad total con Angular 21
+  codigoState = signal<string>('');
+  productoData = signal<CatalogoItem | null>(null);
+  recomendacionesList = signal<any[]>([]);
+  isLoading = signal<boolean>(true);
+  isLoadingRecomendaciones = signal<boolean>(true);
+  errorMessage = signal<string | null>(null);
 
   // Selección de variantes
-  varianteColorSeleccionada: any = null;
-  existenciaSeleccionada: any = null;
-  cantidad: number = 1;
-  agregando: boolean = false;
-  mensajeToast: string | null = null;
+  varianteColor = signal<any>(null);
+  existencia = signal<any>(null);
+  cantidadValue = signal<number>(1);
+  isAgregando = signal<boolean>(false);
+  toastMessage = signal<string | null>(null);
+
+  // Getters para enlace transparente con la plantilla HTML
+  get codigo(): string { return this.codigoState(); }
+  get producto(): CatalogoItem | null { return this.productoData(); }
+  get recomendaciones(): any[] { return this.recomendacionesList(); }
+  get loading(): boolean { return this.isLoading(); }
+  get loadingRecomendaciones(): boolean { return this.isLoadingRecomendaciones(); }
+  get error(): string | null { return this.errorMessage(); }
+  get varianteColorSeleccionada(): any { return this.varianteColor(); }
+  get existenciaSeleccionada(): any { return this.existencia(); }
+  get cantidad(): number { return this.cantidadValue(); }
+  get agregando(): boolean { return this.isAgregando(); }
+  get mensajeToast(): string | null { return this.toastMessage(); }
 
   ngOnInit(): void {
+    // 1. Lectura inmediata desde el snapshot de la ruta
+    const initialCod = this.route.snapshot.paramMap.get('codigo') || this.route.snapshot.params['codigo'];
+    if (initialCod) {
+      this.codigoState.set(initialCod);
+      this.cargarProducto(initialCod);
+    }
+
+    // 2. Suscripción continua a cambios de navegación
     this.route.paramMap.subscribe((params) => {
       const cod = params.get('codigo');
-      if (cod) {
-        this.codigo = cod;
+      if (cod && cod !== this.codigoState()) {
+        this.codigoState.set(cod);
         this.cargarProducto(cod);
+      } else if (!cod && !this.codigoState()) {
+        this.isLoading.set(false);
+        this.errorMessage.set('No se ha especificado el código de la prenda.');
+        this.cdr.markForCheck();
       }
     });
   }
 
   cargarProducto(codigo: string): void {
-    this.loading = true;
-    this.error = null;
-    this.producto = null;
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+    this.productoData.set(null);
+    this.cdr.markForCheck();
 
     this.carritoService.getProductoDetalle(codigo).subscribe({
       next: (data) => {
-        this.producto = data;
-        this.loading = false;
-
-        // Seleccionar primer color y primera talla por defecto
-        if (data.variantes && data.variantes.length > 0) {
-          this.seleccionarColor(data.variantes[0]);
-        }
-
-        // Cargar recomendaciones de IA local
-        this.cargarRecomendaciones(codigo);
+        this.procesarProductoCargado(data, codigo);
       },
       error: (err) => {
-        this.error = 'No se pudo cargar la información del producto.';
-        this.loading = false;
+        console.warn('Fallo en getProductoDetalle, intentando fallback a ProductoService:', err);
+        // Fallback defensivo a ProductoService si /catalogo tuvo algún problema
+        this.productoService.getProducto(codigo).subscribe({
+          next: (p) => {
+            const fallbackItem: CatalogoItem = {
+              codigo: p.codigo,
+              nombre: p.nombre,
+              descripcion: p.descripcion || undefined,
+              foto: p.foto || undefined,
+              precio: p.precio,
+              categoria_id: p.categoria_id,
+              categoria_nombre: p.categoria_nombre || undefined,
+              temporada_id: p.temporada_id,
+              temporada_nombre: p.temporada_nombre || undefined,
+              coleccion_id: p.coleccion_id || undefined,
+              coleccion_nombre: p.coleccion_nombre || undefined,
+              variantes: p.colores?.map((c) => ({
+                producto_color_id: c.id,
+                color_id: c.id,
+                color_nombre: c.nombre,
+                color_hex: undefined,
+                existencias: [],
+              })) || [
+                {
+                  producto_color_id: 0,
+                  color_id: 0,
+                  color_nombre: 'Estándar',
+                  color_hex: '#14263D',
+                  existencias: [],
+                },
+              ],
+              stock_total: p.stock_total || 0,
+            };
+            this.procesarProductoCargado(fallbackItem, codigo);
+          },
+          error: (errFallback) => {
+            this.errorMessage.set(
+              errFallback?.error?.detail || err?.error?.detail || 'No se pudo cargar la información de la prenda.'
+            );
+            this.isLoading.set(false);
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          },
+        });
       },
     });
   }
 
+  private procesarProductoCargado(data: CatalogoItem, codigo: string): void {
+    this.productoData.set(data);
+    this.isLoading.set(false);
+
+    // Seleccionar automáticamente primer color y talla
+    if (data.variantes && data.variantes.length > 0) {
+      this.seleccionarColor(data.variantes[0]);
+    } else {
+      this.varianteColor.set(null);
+      this.existencia.set(null);
+    }
+
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+
+    // Cargar recomendaciones de IA local
+    this.cargarRecomendaciones(codigo);
+  }
+
   cargarRecomendaciones(codigo: string): void {
-    this.loadingRecomendaciones = true;
+    this.isLoadingRecomendaciones.set(true);
+    this.cdr.markForCheck();
+
     this.carritoService.getRecomendadosIA(codigo, 4).subscribe({
       next: (recs) => {
-        this.recomendaciones = recs;
-        this.loadingRecomendaciones = false;
+        this.recomendacionesList.set(recs || []);
+        this.isLoadingRecomendaciones.set(false);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: () => {
-        this.loadingRecomendaciones = false;
+        this.recomendacionesList.set([]);
+        this.isLoadingRecomendaciones.set(false);
+        this.cdr.markForCheck();
       },
     });
   }
 
   seleccionarColor(variante: any): void {
-    this.varianteColorSeleccionada = variante;
-    // Seleccionar automáticamente la primera talla disponible con stock
-    if (variante.existencias && variante.existencias.length > 0) {
+    this.varianteColor.set(variante);
+    if (variante?.existencias && variante.existencias.length > 0) {
       const conStock = variante.existencias.find((e: any) => e.cantidad > 0);
-      this.existenciaSeleccionada = conStock || variante.existencias[0];
+      this.existencia.set(conStock || variante.existencias[0]);
     } else {
-      this.existenciaSeleccionada = null;
+      this.existencia.set(null);
     }
-    this.cantidad = 1;
+    this.cantidadValue.set(1);
+    this.cdr.markForCheck();
   }
 
-  seleccionarTalla(existencia: any): void {
-    this.existenciaSeleccionada = existencia;
-    this.cantidad = 1;
+  seleccionarTalla(existenciaItem: any): void {
+    this.existencia.set(existenciaItem);
+    this.cantidadValue.set(1);
+    this.cdr.markForCheck();
   }
 
   incrementar(): void {
-    const maxStock = this.existenciaSeleccionada?.cantidad || 1;
-    if (this.cantidad < maxStock) {
-      this.cantidad++;
+    const maxStock = this.existencia()?.cantidad || 1;
+    if (this.cantidadValue() < maxStock) {
+      this.cantidadValue.update((c) => c + 1);
+      this.cdr.markForCheck();
     }
   }
 
   decrementar(): void {
-    if (this.cantidad > 1) {
-      this.cantidad--;
+    if (this.cantidadValue() > 1) {
+      this.cantidadValue.update((c) => c - 1);
+      this.cdr.markForCheck();
     }
   }
 
@@ -115,41 +206,50 @@ export class ProductoDetalleComponent implements OnInit {
   }
 
   mostrarToast(msg: string): void {
-    this.mensajeToast = msg;
+    this.toastMessage.set(msg);
+    this.cdr.markForCheck();
     setTimeout(() => {
-      this.mensajeToast = null;
+      this.toastMessage.set(null);
+      this.cdr.markForCheck();
     }, 3500);
   }
 
   agregarAlCarrito(redirigirAlCheckout: boolean = false): void {
-    if (!this.existenciaSeleccionada) {
-      this.mostrarToast('Por favor selecciona un color y talla disponible.');
+    const ex = this.existencia();
+    if (!ex) {
+      this.mostrarToast('Por favor selecciona un color y talla disponible con existencias.');
       return;
     }
 
-    if (this.existenciaSeleccionada.cantidad <= 0) {
+    if (ex.cantidad <= 0) {
       this.mostrarToast('No hay existencias disponibles para esta variante.');
       return;
     }
 
-    this.agregando = true;
-    this.carritoService.addItem(this.existenciaSeleccionada.stock_inventario_id, this.cantidad).subscribe({
+    this.isAgregando.set(true);
+    this.cdr.markForCheck();
+
+    this.carritoService.addItem(ex.stock_inventario_id, this.cantidadValue()).subscribe({
       next: () => {
-        this.agregando = false;
+        this.isAgregando.set(false);
+        this.cdr.markForCheck();
         if (redirigirAlCheckout) {
           this.router.navigate(['/carrito']);
         } else {
-          this.mostrarToast(`¡${this.producto?.nombre} añadido al carrito!`);
+          this.mostrarToast(`¡${this.productoData()?.nombre} añadido a la bolsa de compras!`);
         }
       },
-      error: (err) => {
-        this.agregando = false;
-        this.mostrarToast('Error al agregar el producto al carrito.');
+      error: () => {
+        this.isAgregando.set(false);
+        this.cdr.markForCheck();
+        this.mostrarToast('Error al agregar la prenda al carrito.');
       },
     });
   }
 
   navegarAProducto(codigo: string): void {
+    this.codigoState.set(codigo);
+    this.cargarProducto(codigo);
     this.router.navigate(['/catalogo/producto', codigo]);
   }
 }

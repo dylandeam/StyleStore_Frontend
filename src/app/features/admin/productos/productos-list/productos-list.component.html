@@ -230,7 +230,7 @@
                     <span class="badge-code">{{ p.codigo }}</span>
                   </td>
                   <td class="cell-main">
-                    <div class="product-cell-info">
+                    <div class="product-cell-info" (click)="verDetalleProducto(p.codigo)" style="cursor: pointer;" title="Ver Detalle de la Prenda">
                       <img
                         [src]="getImageUrl(p.foto)"
                         [alt]="p.nombre"

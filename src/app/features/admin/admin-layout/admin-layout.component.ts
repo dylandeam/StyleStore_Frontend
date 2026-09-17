@@ -105,6 +105,12 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/cuenta/cambiar-password')) {
       this.currentTitle.set('Seguridad de Cuenta');
       this.currentSubtitle.set('Cambio de contraseña con confirmación por correo (CU4)');
+    } else if (url.includes('/catalogo/producto')) {
+      this.currentTitle.set('Detalle de Prenda');
+      this.currentSubtitle.set('Ficha técnica, variantes de color y recomendaciones de IA');
+    } else if (url.includes('/carrito')) {
+      this.currentTitle.set('Bolsa de Compras');
+      this.currentSubtitle.set('Resumen de pedido, despacho con Yango y pasarela de pago');
     } else {
       this.currentTitle.set('Dashboard');
       this.currentSubtitle.set('Resumen general y módulos del sistema');
