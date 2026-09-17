@@ -220,9 +220,10 @@ export class CarritoComponent implements OnInit {
           this.procederConPago(ordenId);
         }
       },
-      error: () => {
+      error: (err) => {
         this.isProcesando.set(false);
-        this.mostrarToast('Error al confirmar el pedido. Verifica el stock disponible.');
+        const msg = err?.error?.detail || 'Error al confirmar el pedido. Verifica el stock disponible.';
+        this.mostrarToast(msg);
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },
@@ -248,9 +249,10 @@ export class CarritoComponent implements OnInit {
             });
           }
         },
-        error: () => {
+        error: (err) => {
           this.isProcesando.set(false);
-          this.mostrarToast('Error al iniciar PayPal. Inténtalo de nuevo.');
+          const msg = err?.error?.detail || 'Error al iniciar PayPal. Inténtalo de nuevo.';
+          this.mostrarToast(msg);
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         },
