@@ -14,6 +14,23 @@ export interface BackupItem {
   created_at: string;
 }
 
+export interface BackupConfig {
+  id: number;
+  auto_backup_enabled: boolean;
+  frequency_hours: number;
+  retention_days: number;
+  last_auto_backup: string | null;
+  updated_at: string | null;
+}
+
+export interface RestoreResponse {
+  success: boolean;
+  message: string;
+  total_records_restored?: number;
+  tables_count?: number;
+  sha256?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -21,8 +38,8 @@ export class BackupsService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/backups`;
 
-  generarBackup(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/generar`, {});
+  generarBackup(): Observable<BackupItem> {
+    return this.http.post<BackupItem>(`${this.apiUrl}/generar`, {});
   }
 
   listarBackups(): Observable<BackupItem[]> {
@@ -41,4 +58,27 @@ export class BackupsService {
       expected_hash: expectedHash,
     });
   }
+
+  getConfig(): Observable<BackupConfig> {
+    return this.http.get<BackupConfig>(`${this.apiUrl}/config`);
+  }
+
+  updateConfig(payload: { auto_backup_enabled: boolean; frequency_hours: number; retention_days: number }): Observable<BackupConfig> {
+    return this.http.put<BackupConfig>(`${this.apiUrl}/config`, payload);
+  }
+
+  restaurarDesdeServidor(backupId: number): Observable<RestoreResponse> {
+    return this.http.post<RestoreResponse>(`${this.apiUrl}/${backupId}/restaurar`, {});
+  }
+
+  subirYRestaurar(file: File): Observable<RestoreResponse> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    return this.http.post<RestoreResponse>(`${this.apiUrl}/subir-restaurar`, formData);
+  }
+
+  eliminarBackup(backupId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${backupId}`);
+  }
 }
+

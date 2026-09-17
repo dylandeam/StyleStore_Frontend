@@ -1,113 +1,394 @@
 <div class="backups-page">
   <!-- Toast Notificación -->
-  <div class="toast-notification" *ngIf="mensajeToast">
+  <div class="toast-notification" [ngClass]="toastType" *ngIf="mensajeToast">
+    <span class="toast-icon">
+      <span *ngIf="toastType === 'success'">✓</span>
+      <span *ngIf="toastType === 'error'">✕</span>
+      <span *ngIf="toastType === 'info'">ℹ</span>
+    </span>
     <span>{{ mensajeToast }}</span>
   </div>
 
+  <!-- Cabecera Principal -->
   <div class="page-header">
-    <div>
-      <div class="breadcrumb">Seguridad / <span>Copias de Seguridad</span></div>
-      <h1>Respaldo y Auditoría Criptográfica SHA-256</h1>
-      <p class="subtitle">Generación de snapshots de base de datos con verificación de integridad por hashing SHA-256.</p>
+    <div class="header-titles">
+      <h1>Copias de Seguridad (Backup & Restore)</h1>
+      <p class="subtitle">Genera respaldos manuales, configura la periodicidad automática y restaura snapshots del sistema</p>
     </div>
 
     <button
-      class="btn-generar"
+      class="btn-generar-ahora"
       [disabled]="generando"
       (click)="generarBackup()"
+      id="btnGenerarBackup"
     >
-      <span *ngIf="!generando">⚡ Crear Copia de Seguridad Inmediata</span>
-      <span *ngIf="generando">Generando snapshot & SHA-256...</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span *ngIf="!generando">Generar Respaldo Ahora</span>
+      <span *ngIf="generando">Generando snapshot...</span>
     </button>
   </div>
 
-  <!-- Tarjeta Informativa de Seguridad -->
-  <div class="card info-banner">
-    <div class="info-icon">🛡️</div>
-    <div>
-      <strong>Integridad de Datos Garantizada</strong>
-      <p>Cada archivo de respaldo exportado en formato JSON contiene la totalidad de tablas de StyleStore y un hash SHA-256 de 256 bits para prevenir alteraciones o corrupciones en el almacenamiento.</p>
+  <!-- Grid Superior: Copia Automática y Restauración -->
+  <div class="top-grid">
+    <!-- Tarjeta 1: Copia Automática Periódica -->
+    <div class="panel-card auto-backup-card">
+      <div class="panel-header">
+        <div class="icon-circle icon-clock">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="panel-title-wrap">
+          <h2>Copia Automática Periódica</h2>
+          <span class="panel-subtitle">Configurable por el administrador</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <!-- Checkbox Activar -->
+        <label class="custom-checkbox-row">
+          <input
+            type="checkbox"
+            [(ngModel)]="auto_backup_enabled"
+            id="checkboxAutoBackup"
+          />
+          <span class="checkbox-label-text">Activar respaldos automáticos en segundo plano</span>
+        </label>
+
+        <!-- Frecuencia -->
+        <div class="form-group">
+          <label for="frecuenciaSelect">Frecuencia de Ejecución *</label>
+          <div class="select-wrapper">
+            <select
+              id="frecuenciaSelect"
+              [(ngModel)]="frequency_hours"
+              class="styled-select"
+            >
+              <option *ngFor="let opt of frecuenciaOpciones" [value]="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Días de Retención -->
+        <div class="form-group">
+          <label for="retencionInput">Días de Retención en Servidor</label>
+          <input
+            type="number"
+            id="retencionInput"
+            [(ngModel)]="retention_days"
+            min="1"
+            max="365"
+            class="styled-input"
+          />
+        </div>
+
+        <!-- Información de última copia -->
+        <div class="status-info-row">
+          <span class="status-label">Última copia automática:</span>
+          <span class="status-value">
+            {{ last_auto_backup ? (last_auto_backup | date:'dd/MM/yyyy HH:mm') : 'Nunca ejecutada' }}
+          </span>
+        </div>
+
+        <!-- Botón Guardar -->
+        <button
+          class="btn-save-config"
+          (click)="guardarConfig()"
+          [disabled]="guardandoConfig"
+          id="btnGuardarConfig"
+        >
+          <span *ngIf="!guardandoConfig">Guardar Configuración</span>
+          <span *ngIf="guardandoConfig">Guardando...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tarjeta 2: Restaurar Copia de Seguridad -->
+    <div class="panel-card restore-card">
+      <div class="panel-header">
+        <div class="icon-circle icon-upload">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <div class="panel-title-wrap">
+          <h2>Restaurar Copia de Seguridad</h2>
+          <span class="panel-subtitle">Carga un archivo JSON snapshot</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <p class="restore-description">
+          Permite restaurar la base de datos completa a partir de un respaldo generado por StyleStore. Se verificará automáticamente el checksum SHA-256 para garantizar la integridad.
+        </p>
+
+        <!-- Dropzone / Picker -->
+        <div class="file-upload-zone" [class.has-file]="selectedFile">
+          <input
+            #jsonFileInput
+            type="file"
+            id="jsonFileInput"
+            accept=".json"
+            (change)="onFileSelected($event)"
+            class="hidden-file-input"
+          />
+
+          <div *ngIf="!selectedFile" class="upload-prompt" (click)="jsonFileInput.click()">
+            <div class="upload-icon-box">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+            </div>
+            <button type="button" class="btn-select-file">
+              Seleccionar Archivo .json
+            </button>
+          </div>
+
+          <!-- Archivo seleccionado preview -->
+          <div *ngIf="selectedFile" class="file-selected-view">
+            <div class="file-meta">
+              <span class="file-icon">📄</span>
+              <div class="file-info-text">
+                <strong class="file-name">{{ selectedFile.name }}</strong>
+                <span class="file-size">{{ formatBytes(selectedFile.size) }}</span>
+              </div>
+            </div>
+
+            <div class="file-actions">
+              <button
+                class="btn-confirm-upload-restore"
+                (click)="abrirModalRestaurarUpload()"
+                [disabled]="restaurando"
+              >
+                Restaurar Base de Datos Ahora
+              </button>
+              <button
+                class="btn-cancel-file"
+                (click)="limpiarArchivo($event)"
+                [disabled]="restaurando"
+                title="Quitar archivo seleccionado"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <p class="error-text" *ngIf="fileError">{{ fileError }}</p>
+      </div>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div class="card loading-card" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>Cargando historial de respaldos...</p>
-  </div>
+  <!-- Tarjeta 3: Historial de Respaldos en Servidor -->
+  <div class="panel-card history-card">
+    <div class="history-header">
+      <h2>Historial de Respaldos en Servidor</h2>
+      <button class="btn-refresh-history" (click)="cargarBackups()" [disabled]="loading">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+        Actualizar Historial
+      </button>
+    </div>
 
-  <!-- Tabla de Backups -->
-  <div class="card table-card" *ngIf="!loading">
-    <div class="table-responsive">
-      <table class="data-table">
+    <!-- Spinner loading -->
+    <div class="loading-wrap" *ngIf="loading">
+      <div class="mini-spinner"></div>
+      <span>Cargando respaldos en el servidor...</span>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-responsive" *ngIf="!loading">
+      <table class="history-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Archivo</th>
-            <th>Hash SHA-256</th>
-            <th>Tamaño</th>
-            <th>Tipo</th>
-            <th>Fecha</th>
-            <th>Estado / Integridad</th>
-            <th class="actions-col">Acciones</th>
+            <th>ARCHIVO</th>
+            <th>TAMAÑO</th>
+            <th>CHECKSUM SHA-256</th>
+            <th>TIPO</th>
+            <th>ESTADO</th>
+            <th>FECHA GENERADO</th>
+            <th class="actions-header">ACCIONES</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let b of backups">
-            <td class="cell-id">#{{ b.id }}</td>
-            <td class="cell-filename">
-              <strong>{{ b.nombre_archivo }}</strong>
+            <td class="col-filename">
+              <code>{{ b.nombre_archivo }}</code>
             </td>
-            <td>
-              <div class="hash-wrap" (click)="copiarHash(b.sha256_hash)" title="Clic para copiar hash completo">
-                <code>{{ b.sha256_hash.substring(0, 16) }}...{{ b.sha256_hash.substring(b.sha256_hash.length - 8) }}</code>
-                <span class="copy-icon">📋</span>
+            <td class="col-size">
+              {{ formatBytes(b.tamano_bytes) }}
+            </td>
+            <td class="col-hash">
+              <div class="hash-tag" (click)="copiarHash(b.sha256_hash)" title="Clic para copiar hash SHA-256 completo">
+                <code>{{ b.sha256_hash.substring(0, 16) }}...</code>
+                <span class="copy-hint">📋</span>
               </div>
             </td>
-            <td>{{ (b.tamano_bytes / 1024) | number:'1.1-1' }} KB</td>
-            <td>
-              <span class="badge-tipo">{{ b.tipo }}</span>
+            <td class="col-type">
+              <span class="badge-type" [class.badge-auto]="b.tipo.toLowerCase() === 'auto'">
+                {{ b.tipo.toUpperCase() }}
+              </span>
             </td>
-            <td class="cell-date">{{ b.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              <div *ngIf="!resultadoVerificacion[b.id]">
-                <span class="badge-status-ok">Registrado</span>
-              </div>
-              <div *ngIf="resultadoVerificacion[b.id]">
-                <span class="badge-verified" *ngIf="resultadoVerificacion[b.id].valido">
-                  ✓ SHA-256 Válido
-                </span>
-                <span class="badge-corrupt" *ngIf="!resultadoVerificacion[b.id].valido">
-                  ✕ Hash no coincide
-                </span>
-              </div>
+            <td class="col-status">
+              <span class="badge-status-success">
+                {{ b.estado ? b.estado.toUpperCase() : 'SUCCESS' }}
+              </span>
             </td>
-            <td class="actions-col">
+            <td class="col-date">
+              {{ b.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
+            </td>
+            <td class="col-actions">
               <button
-                class="btn-action download"
+                class="btn-row-action btn-download"
                 (click)="descargar(b)"
                 title="Descargar archivo .json"
               >
-                📥 Descargar
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Descargar
               </button>
+
               <button
-                class="btn-action verify"
-                [disabled]="verificandoId === b.id"
-                (click)="verificar(b)"
-                title="Verificar integridad con SHA-256"
+                class="btn-row-action btn-restore"
+                (click)="abrirModalRestaurarServidor(b)"
+                [disabled]="restaurandoId === b.id"
+                title="Restaurar base de datos a partir de este respaldo"
               >
-                {{ verificandoId === b.id ? '⏳' : '🔍 Verificar' }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+                Restaurar
+              </button>
+
+              <button
+                class="btn-row-action btn-verify"
+                (click)="verificar(b)"
+                [disabled]="verificandoId === b.id"
+                title="Verificar integridad criptográfica SHA-256"
+              >
+                {{ verificandoId === b.id ? '⏳' : '🔍' }}
+              </button>
+
+              <button
+                class="btn-row-action btn-delete"
+                (click)="eliminar(b)"
+                [disabled]="eliminandoId === b.id"
+                title="Eliminar este respaldo del servidor"
+              >
+                🗑️
               </button>
             </td>
           </tr>
 
           <tr *ngIf="backups.length === 0">
-            <td colspan="8" class="text-center py-4 text-muted">
-              No hay copias de seguridad registradas aún. Haz clic en "Crear Copia de Seguridad Inmediata".
+            <td colspan="7" class="empty-state">
+              No se encontraron copias de seguridad en el servidor. Presiona "Generar Respaldo Ahora" para crear la primera.
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación: Restaurar desde Servidor -->
+  <div class="modal-overlay" *ngIf="backupToRestore">
+    <div class="modal-card">
+      <div class="modal-header warning">
+        <div class="modal-icon">⚠️</div>
+        <h3>¿Confirmar Restauración de Base de Datos?</h3>
+      </div>
+      <div class="modal-body">
+        <p>Estás a punto de restaurar la base de datos completa de StyleStore a partir del siguiente respaldo en servidor:</p>
+        <div class="modal-meta-box">
+          <div><strong>Archivo:</strong> <code>{{ backupToRestore.nombre_archivo }}</code></div>
+          <div><strong>Fecha:</strong> {{ backupToRestore.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+          <div><strong>Tamaño:</strong> {{ formatBytes(backupToRestore.tamano_bytes) }}</div>
+          <div><strong>Hash SHA-256:</strong> <code>{{ backupToRestore.sha256_hash }}</code></div>
+        </div>
+        <p class="modal-alert-danger">
+          <strong>Advertencia:</strong> Esta operación reemplazará los datos actuales por los datos guardados en este snapshot de forma atómica.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" (click)="cerrarModalRestaurarServidor()" [disabled]="restaurando">
+          Cancelar
+        </button>
+        <button class="btn-modal-confirm" (click)="confirmarRestaurarServidor()" [disabled]="restaurando">
+          <span *ngIf="!restaurando">Sí, Restaurar Ahora</span>
+          <span *ngIf="restaurando">Restaurando base de datos...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación: Restaurar desde Archivo Subido -->
+  <div class="modal-overlay" *ngIf="showUploadRestoreModal && selectedFile">
+    <div class="modal-card">
+      <div class="modal-header warning">
+        <div class="modal-icon">📤</div>
+        <h3>Restaurar desde Archivo Local</h3>
+      </div>
+      <div class="modal-body">
+        <p>Se validará la integridad criptográfica SHA-256 y se restaurarán todas las entidades de StyleStore:</p>
+        <div class="modal-meta-box">
+          <div><strong>Archivo seleccionado:</strong> <code>{{ selectedFile.name }}</code></div>
+          <div><strong>Tamaño:</strong> {{ formatBytes(selectedFile.size) }}</div>
+        </div>
+        <p class="modal-alert-danger">
+          <strong>Advertencia:</strong> Todos los registros actuales (productos, clientes, ventas, etc.) serán sincronizados y restaurados con la información de este archivo snapshot.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" (click)="cerrarModalRestaurarUpload()" [disabled]="restaurando">
+          Cancelar
+        </button>
+        <button class="btn-modal-confirm" (click)="confirmarRestaurarUpload()" [disabled]="restaurando">
+          <span *ngIf="!restaurando">Verificar y Restaurar</span>
+          <span *ngIf="restaurando">Procesando y Restaurando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Éxito de Restauración -->
+  <div class="modal-overlay" *ngIf="restoreSuccessData">
+    <div class="modal-card success-card">
+      <div class="modal-header success">
+        <div class="modal-icon">🎉</div>
+        <h3>Restauración Completada</h3>
+      </div>
+      <div class="modal-body">
+        <p>{{ restoreSuccessData.message }}</p>
+        <div class="modal-meta-box" *ngIf="restoreSuccessData.total_records_restored !== undefined">
+          <div><strong>Registros restaurados:</strong> {{ restoreSuccessData.total_records_restored }}</div>
+          <div><strong>Tablas procesadas:</strong> {{ restoreSuccessData.tables_count }}</div>
+          <div *ngIf="restoreSuccessData.sha256"><strong>SHA-256 verificado:</strong> <code>{{ restoreSuccessData.sha256 }}</code></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-primary" (click)="cerrarModalExito()">
+          Aceptar
+        </button>
+      </div>
     </div>
   </div>
 </div>
