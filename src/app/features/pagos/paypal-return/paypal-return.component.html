@@ -13,7 +13,7 @@
     <div class="details-box">
       <div>Orden StyleStore: <strong>#{{ ordenId }}</strong></div>
       <div *ngIf="captureId">ID de Transacción PayPal: <span class="mono">{{ captureId }}</span></div>
-      <div>Monto: <strong>${{ monto | number:'1.2-2' }}</strong></div>
+      <div>Monto: <strong>Bs. {{ monto | number:'1.2-2' }}</strong></div>
       <div>Estado: <span class="badge-success">APROBADO</span></div>
     </div>
 

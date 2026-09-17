@@ -22,7 +22,7 @@
     <p class="order-id-highlight">Orden de Venta: <strong>#{{ ordenGenerada.orden_id }}</strong></p>
     <p>{{ ordenGenerada.mensaje }}</p>
     <div class="order-summary-box">
-      <div>Total a abonar: <strong>${{ ordenGenerada.total | number:'1.2-2' }}</strong></div>
+      <div>Total a abonar: <strong>Bs. {{ ordenGenerada.total | number:'1.2-2' }}</strong></div>
       <div>Método seleccionado: <strong>Efectivo / En Caja POS</strong></div>
       <div *ngIf="conEnvio">
         Despacho: <strong>Yango Delivery (Conductor asignado en camino)</strong>
@@ -67,7 +67,7 @@
           </div>
 
           <div class="item-price-unit">
-            ${{ item.precio_unitario | number:'1.2-2' }} c/u
+            Bs. {{ item.precio_unitario | number:'1.2-2' }} c/u
           </div>
         </div>
 
@@ -79,7 +79,7 @@
             <button type="button" class="btn-qty" (click)="cambiarCantidad(item, 1)">+</button>
           </div>
           <div class="item-subtotal">
-            ${{ item.subtotal | number:'1.2-2' }}
+            Bs. {{ item.subtotal | number:'1.2-2' }}
           </div>
         </div>
 
@@ -136,7 +136,7 @@
               </div>
               <div class="costo-preview">
                 <label>Tarifa Yango</label>
-                <span class="costo-tag">+${{ costoEnvio | number:'1.2-2' }}</span>
+                <span class="costo-tag">+Bs. {{ costoEnvio | number:'1.2-2' }}</span>
               </div>
             </div>
           </div>
@@ -173,19 +173,19 @@
         <div class="totals-breakdown">
           <div class="total-row">
             <span>Subtotal de Prendas</span>
-            <span>${{ (carrito?.total || 0) | number:'1.2-2' }}</span>
+            <span>Bs. {{ (carrito?.total || 0) | number:'1.2-2' }}</span>
           </div>
 
           <div class="total-row" *ngIf="conEnvio">
             <span>Envío Yango Delivery</span>
-            <span>+${{ costoEnvio | number:'1.2-2' }}</span>
+            <span>+Bs. {{ costoEnvio | number:'1.2-2' }}</span>
           </div>
 
           <hr class="summary-divider" />
 
           <div class="total-row final">
             <span>Total Final</span>
-            <span class="total-amount">${{ totalFinal | number:'1.2-2' }}</span>
+            <span class="total-amount">Bs. {{ totalFinal | number:'1.2-2' }}</span>
           </div>
         </div>
 

@@ -52,7 +52,7 @@
         <div class="codigo-ref">Ref: <strong>{{ producto.codigo }}</strong></div>
 
         <div class="precio-block">
-          <span class="moneda">$</span>
+          <span class="moneda">Bs.</span>
           <span class="precio-valor">{{ producto.precio | number:'1.2-2' }}</span>
         </div>
 
@@ -207,7 +207,7 @@
             </div>
 
             <div class="ia-card-footer">
-              <span class="ia-precio">${{ rec.precio | number:'1.2-2' }}</span>
+              <span class="ia-precio">Bs. {{ rec.precio | number:'1.2-2' }}</span>
               <button class="btn-ver-mas">Ver Prenda →</button>
             </div>
           </div>

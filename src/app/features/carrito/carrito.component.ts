@@ -146,7 +146,7 @@ export class CarritoComponent implements OnInit {
     this.envioService.cotizar(this.distanciaKm).subscribe({
       next: (res) => {
         this.costoEnvioState.set(res.costo);
-        this.mostrarToast(`Tarifa estimada: $${res.costo} (${this.distanciaKm} km)`);
+        this.mostrarToast(`Tarifa estimada: Bs. ${res.costo} (${this.distanciaKm} km)`);
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },
