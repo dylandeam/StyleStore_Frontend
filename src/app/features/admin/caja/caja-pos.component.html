@@ -43,11 +43,14 @@
 
           <div class="order-items-preview" *ngIf="o.detalles && o.detalles.length > 0">
             <span class="items-count">{{ o.detalles.length }} artículo(s)</span>
+            <span class="badge-metodo" [class.badge-efectivo]="(o.metodo_pago || '').toLowerCase() === 'efectivo'">
+              {{ o.metodo_pago || 'EFECTIVO' }}
+            </span>
           </div>
 
           <div class="order-total-row">
             <span class="total-label">Total:</span>
-            <span class="total-val">${{ o.total | number:'1.2-2' }}</span>
+            <span class="total-val">Bs. {{ o.total | number:'1.2-2' }}</span>
           </div>
         </div>
       </div>
@@ -76,7 +79,7 @@
         <!-- Total a Pagar -->
         <div class="amount-to-pay-display">
           <span class="label">TOTAL A COBRAR</span>
-          <span class="value">${{ ordenSeleccionada.total | number:'1.2-2' }}</span>
+          <span class="value">Bs. {{ ordenSeleccionada.total | number:'1.2-2' }}</span>
         </div>
 
         <!-- Alerta de Error -->
@@ -86,7 +89,7 @@
 
         <!-- Input de Efectivo Recibido -->
         <div class="cash-input-group">
-          <label>Efectivo Recibido ($)</label>
+          <label>Efectivo Recibido (Bs.)</label>
           <input
             type="number"
             step="1"
@@ -97,10 +100,11 @@
 
           <!-- Botones de Billetes Rápidos -->
           <div class="quick-cash-buttons">
-            <button type="button" class="btn-cash" (click)="addBilletes(10)">+$10</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(20)">+$20</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(50)">+$50</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(100)">+$100</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(10)">+Bs. 10</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(20)">+Bs. 20</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(50)">+Bs. 50</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(100)">+Bs. 100</button>
+            <button type="button" class="btn-cash" (click)="addBilletes(200)">+Bs. 200</button>
             <button type="button" class="btn-cash exact" (click)="setBilletes(ordenSeleccionada.total)">Exacto</button>
           </div>
         </div>
@@ -108,7 +112,7 @@
         <!-- Indicador de Vuelto / Cambio -->
         <div class="cambio-display" [class.valid]="puedeCobrar">
           <div class="cambio-label">CAMBIO A DEVOLVER:</div>
-          <div class="cambio-value">${{ cambio | number:'1.2-2' }}</div>
+          <div class="cambio-value">Bs. {{ cambio | number:'1.2-2' }}</div>
         </div>
 
         <!-- Botón Procesar Cobro -->
@@ -140,15 +144,15 @@
           <div class="receipt-body">
             <div class="receipt-row">
               <span>TOTAL PAGADO:</span>
-              <strong>${{ ticketEmitido.total | number:'1.2-2' }}</strong>
+              <strong>Bs. {{ ticketEmitido.total | number:'1.2-2' }}</strong>
             </div>
             <div class="receipt-row">
               <span>EFECTIVO RECIBIDO:</span>
-              <span>${{ ticketEmitido.efectivo_recibido | number:'1.2-2' }}</span>
+              <span>Bs. {{ ticketEmitido.efectivo_recibido | number:'1.2-2' }}</span>
             </div>
             <div class="receipt-row cambio-row">
               <span>CAMBIO / VUELTO:</span>
-              <strong>${{ ticketEmitido.cambio_devuelto | number:'1.2-2' }}</strong>
+              <strong>Bs. {{ ticketEmitido.cambio_devuelto | number:'1.2-2' }}</strong>
             </div>
             <div class="receipt-divider">================================</div>
           </div>

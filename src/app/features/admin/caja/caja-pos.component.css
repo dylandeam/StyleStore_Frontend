@@ -368,3 +368,21 @@
     display: none !important;
   }
 }
+
+.badge-metodo {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  margin-left: 8px;
+}
+
+.badge-metodo.badge-efectivo {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}

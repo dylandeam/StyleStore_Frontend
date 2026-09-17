@@ -34,8 +34,11 @@ export class CajaPosComponent implements OnInit {
     this.loading = true;
     this.ventaService.getVentas().subscribe({
       next: (ventas) => {
-        // Filtrar órdenes pendientes
-        this.ordenesPendientes = ventas.filter((v: any) => v.estado === 'pendiente');
+        // Filtrar órdenes pendientes de cobro (compatible con 'pendiente_pago' y 'pendiente')
+        this.ordenesPendientes = ventas.filter((v: any) => {
+          const est = (v.estado || '').toLowerCase();
+          return est === 'pendiente_pago' || est === 'pendiente' || est.includes('pendiente');
+        });
         this.loading = false;
       },
       error: () => {

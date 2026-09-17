@@ -16,6 +16,9 @@ export interface OrdenVenta {
   estado: string;
   total: number;
   tipo_venta: string;
+  metodo_pago?: string;
+  ticket_numero?: string;
+  sucursal_id?: number;
   codigo_cliente: string;
   cliente_nombre?: string;
   cliente_email?: string;
