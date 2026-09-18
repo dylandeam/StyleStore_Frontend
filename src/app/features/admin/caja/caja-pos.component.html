@@ -146,6 +146,18 @@
             <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
             <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
             <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
+            <div class="receipt-line" *ngIf="ordenSeleccionada?.cliente_nombre">
+              Cliente: <strong>{{ ordenSeleccionada.cliente_nombre }}</strong>
+            </div>
+            <div class="receipt-divider">--------------------------------</div>
+          </div>
+
+          <!-- Artículos comprados -->
+          <div class="receipt-items" *ngIf="ordenSeleccionada?.detalles && ordenSeleccionada.detalles.length > 0">
+            <div class="receipt-item-row" *ngFor="let it of ordenSeleccionada.detalles">
+              <span class="it-desc">{{ it.cantidad }}x {{ it.producto_nombre }} ({{ it.talla_nombre || 'U' }}{{ it.color_nombre ? ' - ' + it.color_nombre : '' }})</span>
+              <span class="it-price">Bs. {{ it.subtotal | number:'1.2-2' }}</span>
+            </div>
             <div class="receipt-divider">--------------------------------</div>
           </div>
 

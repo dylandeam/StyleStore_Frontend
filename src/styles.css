@@ -493,3 +493,70 @@ h1, .brand-header h2, .section-title {
   border: 1px solid #FDE68A;
 }
 
+/* ==========================================================================
+   Global Print Styles (POS Thermal Receipts)
+   ========================================================================== */
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ocultar toda la estructura global externa al ticket */
+  .sidebar,
+  .topbar,
+  .nav-item,
+  header,
+  nav,
+  aside,
+  .dashboard-header,
+  .breadcrumb,
+  .pos-header,
+  .pos-orders-list,
+  .card:not(.ticket-card),
+  .ticket-actions,
+  .toast-notification,
+  .no-print {
+    display: none !important;
+  }
+
+  .pos-container,
+  .pos-grid,
+  .pos-checkout-panel {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .card.ticket-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 80mm !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+
+  #ticket-pos-print {
+    display: block !important;
+    visibility: visible !important;
+    width: 76mm !important;
+    margin: 0 auto !important;
+    padding: 10px 4px !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12px !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #ticket-pos-print * {
+    visibility: visible !important;
+  }
+}
+

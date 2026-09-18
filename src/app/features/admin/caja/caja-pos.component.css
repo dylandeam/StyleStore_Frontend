@@ -376,6 +376,31 @@
   font-size: 1.1rem;
 }
 
+.receipt-items {
+  margin: 6px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.receipt-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+
+.it-desc {
+  flex: 1;
+  padding-right: 8px;
+  text-align: left;
+}
+
+.it-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .receipt-small {
   font-size: 0.72rem;
   color: #64748b;
@@ -409,22 +434,49 @@
 }
 
 @media print {
-  body * {
-    visibility: hidden;
+  :host {
+    display: block !important;
   }
-  #ticket-pos-print, #ticket-pos-print * {
-    visibility: visible;
-  }
-  #ticket-pos-print {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    box-shadow: none;
-    border: none;
-  }
+
+  .pos-header,
+  .pos-orders-list,
+  .empty-selection-card,
+  .checkout-card,
+  .toast-notification,
+  .ticket-actions,
   .no-print {
     display: none !important;
+  }
+
+  .pos-container,
+  .pos-grid,
+  .pos-checkout-panel {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .card.ticket-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 80mm !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+
+  #ticket-pos-print {
+    width: 76mm !important;
+    margin: 0 auto !important;
+    padding: 12px 4px !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12px !important;
   }
 }
 
