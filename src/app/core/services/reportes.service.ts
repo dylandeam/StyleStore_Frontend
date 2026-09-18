@@ -73,4 +73,37 @@ export class ReportesService {
       responseType: 'blob',
     });
   }
+
+  previewVentas(filters?: {
+    fecha_inicio?: string;
+    fecha_fin?: string;
+    sucursal_id?: number;
+    metodo_pago?: string;
+  }): Observable<{ total_registros: number; total_monto: number; items: any[] }> {
+    let params = new HttpParams();
+    if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
+    if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id);
+    if (filters?.metodo_pago) params = params.set('metodo_pago', filters.metodo_pago);
+
+    return this.http.get<{ total_registros: number; total_monto: number; items: any[] }>(
+      `${this.apiUrl}/ventas/preview`,
+      { params }
+    );
+  }
+
+  previewInventario(filters?: {
+    sucursal_id?: number;
+    solo_bajo_stock?: boolean;
+  }): Observable<{ total_registros: number; total_criticos: number; items: any[] }> {
+    let params = new HttpParams();
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id);
+    if (filters?.solo_bajo_stock) params = params.set('solo_bajo_stock', filters.solo_bajo_stock);
+
+    return this.http.get<{ total_registros: number; total_criticos: number; items: any[] }>(
+      `${this.apiUrl}/inventario/preview`,
+      { params }
+    );
+  }
 }
+

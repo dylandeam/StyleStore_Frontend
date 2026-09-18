@@ -126,6 +126,12 @@ h1 {
   border-radius: 8px;
   font-size: 0.88rem;
   background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #14263D;
 }
 
 .checkbox-box {
@@ -144,28 +150,46 @@ h1 {
 .export-actions {
   margin-top: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .export-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .btn-export {
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-preview {
+  background: #14263D;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(20, 38, 61, 0.25);
+}
+
+.btn-preview:hover:not(:disabled) {
+  background: #203a5c;
+  transform: translateY(-2px);
 }
 
 .btn-excel {
   background: #107c41;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(16, 124, 65, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 124, 65, 0.2);
 }
 
 .btn-excel:hover:not(:disabled) {
@@ -176,7 +200,7 @@ h1 {
 .btn-pdf {
   background: #d9381e;
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(217, 56, 30, 0.25);
+  box-shadow: 0 4px 12px rgba(217, 56, 30, 0.2);
 }
 
 .btn-pdf:hover:not(:disabled) {
@@ -188,4 +212,330 @@ h1 {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+/* =========================================
+   SECCIÓN DE PREVISUALIZACIÓN EN PANTALLA
+   ========================================= */
+.preview-card {
+  margin-top: 32px;
+  padding: 28px;
+  border: 2px solid #b8860b;
+  animation: fadeInDown 0.3s ease-in-out;
+  background: #ffffff;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+}
+
+.preview-title-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.preview-icon {
+  font-size: 2rem;
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.preview-title-group h3 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #14263D;
+  margin: 0 0 4px;
+}
+
+.preview-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.preview-kpis {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kpi-pill {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.kpi-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.kpi-value {
+  font-weight: 800;
+  color: #14263D;
+}
+
+.kpi-highlight {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.kpi-highlight .kpi-value {
+  color: #1d4ed8;
+}
+
+.kpi-warning {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.kpi-warning .kpi-value {
+  color: #c2410c;
+}
+
+.btn-close-preview {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-close-preview:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* Spinner de Carga */
+.preview-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  gap: 14px;
+  color: #64748b;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #14263D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* Tablas */
+.table-responsive {
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: left;
+}
+
+.report-table th {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid #cbd5e1;
+  white-space: nowrap;
+}
+
+.report-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.report-table tr:hover {
+  background: #fcfcfd;
+}
+
+.ticket-cell {
+  font-family: monospace;
+  font-size: 0.95rem;
+  color: #14263D;
+}
+
+.code-cell code {
+  background: #f1f5f9;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.client-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.client-code {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.badge-metodo {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-metodo.efectivo {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-metodo.paypal {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-estado.completada,
+.badge-estado.pagado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-estado.pendiente {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.amount-cell {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tfoot-row {
+  background: #f8fafc;
+  border-top: 2px solid #cbd5e1;
+}
+
+.tfoot-row td {
+  padding: 14px 16px;
+  font-size: 0.95rem;
+}
+
+.total-general {
+  font-size: 1.1rem;
+  color: #107c41;
+}
+
+.talla-pill {
+  display: inline-block;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.stock-qty {
+  font-size: 0.92rem;
+}
+
+.stock-danger {
+  color: #b91c1c;
+}
+
+.stock-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-critico {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.badge-ok {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: 700;
 }

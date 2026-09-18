@@ -8,7 +8,7 @@
     <div>
       <div class="breadcrumb">Administración / <span>Reportes Dinámicos</span></div>
       <h1>Generación y Exportación de Reportes</h1>
-      <p class="subtitle">Descarga reportes consolidados en Excel (.xlsx con openpyxl) y PDF (.pdf con reportlab).</p>
+      <p class="subtitle">Descarga reportes consolidados en Excel (.xlsx con openpyxl), PDF (.pdf con reportlab) o previsualízalos directamente aquí.</p>
     </div>
   </div>
 
@@ -19,7 +19,7 @@
         <span class="report-icon">📊</span>
         <div>
           <h2>Reporte General de Ventas</h2>
-          <p>Consolidado de ventas, tickets emitidos, clientes y métodos de pago.</p>
+          <p>Consolidado de ventas, tickets emitidos, clientes y métodos de pago en Bs.</p>
         </div>
       </div>
 
@@ -58,11 +58,20 @@
       <div class="export-actions">
         <button
           type="button"
+          class="btn-export btn-preview"
+          [disabled]="cargandoPreview"
+          (click)="previsualizarVentas()"
+        >
+          <span>👁️</span> Previsualizar
+        </button>
+
+        <button
+          type="button"
           class="btn-export btn-excel"
           [disabled]="descargando"
           (click)="descargarVentasExcel()"
         >
-          <span>📗</span> Exportar a Excel (.xlsx)
+          <span>📗</span> Excel (.xlsx)
         </button>
 
         <button
@@ -71,7 +80,7 @@
           [disabled]="descargando"
           (click)="descargarVentasPDF()"
         >
-          <span>📕</span> Exportar a PDF (.pdf)
+          <span>📕</span> PDF (.pdf)
         </button>
       </div>
     </div>
@@ -106,11 +115,20 @@
       <div class="export-actions">
         <button
           type="button"
+          class="btn-export btn-preview"
+          [disabled]="cargandoPreview"
+          (click)="previsualizarInventario()"
+        >
+          <span>👁️</span> Previsualizar
+        </button>
+
+        <button
+          type="button"
           class="btn-export btn-excel"
           [disabled]="descargando"
           (click)="descargarInventarioExcel()"
         >
-          <span>📗</span> Exportar Inventario (.xlsx)
+          <span>📗</span> Excel (.xlsx)
         </button>
 
         <button
@@ -119,8 +137,160 @@
           [disabled]="descargando"
           (click)="descargarInventarioPDF()"
         >
-          <span>📕</span> Exportar Inventario (.pdf)
+          <span>📕</span> PDF (.pdf)
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de Previsualización en Vivo -->
+  <div id="seccion-preview-reporte" class="card preview-card" *ngIf="tipoPrevisualizacion">
+    <div class="preview-header">
+      <div class="preview-title-group">
+        <span class="preview-icon">{{ tipoPrevisualizacion === 'ventas' ? '📊' : '📦' }}</span>
+        <div>
+          <h3>
+            {{ tipoPrevisualizacion === 'ventas' ? 'Previsualización: Reporte General de Ventas' : 'Previsualización: Reporte de Inventario & Stock' }}
+          </h3>
+          <p class="preview-subtitle">
+            Mostrando datos consolidados en pantalla sin requerir descarga.
+          </p>
+        </div>
+      </div>
+
+      <!-- KPIs y Botón Cerrar -->
+      <div class="preview-kpis">
+        <ng-container *ngIf="tipoPrevisualizacion === 'ventas' && datosPreviewVentas">
+          <div class="kpi-pill">
+            <span class="kpi-label">Ventas:</span>
+            <span class="kpi-value">{{ datosPreviewVentas.total_registros }}</span>
+          </div>
+          <div class="kpi-pill kpi-highlight">
+            <span class="kpi-label">Total:</span>
+            <span class="kpi-value">Bs. {{ datosPreviewVentas.total_monto | number:'1.2-2' }}</span>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="tipoPrevisualizacion === 'inventario' && datosPreviewInventario">
+          <div class="kpi-pill">
+            <span class="kpi-label">Artículos:</span>
+            <span class="kpi-value">{{ datosPreviewInventario.total_registros }}</span>
+          </div>
+          <div class="kpi-pill kpi-warning">
+            <span class="kpi-label">Críticos (≤ 5):</span>
+            <span class="kpi-value">{{ datosPreviewInventario.total_criticos }}</span>
+          </div>
+        </ng-container>
+
+        <button type="button" class="btn-close-preview" (click)="cerrarPreview()" title="Cerrar Vista Previa">
+          ✕ Cerrar
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="preview-loading" *ngIf="cargandoPreview">
+      <div class="spinner"></div>
+      <p>Cargando datos del reporte...</p>
+    </div>
+
+    <!-- Contenido Previsualización de Ventas -->
+    <div class="preview-body" *ngIf="!cargandoPreview && tipoPrevisualizacion === 'ventas'">
+      <div class="empty-state" *ngIf="!datosPreviewVentas?.items?.length">
+        <span class="empty-icon">🔍</span>
+        <p>No se encontraron registros de ventas con los filtros aplicados.</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="datosPreviewVentas?.items?.length">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>N° Ticket / Orden</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Sucursal</th>
+              <th>Método de Pago</th>
+              <th>Estado</th>
+              <th class="text-right">Total (Bs.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of datosPreviewVentas?.items">
+              <td class="ticket-cell"><strong>{{ item.ticket_numero }}</strong></td>
+              <td>{{ item.fecha }}</td>
+              <td>
+                <span class="client-name">{{ item.cliente_nombre }}</span>
+                <span class="client-code" *ngIf="item.codigo_cliente">({{ item.codigo_cliente }})</span>
+              </td>
+              <td>{{ item.sucursal_nombre }}</td>
+              <td>
+                <span class="badge-metodo" [ngClass]="item.metodo_pago.toLowerCase()">
+                  {{ item.metodo_pago }}
+                </span>
+              </td>
+              <td>
+                <span class="badge-estado" [ngClass]="item.estado.toLowerCase()">
+                  {{ item.estado }}
+                </span>
+              </td>
+              <td class="text-right amount-cell">
+                Bs. {{ item.total | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="tfoot-row">
+              <td colspan="6" class="text-right font-bold">TOTAL RECAUDADO:</td>
+              <td class="text-right total-general font-bold">
+                Bs. {{ datosPreviewVentas?.total_monto | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Contenido Previsualización de Inventario -->
+    <div class="preview-body" *ngIf="!cargandoPreview && tipoPrevisualizacion === 'inventario'">
+      <div class="empty-state" *ngIf="!datosPreviewInventario?.items?.length">
+        <span class="empty-icon">🔍</span>
+        <p>No se encontraron existencias con los filtros aplicados.</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="datosPreviewInventario?.items?.length">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Prenda / Producto</th>
+              <th>Color</th>
+              <th>Talla</th>
+              <th>Sucursal</th>
+              <th class="text-center">Stock Actual</th>
+              <th class="text-center">Alerta Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of datosPreviewInventario?.items">
+              <td class="code-cell"><code>{{ item.codigo }}</code></td>
+              <td class="product-name font-bold">{{ item.producto_nombre }}</td>
+              <td>{{ item.color_nombre }}</td>
+              <td><span class="talla-pill">{{ item.talla_nombre }}</span></td>
+              <td>{{ item.sucursal_nombre }}</td>
+              <td class="text-center stock-qty" [class.stock-danger]="item.es_critico">
+                <strong>{{ item.cantidad }}</strong> unids.
+              </td>
+              <td class="text-center">
+                <span class="stock-badge badge-critico" *ngIf="item.es_critico">
+                  ⚠️ Crítico
+                </span>
+                <span class="stock-badge badge-ok" *ngIf="!item.es_critico">
+                  ✓ Óptimo
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
