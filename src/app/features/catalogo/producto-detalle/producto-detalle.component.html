@@ -138,6 +138,16 @@
           >
             ⚡ Comprar Ahora
           </button>
+
+          <button
+            type="button"
+            class="btn-reserve"
+            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0"
+            (click)="abrirModalReserva()"
+            title="Aparta esta prenda indicando la sucursal para pasar a probártela y abonar en caja"
+          >
+            🔖 Reservar Prenda
+          </button>
         </div>
 
         <!-- Beneficios y Garantías -->
@@ -220,3 +230,98 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL DE RESERVA POR SUCURSAL -->
+@if (isReservaModalOpen()) {
+  <div class="modal-backdrop modal-reserva-backdrop" (click)="cerrarModalReserva()">
+    <div class="modal-card modal-reserva-card" (click)="$event.stopPropagation()">
+      @if (!reservaExitosa()) {
+        <div class="modal-header">
+          <div class="header-title-box">
+            <span class="reserva-header-icon">🔖</span>
+            <h3>Reservar Prenda en Tienda</h3>
+          </div>
+          <button type="button" class="btn-close-modal" (click)="cerrarModalReserva()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="modal-intro-text">
+            Aparta esta prenda a tu nombre sin pago inmediato. Podrás pasar por la sucursal seleccionada a probártela y cancelarla presencialmente en caja.
+          </p>
+
+          <!-- Resumen del Ítem a Reservar -->
+          <div class="reserva-item-preview">
+            <img [src]="getImageUrl(producto?.foto)" [alt]="producto?.nombre" class="reserva-thumb" />
+            <div class="reserva-info-col">
+              <h4>{{ producto?.nombre }}</h4>
+              <div class="reserva-pills">
+                <span class="pill-color">Color: <strong>{{ varianteColorSeleccionada?.color_nombre }}</strong></span>
+                <span class="pill-talla">Talla: <strong>{{ existenciaSeleccionada?.talla_nombre || 'Única' }}</strong></span>
+                <span class="pill-qty">Cantidad: <strong>{{ cantidad }}</strong></span>
+              </div>
+              <div class="reserva-price-tag">Precio: <strong>Bs. {{ producto?.precio | number:'1.2-2' }}</strong></div>
+            </div>
+          </div>
+
+          <!-- Selección Explícita de la Sucursal -->
+          <div class="form-group sucursal-picker-box">
+            <label class="sucursal-picker-label">
+              <strong>🏢 Selecciona la Sucursal donde recogerás tu reserva: *</strong>
+            </label>
+            <select
+              class="form-control select-sucursal-reserva"
+              [ngModel]="sucursalReservaId()"
+              (ngModelChange)="sucursalReservaId.set($event)"
+            >
+              @for (s of sucursalesList(); track s.id) {
+                <option [value]="s.id">
+                  {{ s.name }} ({{ s.city }} — {{ s.address }})
+                </option>
+              }
+            </select>
+            <small class="help-desc-text">
+              ℹ️ El sistema descontará el stock de esta sucursal y la apartará a tu nombre.
+            </small>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalReserva()">Cancelar</button>
+          <button
+            type="button"
+            class="btn btn-primary btn-submit-reserva"
+            [disabled]="isProcesandoReserva() || !sucursalReservaId()"
+            (click)="confirmarReserva()"
+          >
+            <span *ngIf="!isProcesandoReserva()">✓ Confirmar Reserva</span>
+            <span *ngIf="isProcesandoReserva()">Apartando prenda...</span>
+          </button>
+        </div>
+      } @else {
+        <!-- Estado de Confirmación Exitosa -->
+        <div class="modal-body reserva-success-view">
+          <div class="success-icon-big">🎉</div>
+          <h3>¡Prenda Reservada con Éxito!</h3>
+          <div class="ticket-badge-box">
+            <span>Ticket de Reserva Oficial:</span>
+            <strong class="ticket-num">#{{ reservaExitosa().id }}</strong>
+          </div>
+          <p class="success-location-text">
+            Tu reserva ha sido registrada en la sucursal <strong>{{ reservaExitosa().sucursal_ciudad }} ({{ reservaExitosa().sucursal_direccion }})</strong>.
+          </p>
+          <p class="success-notice-muted">
+            Acércate a la sucursal con tu nombre o número de ticket para medírtela y finalizar el pago en caja.
+          </p>
+          <div class="success-btn-group">
+            <button type="button" class="btn btn-primary" (click)="irAMisReservas()">
+              🎟️ Ver en Mis Reservas
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalReserva()">
+              Continuar en Catálogo
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

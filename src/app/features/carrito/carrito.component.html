@@ -175,14 +175,24 @@
               </div>
             </div>
 
-            <div class="form-group distancia-row">
-              <div>
-                <label>Distancia estimada (km)</label>
-                <input type="number" step="0.5" min="0.5" class="form-control" [(ngModel)]="distanciaKm" (change)="cotizarEnvio()" />
+            <!-- TARJETA INFORMATIVA Y RECOMENDACIÓN DE TARIFA DINÁMICA YANGO -->
+            <div class="aviso-tarifa-yango">
+              <div class="aviso-yango-header">
+                <span class="aviso-icono">🛵</span>
+                <strong>Tarifa Dinámica de Yango Delivery</strong>
               </div>
-              <div class="costo-preview">
-                <label>Tarifa Yango</label>
-                <span class="costo-tag">+Bs. {{ costoEnvio | number:'1.2-2' }}</span>
+              <p class="aviso-yango-desc">
+                No cobramos un costo estimado por adelantado en la tienda porque la tarifa de Yango es dinámica y depende en tiempo real de factores externos como <strong>lluvia, tráfico y disponibilidad de repartidores</strong>.
+              </p>
+              <div class="aviso-yango-callout">
+                <span class="callout-icon">📲</span>
+                <div>
+                  <strong>Recomendación para el cliente:</strong>
+                  <p>Abre la app de <strong>Yango</strong> para verificar el costo exacto de la carrera desde la sucursal hasta tu ubicación. El valor del viaje se cancela directamente al conductor al entregarte el pedido.</p>
+                </div>
+              </div>
+              <div class="origen-envio-info" *ngIf="branchService.selectedSucursal()">
+                🏢 Sucursal de despacho: <strong>{{ branchService.selectedSucursal()?.name }}</strong> — {{ branchService.selectedSucursal()?.address }}
               </div>
             </div>
           </div>
@@ -224,13 +234,13 @@
 
           <div class="total-row" *ngIf="conEnvio">
             <span>Envío Yango Delivery</span>
-            <span>+Bs. {{ costoEnvio | number:'1.2-2' }}</span>
+            <span class="yango-pago-directo">Directo en app Yango</span>
           </div>
 
           <hr class="summary-divider" />
 
           <div class="total-row final">
-            <span>Total Final</span>
+            <span>Total a Pagar en Tienda</span>
             <span class="total-amount">Bs. {{ totalFinal | number:'1.2-2' }}</span>
           </div>
         </div>

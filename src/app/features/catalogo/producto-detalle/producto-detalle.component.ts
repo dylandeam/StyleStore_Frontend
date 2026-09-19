@@ -5,6 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { CarritoService, CatalogoItem } from '../../../core/services/carrito.service';
 import { ProductoService } from '../../../core/services/producto.service';
 import { UploadService } from '../../../core/services/upload.service';
+import { ReservaService } from '../../../core/services/reserva.service';
+import { SucursalService } from '../../../core/services/sucursal.service';
+import { BranchSelectionService } from '../../../core/services/branch-selection.service';
+import { Sucursal } from '../../../core/models/sucursal.model';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -19,6 +23,9 @@ export class ProductoDetalleComponent implements OnInit {
   private carritoService = inject(CarritoService);
   private productoService = inject(ProductoService);
   private uploadService = inject(UploadService);
+  private reservaService = inject(ReservaService);
+  private sucursalService = inject(SucursalService);
+  public branchService = inject(BranchSelectionService);
   private cdr = inject(ChangeDetectorRef);
 
   // Estados reactivos con Signals para compatibilidad total con Angular 21
@@ -35,6 +42,13 @@ export class ProductoDetalleComponent implements OnInit {
   cantidadValue = signal<number>(1);
   isAgregando = signal<boolean>(false);
   toastMessage = signal<string | null>(null);
+
+  // Modal de Reserva por Sucursal
+  isReservaModalOpen = signal<boolean>(false);
+  isProcesandoReserva = signal<boolean>(false);
+  sucursalReservaId = signal<number>(0);
+  sucursalesList = signal<Sucursal[]>([]);
+  reservaExitosa = signal<any>(null);
 
   // Getters para enlace transparente con la plantilla HTML
   get codigo(): string { return this.codigoState(); }
@@ -57,6 +71,7 @@ export class ProductoDetalleComponent implements OnInit {
       this.cargarProducto(initialCod);
     }
 
+    this.cargarSucursales();
     // 2. Suscripción continua a cambios de navegación
     this.route.paramMap.subscribe((params) => {
       const cod = params.get('codigo');
@@ -68,6 +83,14 @@ export class ProductoDetalleComponent implements OnInit {
         this.errorMessage.set('No se ha especificado el código de la prenda.');
         this.cdr.markForCheck();
       }
+    });
+  }
+
+  cargarSucursales(): void {
+    this.sucursalService.getSucursales(true).subscribe({
+      next: (data) => {
+        this.sucursalesList.set(data);
+      },
     });
   }
 
@@ -251,5 +274,93 @@ export class ProductoDetalleComponent implements OnInit {
     this.codigoState.set(codigo);
     this.cargarProducto(codigo);
     this.router.navigate(['/catalogo/producto', codigo]);
+  }
+
+  // ==========================================
+  // GESTIÓN DE RESERVAS INDICANDO SUCURSAL
+  // ==========================================
+  abrirModalReserva(): void {
+    const ex = this.existencia();
+    if (!ex) {
+      this.mostrarToast('Por favor selecciona un color y talla disponible antes de reservar.');
+      return;
+    }
+
+    if (ex.cantidad <= 0) {
+      this.mostrarToast('No hay existencias disponibles para reservar esta variante.');
+      return;
+    }
+
+    // Preseleccionar sucursal:
+    // 1) Si la existencia seleccionada ya tiene una sucursal_id, usar esa
+    // 2) Si el cliente tenía una sucursal activa en BranchSelectionService, usar esa
+    // 3) Si no, la primera sucursal disponible
+    let targetSucursalId = ex.sucursal_id;
+    if (!targetSucursalId && this.branchService.selectedSucursal()) {
+      targetSucursalId = this.branchService.selectedSucursal()!.id;
+    }
+    if (!targetSucursalId && this.sucursalesList().length > 0) {
+      targetSucursalId = this.sucursalesList()[0].id;
+    }
+
+    this.sucursalReservaId.set(targetSucursalId || 1);
+    this.reservaExitosa.set(null);
+    this.isReservaModalOpen.set(true);
+    this.cdr.markForCheck();
+  }
+
+  cerrarModalReserva(): void {
+    this.isReservaModalOpen.set(false);
+    this.reservaExitosa.set(null);
+    this.cdr.markForCheck();
+  }
+
+  confirmarReserva(): void {
+    const ex = this.existencia();
+    if (!ex) {
+      this.mostrarToast('No se ha podido identificar el inventario de la prenda.');
+      return;
+    }
+
+    const sucId = this.sucursalReservaId();
+    if (!sucId) {
+      this.mostrarToast('Por favor selecciona la sucursal donde recogerás tu reserva.');
+      return;
+    }
+
+    this.isProcesandoReserva.set(true);
+    this.cdr.markForCheck();
+
+    // Crear la reserva atómica en backend indicando explícitamente la sucursal seleccionada
+    this.reservaService
+      .createReserva({
+        sucursal_id: sucId,
+        items: [
+          {
+            stock_inventario_id: ex.stock_inventario_id,
+            cantidad: this.cantidadValue(),
+          },
+        ],
+      })
+      .subscribe({
+        next: (reserva) => {
+          this.isProcesandoReserva.set(false);
+          this.reservaExitosa.set(reserva);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isProcesandoReserva.set(false);
+          const detail = err?.error?.detail || 'Error al procesar la reserva en la sucursal seleccionada.';
+          this.mostrarToast(detail);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        },
+      });
+  }
+
+  irAMisReservas(): void {
+    this.cerrarModalReserva();
+    this.router.navigate(['/admin/reservas']);
   }
 }

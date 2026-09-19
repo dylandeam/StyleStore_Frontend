@@ -83,10 +83,16 @@ export class CarritoService {
     return this.http.delete<Carrito>(`${this.apiUrl}/items/${itemId}`);
   }
 
-  confirmarCarrito(sucursalId?: number): Observable<{ message: string; orden_venta_id: number; total: number; estado: string }> {
+  confirmarCarrito(data?: number | {
+    sucursal_id?: number;
+    metodo_pago?: string;
+    direccion_envio?: string;
+    despacho_yango?: boolean;
+  }): Observable<{ message: string; orden_venta_id: number; total: number; estado: string }> {
+    const payload = typeof data === 'number' ? { sucursal_id: data } : (data || {});
     return this.http.post<{ message: string; orden_venta_id: number; total: number; estado: string }>(
       `${this.apiUrl}/confirmar`,
-      { sucursal_id: sucursalId }
+      payload
     );
   }
 

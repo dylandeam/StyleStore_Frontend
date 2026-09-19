@@ -20,6 +20,7 @@ import { Color } from '../../../../core/models/color.model';
 import { Talla } from '../../../../core/models/talla.model';
 import { Sucursal } from '../../../../core/models/sucursal.model';
 import { StockInventarioItem } from '../../../../core/models/stock.model';
+import { BranchSelectionService } from '../../../../core/services/branch-selection.service';
 
 @Component({
   selector: 'app-productos-list',
@@ -40,6 +41,7 @@ export class ProductosListComponent implements OnInit {
   private stockService = inject(StockService);
   private authService = inject(AuthService);
   private uploadService = inject(UploadService);
+  public branchService = inject(BranchSelectionService);
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
@@ -111,6 +113,10 @@ export class ProductosListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogos();
+    // Si el usuario aún no ha elegido sucursal, abrir el selector de bienvenida
+    if (!this.branchService.isSelectionMade()) {
+      this.branchService.openModal();
+    }
     this.loadProductos();
   }
 
@@ -120,7 +126,7 @@ export class ProductosListComponent implements OnInit {
     this.coleccionService.getColecciones().subscribe((data) => this.colecciones.set(data));
     this.coloresService.getColores().subscribe((data) => this.colores.set(data));
     this.tallasService.getTallas().subscribe((data) => this.tallas.set(data));
-    this.sucursalService.getSucursales().subscribe((data) => this.sucursales.set(data));
+    this.sucursalService.getSucursales(true).subscribe((data) => this.sucursales.set(data));
   }
 
   loadProductos(): void {
@@ -129,6 +135,12 @@ export class ProductosListComponent implements OnInit {
     if (this.searchTerm.trim()) filters.search = this.searchTerm.trim();
     if (this.selectedCategoriaFilter !== '') filters.categoria_id = Number(this.selectedCategoriaFilter);
     if (this.selectedTemporadaFilter !== '') filters.temporada_id = Number(this.selectedTemporadaFilter);
+
+    // Filtrar por sucursal activa si se ha seleccionado una sucursal específica
+    const activeSucursal = this.branchService.selectedSucursal();
+    if (activeSucursal && activeSucursal.id) {
+      filters.sucursal_id = activeSucursal.id;
+    }
 
     this.productoService.getProductos(filters).subscribe({
       next: (data) => {
@@ -139,6 +151,15 @@ export class ProductosListComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  seleccionarSucursal(sucursal: Sucursal | null): void {
+    this.branchService.selectSucursal(sucursal);
+    this.loadProductos();
+  }
+
+  cambiarSucursal(): void {
+    this.branchService.openModal();
   }
 
   onFilterChange(): void {

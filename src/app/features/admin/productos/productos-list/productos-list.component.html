@@ -14,6 +14,18 @@
     }
   </div>
 
+  <!-- Barra de Sucursal Activa / Selección de Tienda -->
+  <div class="sucursal-banner-bar">
+    <div class="sucursal-badge-content">
+      <span class="sucursal-pin-icon">📍</span>
+      <span class="sucursal-label">Viendo inventario de:</span>
+      <strong class="sucursal-current-name">{{ branchService.displayName() }}</strong>
+    </div>
+    <button type="button" class="btn-change-branch" (click)="cambiarSucursal()" title="Cambiar la sucursal de donde deseas ver los productos">
+      🔁 Cambiar Sucursal
+    </button>
+  </div>
+
   <!-- Barra de Filtros y Controles de Vista -->
   <div class="card toolbar-card">
     <div class="toolbar-content flex-wrap">
@@ -631,3 +643,67 @@
     </div>
   </div>
 }
+
+<!-- MODAL SELECTOR PREVIO DE SUCURSAL -->
+@if (branchService.isModalOpen()) {
+  <div class="modal-backdrop branch-modal-backdrop" (click)="branchService.isSelectionMade() ? branchService.closeModal() : null">
+    <div class="modal-card branch-modal-card" (click)="$event.stopPropagation()">
+      <div class="branch-modal-header">
+        <div class="branch-modal-icon">🏪</div>
+        <h2>Selecciona tu Sucursal</h2>
+        <p class="branch-modal-subtitle">
+          Elige desde qué sucursal deseas ver el inventario disponible y recibir tu pedido por Yango, o explora todas nuestras tiendas:
+        </p>
+        @if (branchService.isSelectionMade()) {
+          <button type="button" class="btn-close-modal" (click)="branchService.closeModal()">✕</button>
+        }
+      </div>
+
+      <div class="branch-options-list">
+        <!-- Opción Especial: Ver de todas las sucursales -->
+        <div
+          class="branch-option-card all-branches-card"
+          [class.active]="branchService.isAllBranches()"
+          (click)="seleccionarSucursal(null)"
+        >
+          <div class="branch-card-icon">🌐</div>
+          <div class="branch-card-info">
+            <div class="branch-title-row">
+              <h3>Ver de todas las sucursales</h3>
+              <span class="branch-tag-general">Catálogo Completo</span>
+            </div>
+            <p>Explora todo el inventario de StyleStore consolidado sin filtro de sucursal específica.</p>
+          </div>
+          <span class="branch-check-badge" *ngIf="branchService.isAllBranches()">✓ Activo</span>
+        </div>
+
+        <div class="branch-divider-text">
+          <span>O selecciona una sucursal para despacho o recojo:</span>
+        </div>
+
+        <!-- Lista de sucursales físicas -->
+        @for (s of sucursales(); track s.id) {
+          <div
+            class="branch-option-card"
+            [class.active]="branchService.selectedSucursal()?.id === s.id"
+            (click)="seleccionarSucursal(s)"
+          >
+            <div class="branch-card-icon">🏢</div>
+            <div class="branch-card-info">
+              <div class="branch-title-row">
+                <h3>{{ s.name }}</h3>
+                <span class="branch-city-badge">{{ s.city }}</span>
+              </div>
+              <p class="branch-address">📍 {{ s.address }}</p>
+              @if (s.phone) {
+                <small class="branch-phone">📞 Tel: {{ s.phone }}</small>
+              }
+            </div>
+            <span class="branch-check-badge" *ngIf="branchService.selectedSucursal()?.id === s.id">✓ Activo</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+

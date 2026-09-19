@@ -6,6 +6,7 @@ import { CarritoService, Carrito, CarritoItem } from '../../core/services/carrit
 import { PagosService } from '../../core/services/pagos.service';
 import { EnvioService } from '../../core/services/envio.service';
 import { UploadService } from '../../core/services/upload.service';
+import { BranchSelectionService } from '../../core/services/branch-selection.service';
 
 @Component({
   selector: 'app-carrito',
@@ -15,14 +16,15 @@ import { UploadService } from '../../core/services/upload.service';
   styleUrls: ['./carrito.component.css'],
 })
 export class CarritoComponent implements OnInit {
+  private router = inject(Router);
   private carritoService = inject(CarritoService);
   private pagosService = inject(PagosService);
   private envioService = inject(EnvioService);
   private uploadService = inject(UploadService);
-  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  public branchService = inject(BranchSelectionService);
 
-  // Signals para reactividad nativa e inmediata en Angular 21 (Zoneless)
+  // Estados Reactivos
   carritoData = signal<Carrito | null>(null);
   isLoading = signal<boolean>(true);
   isProcesando = signal<boolean>(false);
@@ -35,7 +37,7 @@ export class CarritoComponent implements OnInit {
   ciudadState = signal<string>('Santa Cruz');
   referenciaState = signal<string>('');
   distanciaKmState = signal<number>(4.5);
-  costoEnvioState = signal<number>(12.0);
+  costoEnvioState = signal<number>(0);
 
   // Método de pago elegido
   metodoPagoState = signal<'paypal' | 'efectivo'>('paypal');
@@ -146,25 +148,8 @@ export class CarritoComponent implements OnInit {
     });
   }
 
-  cotizarEnvio(): void {
-    this.envioService.cotizar(this.distanciaKm).subscribe({
-      next: (res) => {
-        this.costoEnvioState.set(res.costo);
-        this.mostrarToast(`Tarifa estimada: Bs. ${res.costo} (${this.distanciaKm} km)`);
-        this.cdr.markForCheck();
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.costoEnvioState.set(12.0);
-        this.cdr.markForCheck();
-        this.cdr.detectChanges();
-      },
-    });
-  }
-
   get totalFinal(): number {
-    const subtotal = this.carrito?.total || 0;
-    return this.conEnvio ? subtotal + this.costoEnvio : subtotal;
+    return this.carrito?.total || 0;
   }
 
   getImageUrl(foto?: string | null): string {
@@ -202,36 +187,45 @@ export class CarritoComponent implements OnInit {
     this.isProcesando.set(true);
     this.cdr.markForCheck();
 
-    // 1. Confirmar el carrito en el backend y generar la orden de venta
-    this.carritoService.confirmarCarrito().subscribe({
-      next: (res) => {
-        const ordenId = res.orden_venta_id;
+    const dirFinal = this.conEnvio
+      ? (this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio'))
+      : undefined;
 
-        // 2. Si hay envío, registrar el despacho con Yango
-        if (this.conEnvio) {
-          const dirFinal = this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio');
-          this.envioService
-            .createEnvio({
-              orden_venta_id: ordenId,
-              direccion: dirFinal,
-              ciudad: this.ciudad.trim() || 'Santa Cruz',
-              referencia: this.referencia.trim() || undefined,
-              ubicacion_url: this.ubicacionUrl.trim() || undefined,
-              distancia_km: this.distanciaKm,
-              costo: this.costoEnvio,
-            })
-            .subscribe({
-              next: () => {
-                this.procederConPago(ordenId);
-              },
-              error: () => {
-                this.procederConPago(ordenId);
-              },
-            });
-        } else {
-          this.procederConPago(ordenId);
-        }
-      },
+    // 1. Confirmar el carrito en el backend y generar la orden de venta indicando la sucursal
+    this.carritoService
+      .confirmarCarrito({
+        sucursal_id: this.branchService.getSucursalId(),
+        metodo_pago: this.metodoPago,
+        direccion_envio: dirFinal,
+        despacho_yango: this.conEnvio,
+      })
+      .subscribe({
+        next: (res) => {
+          const ordenId = res.orden_venta_id;
+
+          // 2. Si hay envío, registrar el despacho con Yango (costo 0 en tienda, pago directo a repartidor Yango)
+          if (this.conEnvio) {
+            this.envioService
+              .createEnvio({
+                orden_venta_id: ordenId,
+                direccion: dirFinal || 'Entrega a domicilio',
+                ciudad: this.ciudad.trim() || this.branchService.selectedSucursal()?.city || 'Santa Cruz',
+                referencia: this.referencia.trim() || undefined,
+                ubicacion_url: this.ubicacionUrl.trim() || undefined,
+                costo: 0,
+              })
+              .subscribe({
+                next: () => {
+                  this.procederConPago(ordenId);
+                },
+                error: () => {
+                  this.procederConPago(ordenId);
+                },
+              });
+          } else {
+            this.procederConPago(ordenId);
+          }
+        },
       error: (err) => {
         this.isProcesando.set(false);
         const msg = err?.error?.detail || 'Error al confirmar el pedido. Verifica el stock disponible.';

@@ -15,12 +15,14 @@ export class ProductoService {
   getProductos(filters?: {
     categoria_id?: number;
     temporada_id?: number;
+    sucursal_id?: number;
     search?: string;
     active_only?: boolean;
   }): Observable<Producto[]> {
     let params = new HttpParams();
     if (filters?.categoria_id) params = params.set('categoria_id', filters.categoria_id.toString());
     if (filters?.temporada_id) params = params.set('temporada_id', filters.temporada_id.toString());
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id.toString());
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.active_only) params = params.set('active_only', 'true');
 
