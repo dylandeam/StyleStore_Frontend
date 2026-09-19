@@ -236,24 +236,94 @@ export class CarritoComponent implements OnInit {
     });
   }
 
+  // PayPal Sandbox Modal State
+  showPayPalModal = signal<boolean>(false);
+  paypalStep = signal<'login' | 'approve' | 'processing'>('login');
+  paypalOrderId = signal<number>(0);
+  paypalToken = signal<string>('');
+  paypalApproveUrl = signal<string>('');
+  paypalTotal = signal<number>(0);
+  paypalEmail = signal<string>('comprador.sandbox@stylestore.com');
+  paypalPassword = signal<string>('SandboxPass2026!');
+  paypalErrorMessage = signal<string>('');
+
+  abrirPayPalSandboxModal(ordenId: number, token: string, approveUrl: string, total: number): void {
+    this.paypalOrderId.set(ordenId);
+    this.paypalToken.set(token);
+    this.paypalApproveUrl.set(approveUrl);
+    this.paypalTotal.set(total);
+    this.paypalStep.set('login');
+    this.paypalErrorMessage.set('');
+    this.showPayPalModal.set(true);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  cerrarPayPalModal(): void {
+    this.showPayPalModal.set(false);
+    this.isProcesando.set(false);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  autocompletarCredencialesSandbox(): void {
+    this.paypalEmail.set('comprador.sandbox@stylestore.com');
+    this.paypalPassword.set('SandboxPass2026!');
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  avanzarAprobacionSandbox(): void {
+    if (!this.paypalEmail().trim() || !this.paypalPassword().trim()) {
+      this.paypalErrorMessage.set('Por favor ingresa tu correo y contraseña de prueba de PayPal Sandbox.');
+      return;
+    }
+    this.paypalErrorMessage.set('');
+    this.paypalStep.set('approve');
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  abrirEnPayPalReal(): void {
+    const url = this.paypalApproveUrl() || 'https://www.sandbox.paypal.com';
+    window.open(url, '_blank');
+  }
+
+  completarPagoSandbox(): void {
+    this.paypalStep.set('processing');
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+
+    const token = this.paypalToken();
+    const ordenId = this.paypalOrderId();
+
+    this.pagosService.capturarOrdenPayPal(token, ordenId).subscribe({
+      next: () => {
+        this.showPayPalModal.set(false);
+        this.router.navigate(['/paypal-return'], {
+          queryParams: { token: token, orden_id: ordenId },
+        });
+      },
+      error: (err) => {
+        this.paypalStep.set('approve');
+        this.paypalErrorMessage.set(err.error?.detail || 'No se pudo completar el pago con PayPal.');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   procederConPago(ordenId: number): void {
     if (this.metodoPago === 'paypal') {
       // Checkout con PayPal v2
-      this.pagosService.crearOrdenPayPal(ordenId).subscribe({
+      const returnUrl = `${window.location.origin}/paypal-return`;
+      this.pagosService.crearOrdenPayPal(ordenId, returnUrl).subscribe({
         next: (ppRes) => {
           this.isProcesando.set(false);
           this.cdr.markForCheck();
           this.cdr.detectChanges();
-          // Buscar enlace de aprobación
-          const approveLink = ppRes.links?.find((l) => l.rel === 'approve')?.href;
-          if (approveLink) {
-            window.location.href = approveLink;
-          } else {
-            // Si es mock o local
-            this.router.navigate(['/paypal-return'], {
-              queryParams: { token: ppRes.id, orden_id: ordenId },
-            });
-          }
+          const approveLink = ppRes.links?.find((l) => l.rel === 'approve')?.href || '';
+          this.abrirPayPalSandboxModal(ordenId, ppRes.id, approveLink, this.totalFinal);
         },
         error: (err) => {
           this.isProcesando.set(false);

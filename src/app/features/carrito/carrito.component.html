@@ -254,4 +254,167 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL OFICIAL DE CHECKOUT PAYPAL SANDBOX (PRUEBAS EN VIVO)-->
+  <!-- ========================================================= -->
+  <div class="paypal-modal-overlay" *ngIf="showPayPalModal()" (click)="cerrarPayPalModal()">
+    <div class="paypal-modal-window" (click)="$event.stopPropagation()">
+      <!-- Header Oficial PayPal -->
+      <div class="pp-header">
+        <div class="pp-logo-wrap">
+          <span class="pp-logo-text"><span class="pp-blue-dark">Pay</span><span class="pp-blue-light">Pal</span></span>
+          <span class="pp-sandbox-badge">SANDBOX OFICIAL</span>
+        </div>
+        <button type="button" class="pp-btn-close" (click)="cerrarPayPalModal()" title="Cancelar pago">✕</button>
+      </div>
+
+      <!-- Alerta de Error si ocurre -->
+      <div class="pp-error-alert" *ngIf="paypalErrorMessage()">
+        <span>⚠️ {{ paypalErrorMessage() }}</span>
+      </div>
+
+      <!-- PASO 1: INICIAR SESIÓN EN PAYPAL SANDBOX -->
+      <div class="pp-step-content" *ngIf="paypalStep() === 'login'">
+        <div class="pp-order-banner">
+          <div>
+            <span class="pp-merchant">StyleStore Bolivia</span>
+            <div class="pp-order-num">Orden #{{ paypalOrderId() }}</div>
+          </div>
+          <div class="pp-order-amount">
+            Bs. {{ paypalTotal() | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <h3 class="pp-title">Iniciar sesión con PayPal</h3>
+        <p class="pp-subtitle">
+          Utiliza tus credenciales de prueba del Sandbox de PayPal para completar la compra.
+        </p>
+
+        <div class="pp-form-group">
+          <label class="pp-label">Correo electrónico de prueba:</label>
+          <input
+            type="email"
+            class="pp-input"
+            [value]="paypalEmail()"
+            (input)="paypalEmail.set($any($event.target).value)"
+            placeholder="ej: comprador.sandbox@stylestore.com"
+          />
+        </div>
+
+        <div class="pp-form-group">
+          <label class="pp-label">Contraseña:</label>
+          <input
+            type="password"
+            class="pp-input"
+            [value]="paypalPassword()"
+            (input)="paypalPassword.set($any($event.target).value)"
+            placeholder="••••••••••••"
+          />
+        </div>
+
+        <button
+          type="button"
+          class="btn-pp-autofill"
+          (click)="autocompletarCredencialesSandbox()"
+        >
+          ⚡ Cargar credenciales de prueba predeterminadas
+        </button>
+
+        <button
+          type="button"
+          class="btn-pp-primary"
+          (click)="avanzarAprobacionSandbox()"
+        >
+          Iniciar Sesión en Sandbox →
+        </button>
+
+        <div class="pp-divider">
+          <span>o</span>
+        </div>
+
+        <button
+          type="button"
+          class="btn-pp-secondary"
+          (click)="abrirEnPayPalReal()"
+        >
+          🌐 Abrir en ventana externa de sandbox.paypal.com
+        </button>
+      </div>
+
+      <!-- PASO 2: APROBACIÓN DE PAGO -->
+      <div class="pp-step-content" *ngIf="paypalStep() === 'approve'">
+        <div class="pp-user-logged">
+          <span class="pp-user-icon">👤</span>
+          <div>
+            <strong>{{ paypalEmail() }}</strong>
+            <span class="pp-user-status">Cuenta Comprador Sandbox Verificada</span>
+          </div>
+        </div>
+
+        <div class="pp-payment-methods">
+          <label class="pp-method-card selected">
+            <input type="radio" name="ppMethod" checked />
+            <div class="pp-method-info">
+              <strong>Saldo PayPal Sandbox</strong>
+              <span>$1,500.00 USD Disponibles (Ficticio para pruebas)</span>
+            </div>
+            <span class="pp-check">✓</span>
+          </label>
+
+          <label class="pp-method-card">
+            <input type="radio" name="ppMethod" disabled />
+            <div class="pp-method-info">
+              <strong>Visa Débito Sandbox</strong>
+              <span>•••• 4242 | Exp: 12/28</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="pp-summary-box">
+          <div class="pp-summary-row">
+            <span>Comercio:</span>
+            <span>StyleStore Oficial</span>
+          </div>
+          <div class="pp-summary-row">
+            <span>Pedido:</span>
+            <span>Orden #{{ paypalOrderId() }}</span>
+          </div>
+          <div class="pp-summary-row total">
+            <span>Total a transferir:</span>
+            <span>Bs. {{ paypalTotal() | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-pp-primary"
+          (click)="completarPagoSandbox()"
+        >
+          ✓ Aceptar y Pagar Ahora (Sandbox)
+        </button>
+
+        <button
+          type="button"
+          class="btn-pp-link"
+          (click)="paypalStep.set('login')"
+        >
+          ← Cambiar de cuenta de prueba
+        </button>
+      </div>
+
+      <!-- PASO 3: PROCESANDO PAGO -->
+      <div class="pp-step-content pp-processing-state" *ngIf="paypalStep() === 'processing'">
+        <div class="pp-spinner"></div>
+        <h3>Procesando pago con PayPal Sandbox...</h3>
+        <p>Capturando fondos seguros de prueba y generando tu recibo de StyleStore.</p>
+      </div>
+
+      <!-- Footer oficial -->
+      <div class="pp-footer">
+        <span>🔒 Entorno Seguro PayPal Sandbox API v2</span>
+        <a href="https://developer.paypal.com/tools/sandbox/" target="_blank">Documentación Sandbox</a>
+      </div>
+    </div>
+  </div>
 </div>
