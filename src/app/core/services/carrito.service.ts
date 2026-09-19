@@ -120,4 +120,8 @@ export class CarritoService {
   getRecomendadosIA(codigo: string, limit: number = 4): Observable<any[]> {
     return this.http.get<any[]>(`${this.catalogoUrl}/${codigo}/recomendados?limit=${limit}`);
   }
+
+  getParaTiIA(limit: number = 6): Observable<any[]> {
+    return this.http.get<any[]>(`${this.catalogoUrl}/para-ti?limit=${limit}`);
+  }
 }

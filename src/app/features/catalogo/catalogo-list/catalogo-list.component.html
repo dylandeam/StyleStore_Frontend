@@ -86,7 +86,67 @@
     <button (click)="cargarCatalogo()" class="btn-retry">Reintentar</button>
   </div>
 
-  <!-- Grid de Productos -->
+  <!-- SECCIÓN DESTACADA: PARA TI CON IA LOCAL -->
+  <section class="para-ti-section" *ngIf="!isLoading() && recomendadosParaTi().length > 0">
+    <div class="para-ti-header">
+      <div class="para-ti-badge">
+        <span class="sparkle">✦</span> RECOMENDACIONES CON IA LOCAL
+      </div>
+      <h2 class="para-ti-title">Para Ti — Selección Personalizada de Moda</h2>
+      <p class="para-ti-subtitle">
+        Prendas seleccionadas por nuestro motor inteligente de estilismo según tendencias, cortes y compatibilidad de diseño.
+      </p>
+    </div>
+
+    <div class="para-ti-grid">
+      <article
+        *ngFor="let item of recomendadosParaTi()"
+        class="para-ti-card"
+        (click)="verDetalle(item.codigo)"
+      >
+        <div class="para-ti-img-wrap">
+          <img
+            [src]="getImageUrl(item.foto)"
+            [alt]="item.nombre"
+            class="para-ti-img"
+            loading="lazy"
+          />
+          <span class="para-ti-affinity">
+            ✦ {{ (item.score_afinidad * 100) | number:'1.0-0' }}% Afinidad
+          </span>
+          <span *ngIf="item.coleccion_nombre" class="para-ti-col-tag">
+            {{ item.coleccion_nombre }}
+          </span>
+        </div>
+
+        <div class="para-ti-body">
+          <div class="para-ti-top">
+            <span class="para-ti-code">{{ item.codigo }}</span>
+            <span class="para-ti-cat">{{ item.categoria_nombre || 'Exclusivo' }}</span>
+          </div>
+
+          <h4 class="para-ti-name">{{ item.nombre }}</h4>
+          <p class="para-ti-reason">{{ item.razon_recomendacion }}</p>
+
+          <div class="para-ti-footer">
+            <div class="para-ti-price">
+              <span class="currency">Bs.</span>
+              <span class="amount">{{ item.precio | number:'1.2-2' }}</span>
+            </div>
+            <button
+              type="button"
+              class="btn-para-ti-action"
+              (click)="$event.stopPropagation(); verDetalle(item.codigo)"
+            >
+              Ver Prenda →
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Grid de Productos Principal -->
   <main *ngIf="!isLoading() && !error()" class="products-section">
     <div class="results-header">
       <p class="results-count">Mostrando <strong>{{ productosFiltrados.length }}</strong> prendas disponibles</p>
@@ -100,7 +160,12 @@
     </div>
 
     <div class="products-grid">
-      <article *ngFor="let p of productosFiltrados" class="product-card">
+      <article
+        *ngFor="let p of productosFiltrados"
+        class="product-card clickable-card"
+        (click)="verDetalle(p.codigo)"
+        [title]="'Click para ver detalles, comprar o reservar ' + p.nombre"
+      >
         <div class="card-image-wrapper">
           <img
             [src]="getImageUrl(p.foto)"
@@ -127,12 +192,13 @@
               <span class="price-amount">{{ p.precio | number:'1.2-2' }}</span>
             </div>
 
-            <a
-              [routerLink]="['/catalogo/producto', p.codigo]"
+            <button
+              type="button"
               class="btn-detail-action"
+              (click)="$event.stopPropagation(); verDetalle(p.codigo)"
             >
               Ver Detalle / Reservar →
-            </a>
+            </button>
           </div>
         </div>
       </article>

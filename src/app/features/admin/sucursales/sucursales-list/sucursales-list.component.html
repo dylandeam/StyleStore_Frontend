@@ -4,8 +4,8 @@
       <div class="breadcrumb">
         <a routerLink="/dashboard">Inicio</a> / <span>Sucursales</span>
       </div>
-      <h1>Gestión de Sucursales</h1>
-      <p class="subtitle">Conoce los puntos de venta y tiendas físicas de StyleStore.</p>
+      <h1>{{ canManage ? 'Gestión de Sucursales' : 'Nuestras Sucursales StyleStore' }}</h1>
+      <p class="subtitle">Conoce los puntos de venta, direcciones y tiendas físicas de StyleStore en todo el país.</p>
     </div>
     @if (canManage) {
       <button class="btn btn-primary" (click)="openCreateModal()">

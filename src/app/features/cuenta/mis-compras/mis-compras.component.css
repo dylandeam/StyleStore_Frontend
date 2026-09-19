@@ -524,3 +524,109 @@
   align-items: center;
   gap: 8px;
 }
+
+/* =================================================== */
+/* PESTAÑAS Y BANNER DE GARANTÍA DE CAMBIOS            */
+/* =================================================== */
+.tabs-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #E2E8F0;
+  padding-bottom: 4px;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -6px;
+}
+
+.tab-btn:hover {
+  color: #14263D;
+  background: rgba(20, 38, 61, 0.03);
+  border-radius: 8px 8px 0 0;
+}
+
+.tab-btn.active {
+  color: #14263D;
+  border-bottom-color: #14263D;
+  background: rgba(20, 38, 61, 0.05);
+  border-radius: 8px 8px 0 0;
+}
+
+.tab-count-badge {
+  background: #15803D;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+.garantia-banner {
+  background: linear-gradient(135deg, rgba(20, 38, 61, 0.04) 0%, rgba(212, 175, 55, 0.12) 100%);
+  border: 1px solid #D4AF37;
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 15px rgba(20, 38, 61, 0.04);
+}
+
+.garantia-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.garantia-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #14263D;
+  margin: 0 0 6px 0;
+}
+
+.garantia-desc {
+  font-size: 13.5px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.plazo-aviso {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  border: 1px solid #FCD34D;
+}
+
+.highlight-cambio {
+  border-color: #D4AF37 !important;
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15) !important;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CarritoService, CatalogoItem } from '../../../core/services/carrito.service';
 import { CategoriasService } from '../../../core/services/categorias.service';
@@ -22,6 +22,7 @@ import { Sucursal } from '../../../core/models/sucursal.model';
   styleUrls: ['./catalogo-list.component.css'],
 })
 export class CatalogoListComponent implements OnInit {
+  private router = inject(Router);
   private carritoService = inject(CarritoService);
   private categoriasService = inject(CategoriasService);
   private temporadasService = inject(TemporadasService);
@@ -31,6 +32,8 @@ export class CatalogoListComponent implements OnInit {
   public uploadService = inject(UploadService);
 
   productos = signal<CatalogoItem[]>([]);
+  recomendadosParaTi = signal<any[]>([]);
+  loadingParaTi = signal<boolean>(true);
   categorias = signal<Categoria[]>([]);
   temporadas = signal<Temporada[]>([]);
   colecciones = signal<Coleccion[]>([]);
@@ -47,7 +50,26 @@ export class CatalogoListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarFiltros();
+    this.cargarParaTi();
     this.cargarCatalogo();
+  }
+
+  cargarParaTi(): void {
+    this.loadingParaTi.set(true);
+    this.carritoService.getParaTiIA(6).subscribe({
+      next: (data) => {
+        this.recomendadosParaTi.set(data || []);
+        this.loadingParaTi.set(false);
+      },
+      error: () => {
+        this.loadingParaTi.set(false);
+      },
+    });
+  }
+
+  verDetalle(codigo: string): void {
+    if (!codigo) return;
+    this.router.navigate(['/catalogo/producto', codigo]);
   }
 
   cargarFiltros(): void {

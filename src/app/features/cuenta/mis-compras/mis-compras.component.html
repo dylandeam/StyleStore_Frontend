@@ -9,23 +9,70 @@
     </a>
   </div>
 
+  <!-- Selector de Pestañas -->
+  <div class="tabs-bar">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="tabActiva === 'todas'"
+      (click)="cambiarTab('todas')"
+    >
+      🛍️ Todas mis Compras ({{ compras.length }})
+    </button>
+    <button
+      type="button"
+      class="tab-btn tab-cambios"
+      [class.active]="tabActiva === 'cambios'"
+      (click)="cambiarTab('cambios')"
+    >
+      🔄 Cambios y Devoluciones (Última Semana)
+      <span class="tab-count-badge" *ngIf="comprasSemana.length > 0">{{ comprasSemana.length }}</span>
+    </button>
+  </div>
+
+  <!-- Banner de Garantía si está en la pestaña Cambios -->
+  <div class="garantia-banner" *ngIf="tabActiva === 'cambios'">
+    <div class="garantia-icon">🛡️</div>
+    <div class="garantia-content">
+      <h3 class="garantia-title">Garantía Oficial StyleStore: Plazo de 7 Días</h3>
+      <p class="garantia-desc">
+        Aquí se muestran exclusivamente los artículos que compraste en los últimos <strong>7 días naturales</strong>.
+        Puedes solicitar cambio de talla, cambio de color o devolución presencial en cualquiera de nuestras sucursales.
+      </p>
+    </div>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="loading" class="loading-state">
     <div class="spinner-border text-primary" role="status"></div>
     <p>Cargando tus compras...</p>
   </div>
 
-  <!-- Empty State -->
-  <div *ngIf="!loading && compras.length === 0" class="empty-state">
+  <!-- Empty State para pestaña Cambios -->
+  <div *ngIf="!loading && tabActiva === 'cambios' && comprasSemana.length === 0" class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <h3>No tienes compras dentro del plazo de 7 días</h3>
+    <p>
+      Nuestra política de cambios y devoluciones aplica para prendas adquiridas dentro de la última semana.
+      Tus compras más antiguas han superado el plazo de garantía física.
+    </p>
+    <div class="empty-actions">
+      <button (click)="cambiarTab('todas')" class="btn-primary-action">Ver Historial de Todas mis Compras</button>
+      <a routerLink="/catalogo" class="btn-secondary-action">Explorar Catálogo</a>
+    </div>
+  </div>
+
+  <!-- Empty State para pestaña Todas -->
+  <div *ngIf="!loading && tabActiva === 'todas' && compras.length === 0" class="empty-state">
     <div class="empty-icon">🛍️</div>
     <h3>Aún no has realizado compras</h3>
     <p>Explora nuestras colecciones exclusivas y realiza tu primer pedido con entrega rápida o retiro en sucursal.</p>
     <a routerLink="/catalogo" class="btn-primary-action">Ver Catálogo</a>
   </div>
 
-  <!-- Listado de Compras -->
-  <div *ngIf="!loading && compras.length > 0" class="compras-grid">
-    <div *ngFor="let orden of compras" class="compra-card">
+  <!-- Listado de Compras (Pestaña Activa) -->
+  <div *ngIf="!loading && ((tabActiva === 'todas' && compras.length > 0) || (tabActiva === 'cambios' && comprasSemana.length > 0))" class="compras-grid">
+    <div *ngFor="let orden of (tabActiva === 'cambios' ? comprasSemana : compras)" class="compra-card" [class.highlight-cambio]="tabActiva === 'cambios'">
       <div class="compra-header">
         <div class="compra-id-row">
           <span class="badge-tipo" [ngClass]="orden.tipo_venta === 'en linea' ? 'tipo-online' : 'tipo-tienda'">
@@ -56,16 +103,19 @@
           <span class="info-value font-mono">{{ orden.ticket_numero }}</span>
         </div>
 
+        <!-- Indicador especial de plazo de cambio si es elegible -->
+        <div class="plazo-aviso" *ngIf="isEligibleForCambio(orden)">
+          <span class="plazo-icon">⏱️</span>
+          <span>Elegible para cambio: Te quedan <strong>{{ diasRestantesCambio(orden) }} día(s)</strong></span>
+        </div>
+
         <!-- Resumen de items -->
         <div class="items-summary" *ngIf="orden.detalles && orden.detalles.length > 0">
           <p class="summary-label">Artículos ({{ orden.detalles.length }}):</p>
           <ul class="items-list-compact">
-            <li *ngFor="let item of orden.detalles.slice(0, 2)">
+            <li *ngFor="let item of orden.detalles">
               <strong>{{ item.cantidad }}x</strong> {{ item.producto_nombre }} 
               <span class="item-meta">({{ item.talla_nombre || 'Talla' }} - {{ item.color_nombre || 'Color' }})</span>
-            </li>
-            <li *ngIf="orden.detalles.length > 2" class="items-more">
-              + {{ orden.detalles.length - 2 }} artículo(s) más
             </li>
           </ul>
         </div>
@@ -83,7 +133,7 @@
           (click)="abrirModalCambio(orden)"
           [title]="'Te quedan ' + diasRestantesCambio(orden) + ' días para solicitar cambio o devolución'"
         >
-          <i class="bi bi-arrow-left-right"></i> Solicitar Cambio ({{ diasRestantesCambio(orden) }}d)
+          <i class="bi bi-arrow-left-right"></i> Solicitar Cambio o Devolución
         </button>
       </div>
     </div>

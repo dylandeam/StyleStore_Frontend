@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { VentaService } from '../../../core/services/venta.service';
 import { CambiosService, SolicitudCambioCreate } from '../../../core/services/cambios.service';
 import { OrdenVenta } from '../../../core/models/venta.model';
@@ -14,6 +14,8 @@ import { OrdenVenta } from '../../../core/models/venta.model';
   styleUrls: ['./mis-compras.component.css'],
 })
 export class MisComprasComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private ventaService = inject(VentaService);
   private cambiosService = inject(CambiosService);
 
@@ -21,6 +23,9 @@ export class MisComprasComponent implements OnInit {
   compras: OrdenVenta[] = [];
   selectedOrden: OrdenVenta | null = null;
   showDetailModal = false;
+
+  // Tabs: 'todas' | 'cambios'
+  tabActiva: 'todas' | 'cambios' = 'todas';
 
   // Modal de solicitud de cambio/devolución
   showCambioModal = false;
@@ -39,7 +44,27 @@ export class MisComprasComponent implements OnInit {
   };
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      if (params['tab'] === 'cambios') {
+        this.tabActiva = 'cambios';
+      } else {
+        this.tabActiva = 'todas';
+      }
+    });
     this.cargarCompras();
+  }
+
+  cambiarTab(tab: 'todas' | 'cambios'): void {
+    this.tabActiva = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tab === 'cambios' ? 'cambios' : null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  get comprasSemana(): OrdenVenta[] {
+    return this.compras.filter((o) => this.isEligibleForCambio(o));
   }
 
   cargarCompras(): void {

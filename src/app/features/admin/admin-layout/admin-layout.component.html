@@ -48,6 +48,12 @@
           <a routerLink="/cuenta/mis-compras" routerLinkActive="active" class="nav-item icon-only" title="Mis Compras">
             <span class="nav-icon">🛍️</span>
           </a>
+          <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item icon-only" title="Cambios y Devoluciones">
+            <span class="nav-icon">🔄</span>
+          </a>
+          <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Nuestras Sucursales">
+            <span class="nav-icon">🏬</span>
+          </a>
           <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item icon-only" title="Mis Pagos y Recibos">
             <span class="nav-icon">💳</span>
           </a>
@@ -173,9 +179,19 @@
             <span class="nav-label">Catálogo de Prendas</span>
           </a>
 
-          <a routerLink="/cuenta/mis-compras" routerLinkActive="active" class="nav-item">
+          <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'todas' }" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">🛍️</span>
-            <span class="nav-label">Mis Compras & Cambios</span>
+            <span class="nav-label">Mis Compras Realizadas</span>
+          </a>
+
+          <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-label">Cambios y Devoluciones</span>
+          </a>
+
+          <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🏬</span>
+            <span class="nav-label">Nuestras Sucursales</span>
           </a>
 
           <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item">

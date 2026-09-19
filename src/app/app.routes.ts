@@ -67,14 +67,29 @@ export const routes: Routes = [
         component: CatalogoListComponent,
       },
       {
+        path: 'catalogo/:codigo',
+        redirectTo: 'catalogo/producto/:codigo',
+        pathMatch: 'full',
+      },
+      {
         path: 'cuenta/mis-compras',
         component: MisComprasComponent,
         canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
+        path: 'cuenta/cambios',
+        redirectTo: 'cuenta/mis-compras',
+        pathMatch: 'full',
+      },
+      {
         path: 'cuenta/mis-pagos',
         component: MisPagosComponent,
         canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'sucursales',
+        redirectTo: 'admin/sucursales',
+        pathMatch: 'full',
       },
       // Catálogo y Colecciones para Administración y Staff
       {
@@ -143,7 +158,7 @@ export const routes: Routes = [
       {
         path: 'admin/sucursales',
         component: SucursalesListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/empleados',
