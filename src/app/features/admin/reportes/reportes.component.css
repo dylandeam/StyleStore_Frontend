@@ -423,15 +423,40 @@ h1 {
   font-size: 0.85rem;
 }
 
+.client-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.client-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .client-name {
-  font-weight: 600;
+  font-weight: 700;
   color: #1e293b;
 }
 
 .client-code {
   font-size: 0.78rem;
   color: #94a3b8;
-  margin-left: 4px;
+  font-family: monospace;
+}
+
+.client-email {
+  font-size: 0.78rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.email-icon {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
 .badge-metodo {

@@ -219,8 +219,15 @@
               <td class="ticket-cell"><strong>{{ item.ticket_numero }}</strong></td>
               <td>{{ item.fecha }}</td>
               <td>
-                <span class="client-name">{{ item.cliente_nombre }}</span>
-                <span class="client-code" *ngIf="item.codigo_cliente">({{ item.codigo_cliente }})</span>
+                <div class="client-cell">
+                  <div class="client-main">
+                    <span class="client-name">{{ item.cliente_nombre }}</span>
+                    <span class="client-code" *ngIf="item.codigo_cliente">({{ item.codigo_cliente }})</span>
+                  </div>
+                  <div class="client-email" *ngIf="item.cliente_email">
+                    <span class="email-icon">✉️</span> {{ item.cliente_email }}
+                  </div>
+                </div>
               </td>
               <td>{{ item.sucursal_nombre }}</td>
               <td>
