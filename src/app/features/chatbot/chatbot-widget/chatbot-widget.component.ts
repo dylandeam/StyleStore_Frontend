@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,6 +21,8 @@ interface ChatMessage {
 export class ChatbotWidgetComponent implements OnInit {
   private chatbotService = inject(ChatbotService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   isOpen = false;
   inputText = '';
@@ -44,6 +46,9 @@ export class ChatbotWidgetComponent implements OnInit {
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      this.scrollToBottom();
+    }
   }
 
   getHoraActual(): string {
@@ -55,51 +60,68 @@ export class ChatbotWidgetComponent implements OnInit {
     const texto = this.inputText.trim();
     if (!texto || this.isLoading) return;
 
-    this.messages.push({
-      remitente: 'user',
-      texto: texto,
-      hora: this.getHoraActual(),
-    });
+    this.messages = [
+      ...this.messages,
+      {
+        remitente: 'user',
+        texto: texto,
+        hora: this.getHoraActual(),
+      },
+    ];
 
     this.inputText = '';
     this.isLoading = true;
+    this.cdr.detectChanges();
+    this.scrollToBottom();
 
     this.chatbotService.enviarMensaje(texto).subscribe({
       next: (res) => {
-        this.isLoading = false;
-        this.messages.push({
-          remitente: 'bot',
-          texto: res.respuesta,
-          hora: this.getHoraActual(),
-          chips: res.chips,
+        this.ngZone.run(() => {
+          this.isLoading = false;
+          this.messages = [
+            ...this.messages,
+            {
+              remitente: 'bot',
+              texto: res.respuesta,
+              hora: this.getHoraActual(),
+              chips: res.chips,
+            },
+          ];
+          this.cdr.detectChanges();
+          this.scrollToBottom();
         });
-        this.scrollToBottom();
       },
       error: () => {
-        this.isLoading = false;
-        this.messages.push({
-          remitente: 'bot',
-          texto: 'Lo siento, tuve un problema al procesar tu consulta. Por favor intenta nuevamente.',
-          hora: this.getHoraActual(),
+        this.ngZone.run(() => {
+          this.isLoading = false;
+          this.messages = [
+            ...this.messages,
+            {
+              remitente: 'bot',
+              texto: 'Lo siento, tuve un problema al procesar tu consulta. Por favor intenta nuevamente.',
+              hora: this.getHoraActual(),
+            },
+          ];
+          this.cdr.detectChanges();
+          this.scrollToBottom();
         });
-        this.scrollToBottom();
       },
     });
-
-    this.scrollToBottom();
   }
 
   clickChip(chip: ChatbotChip): void {
     if (chip.action === 'navigate') {
       this.router.navigate([chip.route]);
-      // Opcionalmente mantener el chat abierto para que siga consultando
     }
   }
 
   scrollToBottom(): void {
     setTimeout(() => {
       const el = document.getElementById('chatbot-messages-container');
-      if (el) el.scrollTop = el.scrollHeight;
-    }, 80);
+      if (el) {
+        el.scrollTop = el.scrollHeight;
+      }
+      this.cdr.detectChanges();
+    }, 50);
   }
 }
