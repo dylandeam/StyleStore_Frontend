@@ -316,6 +316,7 @@ export class CarritoComponent implements OnInit {
   procederConPago(ordenId: number): void {
     if (this.metodoPago === 'paypal') {
       // Checkout con PayPal v2
+      localStorage.setItem('stylestore_pending_order_id', String(ordenId));
       const returnUrl = `${window.location.origin}/paypal-return`;
       this.pagosService.crearOrdenPayPal(ordenId, returnUrl).subscribe({
         next: (ppRes) => {
