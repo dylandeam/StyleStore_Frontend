@@ -112,21 +112,67 @@
             </span>
           </label>
 
-          <!-- Formulario de Entrega -->
+          <!-- Formulario de Entrega Yango -->
           <div class="envio-form" *ngIf="conEnvio">
-            <div class="form-group">
-              <label>Ciudad</label>
-              <input type="text" class="form-control" [(ngModel)]="ciudad" placeholder="Ej: Santa Cruz" />
+            <!-- 1. CAMPO PRINCIPAL: Enlace GPS de Google Maps o Apple Maps (mayor peso visual) -->
+            <div class="form-group gps-highlight-group">
+              <div class="gps-label-row">
+                <label class="gps-label">
+                  <span class="gps-icon">📍</span>
+                  <strong>Enlace de Google Maps o Apple Maps (Recomendado)</strong>
+                </label>
+                <span class="badge-primary-gps">Ubicación Exacta</span>
+              </div>
+              <div class="input-with-action">
+                <input
+                  type="url"
+                  class="form-control gps-input"
+                  [(ngModel)]="ubicacionUrl"
+                  placeholder="https://maps.app.goo.gl/... o https://maps.apple.com/..."
+                />
+                <a
+                  *ngIf="ubicacionUrl"
+                  [href]="ubicacionUrl"
+                  target="_blank"
+                  class="btn-test-maps"
+                  title="Verificar que el enlace abra tu ubicación en el mapa"
+                >
+                  Probar ↗
+                </a>
+              </div>
+              <p class="gps-helper-text">
+                💡 <em>En tu app de mapas (Google Maps o Apple Maps), mantén presionado tu domicilio para marcar el pin, pulsa <strong>Compartir</strong> y copia el enlace aquí. El repartidor de Yango llegará exactamente a tu puerta.</em>
+              </p>
             </div>
 
+            <!-- 2. REFERENCIAS Y DETALLES DEL DOMICILIO (Mayor peso) -->
             <div class="form-group">
-              <label>Dirección Completa</label>
-              <input type="text" class="form-control" [(ngModel)]="direccion" placeholder="Calle, Av, Número de casa..." />
+              <label><strong>🏠 Referencias y Detalles del Domicilio</strong></label>
+              <textarea
+                class="form-control"
+                rows="2"
+                [(ngModel)]="referencia"
+                placeholder="Ej: Portón café de dos pisos, frente a la plaza, reja blanca, timbre B. Avisar por WhatsApp al llegar."
+              ></textarea>
+              <small class="text-muted">Color de fachada, portón, timbre, número de piso o departamento.</small>
             </div>
 
-            <div class="form-group">
-              <label>Referencia de ubicación</label>
-              <input type="text" class="form-control" [(ngModel)]="referencia" placeholder="Frente al parque, portón blanco..." />
+            <!-- 3. Dirección y Ciudad -->
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>Dirección Escrita / Barrio</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="direccion"
+                  placeholder="Ej: Sirari, Calle Los Claveles #120"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Ciudad</label>
+                <input type="text" class="form-control" [(ngModel)]="ciudad" placeholder="Ej: Santa Cruz" />
+              </div>
             </div>
 
             <div class="form-group distancia-row">

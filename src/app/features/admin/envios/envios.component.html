@@ -44,13 +44,23 @@
                 <td class="font-semibold text-navy">Orden #{{ e.orden_venta_id }}</td>
                 <td>{{ e.cliente_nombre || 'Cliente' }}</td>
                 <td class="cell-address">
-                  <div>{{ e.direccion }}</div>
+                  <div class="font-medium text-navy">{{ e.direccion }}</div>
                   @if (e.referencia) {
-                    <div class="text-xs text-muted">Ref: {{ e.referencia }}</div>
+                    <div class="text-xs text-muted"><strong>Ref:</strong> {{ e.referencia }}</div>
+                  }
+                  @if (e.ubicacion_url) {
+                    <div class="gps-admin-actions">
+                      <a [href]="e.ubicacion_url" target="_blank" rel="noopener noreferrer" class="btn-maps-badge" title="Abrir ubicación en Google Maps / Apple Maps">
+                        📍 Mapa GPS ↗
+                      </a>
+                      <button type="button" class="btn-copy-gps" (click)="copiarUbicacion(e.ubicacion_url)" title="Copiar enlace para pegar en la app de Yango">
+                        📋 Copiar Link
+                      </button>
+                    </div>
                   }
                 </td>
                 <td>{{ e.ciudad }}</td>
-                <td class="font-bold">${{ e.costo }}</td>
+                <td class="font-bold">Bs. {{ e.costo }}</td>
                 <td>
                   <span class="badge" [class.badge-completed]="e.estado === 'completado' || e.estado === 'entregado'" [class.badge-en-camino]="e.estado === 'en camino'" [class.badge-pending]="e.estado === 'pendiente'">
                     {{ e.estado | uppercase }}
@@ -97,8 +107,44 @@
           <button class="btn-close" (click)="closeYangoModal()">✕</button>
         </div>
         <div class="modal-body">
+          <!-- TARJETA DESTINO PARA EL ENCARGADO / YANGO -->
+          <div class="modal-dest-card">
+            <div class="dest-card-header">
+              <span class="dest-badge">📍 Destino del Pedido</span>
+              @if (selectedEnvio()!.ubicacion_url) {
+                <button type="button" class="btn-copy-yango-action" (click)="copiarUbicacion(selectedEnvio()!.ubicacion_url)" title="Copiar enlace para pegarlo directamente en la app Yango">
+                  📋 Copiar Link para Yango
+                </button>
+              }
+            </div>
+            <div class="dest-card-body">
+              <div class="dest-line">
+                <span class="dest-label">Dirección:</span>
+                <span class="dest-val">{{ selectedEnvio()!.direccion }} — {{ selectedEnvio()!.ciudad }}</span>
+              </div>
+              @if (selectedEnvio()!.referencia) {
+                <div class="dest-line">
+                  <span class="dest-label">Referencia:</span>
+                  <span class="dest-val font-semibold text-navy">{{ selectedEnvio()!.referencia }}</span>
+                </div>
+              }
+              @if (selectedEnvio()!.ubicacion_url) {
+                <div class="dest-line gps-line">
+                  <span class="dest-label">Link GPS:</span>
+                  <a [href]="selectedEnvio()!.ubicacion_url" target="_blank" rel="noopener noreferrer" class="gps-modal-link">
+                    {{ selectedEnvio()!.ubicacion_url }} ↗
+                  </a>
+                </div>
+              } @else {
+                <div class="dest-notice-warning">
+                  ℹ️ El cliente no adjuntó link de mapas. Usa la dirección escrita para solicitar el móvil en Yango.
+                </div>
+              }
+            </div>
+          </div>
+
           <p class="modal-desc">
-            Ingresa los datos proporcionados por la app de Yango Delivery para que el cliente pueda realizar el seguimiento en vivo de su pedido.
+            Copia la ubicación exacta arriba, pégala en la app de Yango al solicitar la moto, y luego ingresa aquí los datos del viaje para que el cliente rastree su pedido:
           </p>
 
           <div class="form-group">
@@ -180,6 +226,28 @@
             />
           </div>
 
+          <div class="form-group">
+            <label>Referencia o Detalles Adicionales</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Ej: Casa blanca con portón café, timbre al lado"
+              [ngModel]="editReferencia()"
+              (ngModelChange)="editReferencia.set($event)"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Enlace de Ubicación GPS (Google Maps / Apple Maps)</label>
+            <input
+              type="url"
+              class="form-control"
+              placeholder="https://maps.app.goo.gl/... o https://maps.apple.com/..."
+              [ngModel]="editUbicacionUrl()"
+              (ngModelChange)="editUbicacionUrl.set($event)"
+            />
+          </div>
+
           <div class="form-row">
             <div class="form-group col-half">
               <label>Ciudad</label>
@@ -191,7 +259,7 @@
               />
             </div>
             <div class="form-group col-half">
-              <label>Costo de Envío ($)</label>
+              <label>Costo de Envío (Bs.)</label>
               <input
                 type="number"
                 class="form-control"

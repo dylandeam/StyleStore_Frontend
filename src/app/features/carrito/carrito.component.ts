@@ -30,6 +30,7 @@ export class CarritoComponent implements OnInit {
 
   // Opciones de Despacho / Envío
   conEnvioState = signal<boolean>(false);
+  ubicacionUrlState = signal<string>('');
   direccionState = signal<string>('');
   ciudadState = signal<string>('Santa Cruz');
   referenciaState = signal<string>('');
@@ -58,6 +59,9 @@ export class CarritoComponent implements OnInit {
 
   get conEnvio(): boolean { return this.conEnvioState(); }
   set conEnvio(val: boolean) { this.conEnvioState.set(val); }
+
+  get ubicacionUrl(): string { return this.ubicacionUrlState(); }
+  set ubicacionUrl(val: string) { this.ubicacionUrlState.set(val); }
 
   get direccion(): string { return this.direccionState(); }
   set direccion(val: string) { this.direccionState.set(val); }
@@ -184,9 +188,15 @@ export class CarritoComponent implements OnInit {
       return;
     }
 
-    if (this.conEnvio && (!this.direccion.trim() || !this.ciudad.trim())) {
-      this.mostrarToast('Por favor introduce tu dirección y ciudad para el despacho.');
-      return;
+    if (this.conEnvio) {
+      if (!this.ubicacionUrl.trim() && !this.direccion.trim()) {
+        this.mostrarToast('Por favor pega el enlace de Google Maps / Apple Maps o tu dirección para el despacho.');
+        return;
+      }
+      if (!this.ciudad.trim()) {
+        this.mostrarToast('Por favor indica la ciudad de entrega.');
+        return;
+      }
     }
 
     this.isProcesando.set(true);
@@ -199,12 +209,14 @@ export class CarritoComponent implements OnInit {
 
         // 2. Si hay envío, registrar el despacho con Yango
         if (this.conEnvio) {
+          const dirFinal = this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio');
           this.envioService
             .createEnvio({
               orden_venta_id: ordenId,
-              direccion: this.direccion,
-              ciudad: this.ciudad,
-              referencia: this.referencia,
+              direccion: dirFinal,
+              ciudad: this.ciudad.trim() || 'Santa Cruz',
+              referencia: this.referencia.trim() || undefined,
+              ubicacion_url: this.ubicacionUrl.trim() || undefined,
               distancia_km: this.distanciaKm,
               costo: this.costoEnvio,
             })

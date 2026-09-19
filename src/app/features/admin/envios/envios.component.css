@@ -237,3 +237,144 @@
   line-height: 1.4;
 }
 
+/* GPS & Destino en Panel de Envíos */
+.gps-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.btn-maps-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-maps-badge:hover {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.btn-copy-gps {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-gps:hover {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+/* Tarjeta Destino Modal Yango */
+.modal-dest-card {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.dest-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.dest-badge {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-copy-yango-action {
+  background: #ffcc00;
+  color: #000;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border: 1px solid #e6b800;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-copy-yango-action:hover {
+  background: #e6b800;
+  transform: translateY(-1px);
+}
+
+.dest-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.dest-line {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.dest-label {
+  font-weight: 700;
+  color: #475569;
+  min-width: 80px;
+}
+
+.dest-val {
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.gps-modal-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+  word-break: break-all;
+  font-size: 0.8rem;
+}
+
+.gps-modal-link:hover {
+  color: #1d4ed8;
+}
+
+.dest-notice-warning {
+  font-size: 0.78rem;
+  color: #b45309;
+  background: #fffbeb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #fef3c7;
+  margin-top: 4px;
+}
+
+

@@ -26,6 +26,8 @@ export class EnviosComponent implements OnInit {
   editDireccion = signal<string>('');
   editCiudad = signal<string>('');
   editCosto = signal<number>(0);
+  editReferencia = signal<string>('');
+  editUbicacionUrl = signal<string>('');
 
   // Yango Delivery Tracking
   editYangoCode = signal<string>('');
@@ -47,6 +49,31 @@ export class EnviosComponent implements OnInit {
 
   closeYangoModal(): void {
     this.isYangoModalOpen.set(false);
+  }
+
+  copiarUbicacion(url?: string): void {
+    if (!url) return;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(url).then(() => {
+        this.successMessage.set('¡Enlace de ubicación copiado para Yango!');
+        setTimeout(() => this.successMessage.set(null), 3000);
+      }).catch(() => {
+        this.copiarFallback(url);
+      });
+    } else {
+      this.copiarFallback(url);
+    }
+  }
+
+  private copiarFallback(url: string): void {
+    const el = document.createElement('textarea');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    this.successMessage.set('¡Enlace de ubicación copiado para Yango!');
+    setTimeout(() => this.successMessage.set(null), 3000);
   }
 
   saveYangoTracking(): void {
@@ -94,6 +121,8 @@ export class EnviosComponent implements OnInit {
     this.editDireccion.set(e.direccion);
     this.editCiudad.set(e.ciudad);
     this.editCosto.set(e.costo);
+    this.editReferencia.set(e.referencia || '');
+    this.editUbicacionUrl.set(e.ubicacion_url || '');
     this.isEditModalOpen.set(true);
   }
 
@@ -110,6 +139,8 @@ export class EnviosComponent implements OnInit {
       direccion: this.editDireccion().trim(),
       ciudad: this.editCiudad().trim(),
       costo: this.editCosto(),
+      referencia: this.editReferencia().trim() || undefined,
+      ubicacion_url: this.editUbicacionUrl().trim() || undefined,
     };
 
     this.envioService.updateEnvio(this.selectedEnvio()!.id, updateData).subscribe({
