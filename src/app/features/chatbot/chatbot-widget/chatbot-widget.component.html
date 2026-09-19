@@ -1,0 +1,79 @@
+<!-- Botón Flotante del Chatbot -->
+<div class="chatbot-floating-wrapper">
+  <!-- Ventana de Chat Desplegable -->
+  <div class="chatbot-window" *ngIf="isOpen">
+    <div class="chatbot-header">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar">✨</div>
+        <div>
+          <h4 class="chatbot-title">StyleStore Assistant</h4>
+          <span class="chatbot-status">En línea | Inteligencia Local</span>
+        </div>
+      </div>
+      <button type="button" class="btn-close-chat" (click)="toggleChat()" title="Cerrar chat">✕</button>
+    </div>
+
+    <div class="chatbot-messages" id="chatbot-messages-container">
+      <div
+        *ngFor="let msg of messages"
+        class="message-row"
+        [ngClass]="msg.remitente === 'user' ? 'message-user' : 'message-bot'"
+      >
+        <div class="message-bubble">
+          <p class="message-text" style="white-space: pre-line;">{{ msg.texto }}</p>
+          <span class="message-time">{{ msg.hora }}</span>
+
+          <!-- Chips de navegación interactivos -->
+          <div class="chips-container" *ngIf="msg.chips && msg.chips.length > 0">
+            <button
+              type="button"
+              class="chip-btn"
+              *ngFor="let chip of msg.chips"
+              (click)="clickChip(chip)"
+            >
+              {{ chip.label }} →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="message-row message-bot" *ngIf="isLoading">
+        <div class="message-bubble loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chatbot-input-area">
+      <input
+        type="text"
+        [(ngModel)]="inputText"
+        (keyup.enter)="sendMessage()"
+        placeholder="Escribe tu consulta (sucursales, prendas, pedidos)..."
+        class="chat-input"
+        [disabled]="isLoading"
+      />
+      <button
+        type="button"
+        class="btn-send"
+        (click)="sendMessage()"
+        [disabled]="isLoading || !inputText.trim()"
+      >
+        ➤
+      </button>
+    </div>
+  </div>
+
+  <!-- Botón Circular Activador -->
+  <button
+    type="button"
+    class="chatbot-launcher-btn"
+    (click)="toggleChat()"
+    [class.active]="isOpen"
+    title="Asistente Virtual StyleStore"
+  >
+    <span *ngIf="!isOpen" class="launcher-icon">💬</span>
+    <span *ngIf="isOpen" class="launcher-icon">✕</span>
+    <span class="launcher-badge" *ngIf="!isOpen">IA</span>
+  </button>
+</div>

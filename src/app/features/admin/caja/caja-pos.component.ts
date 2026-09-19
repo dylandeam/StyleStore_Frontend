@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentaService } from '../../../core/services/venta.service';
 import { PagosService, CobroCajaResponse } from '../../../core/services/pagos.service';
+import { SucursalService } from '../../../core/services/sucursal.service';
+import { InventarioService } from '../../../core/services/inventario.service';
+import { Sucursal } from '../../../core/models/sucursal.model';
+import { InventarioItem } from '../../../core/models/inventario.model';
+import { VentaPresencialCreate, VentaItemCreate } from '../../../core/models/venta.model';
 
 @Component({
   selector: 'app-caja-pos',
@@ -14,9 +19,15 @@ import { PagosService, CobroCajaResponse } from '../../../core/services/pagos.se
 export class CajaPosComponent implements OnInit {
   private ventaService = inject(VentaService);
   private pagosService = inject(PagosService);
+  private sucursalService = inject(SucursalService);
+  private inventarioService = inject(InventarioService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
+  // Tabs: 'ordenes' | 'venta_directa'
+  activeTab: 'ordenes' | 'venta_directa' = 'ordenes';
+
+  // Cobro de órdenes pendientes
   ordenesPendientes: any[] = [];
   ordenSeleccionada: any = null;
   loading: boolean = true;
@@ -27,6 +38,17 @@ export class CajaPosComponent implements OnInit {
   // Cobro
   efectivoRecibido: number = 0;
   ticketEmitido: CobroCajaResponse | null = null;
+
+  // Venta Directa en Mostrador
+  sucursales: Sucursal[] = [];
+  selectedSucursalId: number = 1;
+  inventarioItems: InventarioItem[] = [];
+  loadingInventario: boolean = false;
+  searchItem: string = '';
+  clienteCodigoVentaDirecta: string = 'GENERICO';
+  metodoPagoDirecto: 'efectivo' | 'qr' = 'efectivo';
+  efectivoRecibidoDirecto: number = 0;
+  cartDirecto: { item: InventarioItem; cantidad: number; subtotal: number }[] = [];
 
   ngOnInit(): void {
     this.cargarOrdenesPendientes();
@@ -273,10 +295,179 @@ export class CajaPosComponent implements OnInit {
     }, 3500);
   }
 
+  // ==========================================
+  // MÉTODOS DE VENTA DIRECTA EN MOSTRADOR
+  // ==========================================
+
+  switchTab(tab: 'ordenes' | 'venta_directa'): void {
+    this.activeTab = tab;
+    if (tab === 'venta_directa' && this.sucursales.length === 0) {
+      this.cargarSucursales();
+    }
+  }
+
+  cargarSucursales(): void {
+    this.sucursalService.getSucursales().subscribe({
+      next: (res) => {
+        this.sucursales = res || [];
+        if (this.sucursales.length > 0 && !this.selectedSucursalId) {
+          this.selectedSucursalId = this.sucursales[0].id;
+        }
+        this.cargarInventarioSucursal();
+      },
+      error: (err) => console.error('Error cargando sucursales:', err),
+    });
+  }
+
+  cargarInventarioSucursal(): void {
+    if (!this.selectedSucursalId) return;
+    this.loadingInventario = true;
+    this.inventarioService.getInventarioSucursal(this.selectedSucursalId).subscribe({
+      next: (items) => {
+        this.inventarioItems = (items || []).filter((it) => it.cantidad_disponible > 0);
+        this.loadingInventario = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error cargando inventario:', err);
+        this.loadingInventario = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  get filteredInventario(): InventarioItem[] {
+    if (!this.searchItem.trim()) return this.inventarioItems;
+    const q = this.searchItem.toLowerCase();
+    return this.inventarioItems.filter(
+      (it) =>
+        it.producto_nombre.toLowerCase().includes(q) ||
+        (it.color_nombre && it.color_nombre.toLowerCase().includes(q)) ||
+        (it.talla_nombre && it.talla_nombre.toLowerCase().includes(q))
+    );
+  }
+
+  agregarAlCarritoDirecto(item: InventarioItem): void {
+    const itemId = item.stock_inventario_id || item.id || 0;
+    const itemPrecio = item.precio_unitario || item.precio || 0;
+    const itemStock = item.cantidad_disponible ?? item.cantidad ?? 0;
+
+    const existing = this.cartDirecto.find((ci) => (ci.item.stock_inventario_id || ci.item.id) === itemId);
+    if (existing) {
+      if (existing.cantidad < itemStock) {
+        existing.cantidad++;
+        existing.subtotal = existing.cantidad * Number(itemPrecio);
+      } else {
+        this.mostrarToast(`Stock máximo disponible alcanzado (${itemStock}).`);
+      }
+    } else {
+      this.cartDirecto.push({
+        item,
+        cantidad: 1,
+        subtotal: Number(itemPrecio),
+      });
+    }
+    this.efectivoRecibidoDirecto = this.totalVentaDirecta;
+  }
+
+  actualizarCantidadDirecto(index: number, delta: number): void {
+    const ci = this.cartDirecto[index];
+    const nuevaCant = ci.cantidad + delta;
+    const itemPrecio = ci.item.precio_unitario || ci.item.precio || 0;
+    const itemStock = ci.item.cantidad_disponible ?? ci.item.cantidad ?? 0;
+
+    if (nuevaCant <= 0) {
+      this.cartDirecto.splice(index, 1);
+    } else if (nuevaCant <= itemStock) {
+      ci.cantidad = nuevaCant;
+      ci.subtotal = ci.cantidad * Number(itemPrecio);
+    } else {
+      this.mostrarToast(`Solo hay ${itemStock} unidades en stock.`);
+    }
+    this.efectivoRecibidoDirecto = this.totalVentaDirecta;
+  }
+
+  eliminarDelCarritoDirecto(index: number): void {
+    this.cartDirecto.splice(index, 1);
+    this.efectivoRecibidoDirecto = this.totalVentaDirecta;
+  }
+
+  get totalVentaDirecta(): number {
+    return this.cartDirecto.reduce((acc, curr) => acc + curr.subtotal, 0);
+  }
+
+  get cambioDirecto(): number {
+    if (this.metodoPagoDirecto !== 'efectivo') return 0;
+    const diff = (this.efectivoRecibidoDirecto || 0) - this.totalVentaDirecta;
+    return diff > 0 ? diff : 0;
+  }
+
+  get puedeCobrarDirecto(): boolean {
+    if (this.cartDirecto.length === 0) return false;
+    if (this.metodoPagoDirecto === 'efectivo') {
+      return (this.efectivoRecibidoDirecto || 0) >= this.totalVentaDirecta;
+    }
+    return true; // Si es QR se puede confirmar
+  }
+
+  setBilletesDirecto(monto: number): void {
+    this.efectivoRecibidoDirecto = monto;
+  }
+
+  addBilletesDirecto(monto: number): void {
+    this.efectivoRecibidoDirecto = (this.efectivoRecibidoDirecto || 0) + monto;
+  }
+
+  procesarVentaDirecta(): void {
+    if (!this.puedeCobrarDirecto) return;
+
+    this.procesando = true;
+    this.error = null;
+
+    const payload: VentaPresencialCreate = {
+      codigo_cliente: this.clienteCodigoVentaDirecta || 'GENERICO',
+      sucursal_id: this.selectedSucursalId,
+      metodo_pago: this.metodoPagoDirecto,
+      efectivo_recibido: this.metodoPagoDirecto === 'efectivo' ? this.efectivoRecibidoDirecto : this.totalVentaDirecta,
+      items: this.cartDirecto.map((ci) => ({
+        stock_inventario_id: ci.item.stock_inventario_id || ci.item.id || 0,
+        cantidad: ci.cantidad,
+      })),
+    };
+
+    this.ventaService.createVentaPresencial(payload).subscribe({
+      next: (ordenCreada) => {
+        this.procesando = false;
+        this.ticketEmitido = {
+          pago_id: ordenCreada.id,
+          orden_venta_id: ordenCreada.id,
+          total: Number(ordenCreada.total),
+          efectivo_recibido: this.metodoPagoDirecto === 'efectivo' ? this.efectivoRecibidoDirecto : Number(ordenCreada.total),
+          cambio_devuelto: this.cambioDirecto,
+          ticket_numero: ordenCreada.ticket_numero || `TKT-${ordenCreada.id}`,
+          fecha: ordenCreada.created_at || new Date().toISOString(),
+        };
+        this.ordenSeleccionada = ordenCreada;
+        this.cartDirecto = [];
+        this.mostrarToast(`¡Venta presencial completada! Ticket ${this.ticketEmitido.ticket_numero}`);
+        this.cargarInventarioSucursal();
+        this.cargarOrdenesPendientes();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.procesando = false;
+        this.error = err.error?.detail || 'Error al procesar la venta directa en mostrador.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   nuevaVenta(): void {
     this.ordenSeleccionada = null;
     this.ticketEmitido = null;
     this.efectivoRecibido = 0;
+    this.cartDirecto = [];
+    this.efectivoRecibidoDirecto = 0;
     this.cdr.markForCheck();
     this.cdr.detectChanges();
   }

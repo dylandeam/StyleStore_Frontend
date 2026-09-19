@@ -17,18 +17,123 @@
         </div>
         <h1 class="hero-title">¡Bienvenido(a), {{ user()?.name }}!</h1>
         <p class="hero-description">
-          Plataforma de gestión centralizada y administración para <strong>StyleStore</strong>. Selecciona un módulo para comenzar.
+          Panel de control inteligente y gestión integral de <strong>StyleStore</strong>. Monitorea métricas en tiempo real y gestiona tus operaciones.
         </p>
         <div class="hero-actions">
-          <a routerLink="/admin/productos" class="btn-hero-action">
-            <span>👕 Ver Catálogo de Productos</span>
+          <a routerLink="/catalogo" class="btn-hero-action" *ngIf="isCliente">
+            <span>🛍️ Explorar Catálogo</span>
           </a>
-          @if (isAdmin) {
-            <a routerLink="/admin/bitacora" class="btn-hero-action outline">
-              <span>📒 Bitácora de Auditoría</span>
-            </a>
-          }
+          <a routerLink="/cuenta/mis-compras" class="btn-hero-action outline" *ngIf="isCliente">
+            <span>📦 Mis Compras & Garantías</span>
+          </a>
+          <a routerLink="/admin/caja" class="btn-hero-action" *ngIf="isStaff">
+            <span>💵 Punto de Venta POS</span>
+          </a>
+          <a routerLink="/admin/cambios" class="btn-hero-action outline" *ngIf="isStaff">
+            <span>🔄 Cambios y Devoluciones</span>
+          </a>
+          <a routerLink="/admin/reportes" class="btn-hero-action outline" *ngIf="isStaff">
+            <span>📊 Reportes Dinámicos</span>
+          </a>
         </div>
+      </div>
+    </section>
+
+    <!-- Barra de Filtro de Sucursal y Métricas Operativas (Staff & Admin) -->
+    <section class="kpis-section" *ngIf="isStaff">
+      <div class="kpi-header-row">
+        <div>
+          <h2 class="section-title">Métricas Operativas en Tiempo Real</h2>
+          <span class="section-subtitle">Visualiza el rendimiento de tus sucursales y operaciones clave</span>
+        </div>
+        <div class="branch-filter-box">
+          <label>Filtrar Sucursal:</label>
+          <select class="form-control-branch" [(ngModel)]="selectedSucursalId" (change)="onSucursalChange()">
+            <option [ngValue]="null">Todas las Sucursales</option>
+            <option *ngFor="let s of sucursales" [ngValue]="s.id">{{ s.nombre || s.name }} ({{ s.ciudad || '' }})</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid de KPIs -->
+      <div class="kpis-grid" *ngIf="stats">
+        <!-- KPI 1: Ventas Totales -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-blue">
+            <span>💰</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Ventas Totales</span>
+            <strong class="kpi-number">${{ stats.ventas?.total_recaudado || 0 | number:'1.2-2' }}</strong>
+            <small class="kpi-note">{{ stats.ventas?.cantidad_ventas || 0 }} transacciones registradas</small>
+          </div>
+        </div>
+
+        <!-- KPI 2: Stock Crítico -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-red">
+            <span>⚠️</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Stock Crítico (≤ 5)</span>
+            <strong class="kpi-number text-danger">{{ stats.inventario?.items_criticos || 0 }}</strong>
+            <small class="kpi-note">De {{ stats.inventario?.total_existencias || 0 }} prendas en inventario</small>
+          </div>
+        </div>
+
+        <!-- KPI 3: Reservas Activas -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-yellow">
+            <span>🔖</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Reservas Vigentes</span>
+            <strong class="kpi-number">{{ stats.reservas?.activas || 0 }}</strong>
+            <small class="kpi-note">{{ stats.reservas?.vencidas || 0 }} reservas vencidas</small>
+          </div>
+        </div>
+
+        <!-- KPI 4: Cambios Pendientes -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-purple">
+            <span>🔄</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Garantías / Cambios</span>
+            <strong class="kpi-number">{{ stats.cambios?.pendientes || 0 }}</strong>
+            <small class="kpi-note">Solicitudes esperando revisión de tienda</small>
+          </div>
+        </div>
+
+        <!-- KPI 5: Efectivo en Caja -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-green">
+            <span>💵</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Cobros en Caja POS</span>
+            <strong class="kpi-number text-success">${{ stats.ventas?.desglose_pagos?.efectivo || 0 | number:'1.2-2' }}</strong>
+            <small class="kpi-note">Efectivo recibido en mostrador</small>
+          </div>
+        </div>
+
+        <!-- KPI 6: Pagos Digitales PayPal -->
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap bg-cyan">
+            <span>🌐</span>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-label">Pagos Digitales PayPal</span>
+            <strong class="kpi-number text-primary">${{ stats.ventas?.desglose_pagos?.en_linea || stats.ventas?.desglose_pagos?.paypal || 0 | number:'1.2-2' }}</strong>
+            <small class="kpi-note">Capturados vía PayPal Orders v2</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State for Stats -->
+      <div class="stats-loading" *ngIf="loadingStats">
+        <div class="spinner-sm"></div>
+        <span>Actualizando estadísticas...</span>
       </div>
     </section>
 
@@ -40,13 +145,61 @@
       </div>
 
       <div class="module-cards-grid">
-        <!-- Products Module -->
-        <a routerLink="/admin/productos" class="dash-module-card">
+        <!-- Catálogo de Prendas (Clientes y Staff) -->
+        <a routerLink="/catalogo" class="dash-module-card">
+          <div class="mod-icon">
+            <span>✨</span>
+          </div>
+          <div class="mod-info">
+            <h3>Catálogo de Prendas</h3>
+            <p>Exploración por sucursal, reservas y compras en línea.</p>
+            <span class="mod-link">Ver catálogo &rarr;</span>
+          </div>
+        </a>
+
+        <!-- Mis Compras (Clientes) -->
+        <a routerLink="/cuenta/mis-compras" class="dash-module-card" *ngIf="isCliente">
+          <div class="mod-icon">
+            <span>🛍️</span>
+          </div>
+          <div class="mod-info">
+            <h3>Mis Compras</h3>
+            <p>Historial de compras, tickets y solicitud de cambios en 7 días.</p>
+            <span class="mod-link">Ver mis compras &rarr;</span>
+          </div>
+        </a>
+
+        <!-- Mis Pagos (Clientes) -->
+        <a routerLink="/cuenta/mis-pagos" class="dash-module-card" *ngIf="isCliente">
+          <div class="mod-icon">
+            <span>💳</span>
+          </div>
+          <div class="mod-info">
+            <h3>Mis Pagos y Recibos</h3>
+            <p>Comprobantes fiscales y notas de venta imprimibles.</p>
+            <span class="mod-link">Ver mis pagos &rarr;</span>
+          </div>
+        </a>
+
+        <!-- Cambios y Devoluciones (Staff) -->
+        <a routerLink="/admin/cambios" class="dash-module-card" *ngIf="isStaff">
+          <div class="mod-icon">
+            <span>🔄</span>
+          </div>
+          <div class="mod-info">
+            <h3>Cambios y Garantías</h3>
+            <p>Aprobación de solicitudes y canje en caja con stock.</p>
+            <span class="mod-link">Gestionar cambios &rarr;</span>
+          </div>
+        </a>
+
+        <!-- Products Module (Admin) -->
+        <a routerLink="/admin/productos" class="dash-module-card" *ngIf="isStaff">
           <div class="mod-icon">
             <span>👕</span>
           </div>
           <div class="mod-info">
-            <h3>Catálogo de Productos</h3>
+            <h3>Gestión de Productos</h3>
             <p>Prendas, tallas, colores, precios y disponibilidad.</p>
             <span class="mod-link">Ir al módulo &rarr;</span>
           </div>

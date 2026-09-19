@@ -38,6 +38,8 @@ export interface VentaPresencialCreate {
   codigo_cliente: string;
   sucursal_id: number;
   items: VentaItemCreate[];
+  metodo_pago?: string;
+  efectivo_recibido?: number;
 }
 
 export interface PagoResponse {

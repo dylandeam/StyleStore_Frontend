@@ -134,8 +134,8 @@
 
 /* Paneles Card */
 .panel-card {
-  background: #111e1c;
-  border: 1px solid #1a332d;
+  background: #14263D;
+  border: 1px solid #274c77;
   border-radius: 18px;
   padding: 26px 28px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
@@ -232,8 +232,8 @@
 .styled-select,
 .styled-input {
   width: 100%;
-  background: #0d1716;
-  border: 1px solid #1f3b34;
+  background: #0a1526;
+  border: 1px solid #203a5c;
   color: #ffffff;
   padding: 12px 14px;
   border-radius: 10px;
@@ -245,7 +245,7 @@
 
 .styled-select:focus,
 .styled-input:focus {
-  border-color: #10b981;
+  border-color: #b8860b;
 }
 
 .status-info-row {
@@ -263,8 +263,8 @@
 
 .btn-save-config {
   width: 100%;
-  background: #10b981;
-  color: #022c22;
+  background: #b8860b;
+  color: #ffffff;
   font-weight: 700;
   font-size: 0.94rem;
   padding: 13px;
@@ -276,7 +276,7 @@
 }
 
 .btn-save-config:hover:not(:disabled) {
-  background: #059669;
+  background: #996f08;
   color: #ffffff;
 }
 
@@ -297,8 +297,8 @@
 }
 
 .file-upload-zone {
-  background: #0c1615;
-  border: 2px dashed #1f3b34;
+  background: #0a1526;
+  border: 2px dashed #203a5c;
   border-radius: 14px;
   padding: 30px 20px;
   text-align: center;
@@ -312,14 +312,14 @@
 }
 
 .file-upload-zone:hover {
-  border-color: #10b981;
-  background: #0f1c1a;
+  border-color: #b8860b;
+  background: #14263D;
 }
 
 .file-upload-zone.has-file {
   border-style: solid;
-  border-color: #10b981;
-  background: #0f201d;
+  border-color: #b8860b;
+  background: #1e3a5f;
   padding: 20px;
 }
 

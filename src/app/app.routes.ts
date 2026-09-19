@@ -32,6 +32,11 @@ import { CajaPosComponent } from './features/admin/caja/caja-pos.component';
 import { BackupsComponent } from './features/admin/backups/backups.component';
 import { ReportesComponent } from './features/admin/reportes/reportes.component';
 
+import { CatalogoListComponent } from './features/catalogo/catalogo-list/catalogo-list.component';
+import { MisComprasComponent } from './features/cuenta/mis-compras/mis-compras.component';
+import { MisPagosComponent } from './features/cuenta/mis-pagos/mis-pagos.component';
+import { CambiosListComponent } from './features/admin/cambios/cambios-list.component';
+
 export const routes: Routes = [
   {
     path: '',
@@ -56,26 +61,41 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardComponent,
       },
-      // Catálogo y Colecciones
+      // Rutas para Clientes y Catálogo
+      {
+        path: 'catalogo',
+        component: CatalogoListComponent,
+      },
+      {
+        path: 'cuenta/mis-compras',
+        component: MisComprasComponent,
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'cuenta/mis-pagos',
+        component: MisPagosComponent,
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      // Catálogo y Colecciones para Administración y Staff
       {
         path: 'admin/productos',
         component: ProductosListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/colecciones',
         component: ColeccionesComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/proximamente',
         component: ProximamenteComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/inventario',
         component: InventarioComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/categorias',
@@ -97,27 +117,33 @@ export const routes: Routes = [
         component: TemporadasListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
-      // Ventas, Reservas y Envíos
+      // Ventas, Reservas y Envíos para Staff
       {
         path: 'admin/ventas',
         component: VentasComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/reservas',
         component: ReservasComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/envios',
         component: EnviosComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      // Gestión de Cambios y Devoluciones (v6 Punto 9)
+      {
+        path: 'admin/cambios',
+        component: CambiosListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       // Administración y Personas
       {
         path: 'admin/sucursales',
         component: SucursalesListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/empleados',
@@ -153,7 +179,7 @@ export const routes: Routes = [
       {
         path: 'admin/bitacora',
         component: BitacoraListComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       // Detalle de Producto con Recomendaciones IA
       {

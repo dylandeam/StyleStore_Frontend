@@ -1,0 +1,141 @@
+<div class="catalogo-page-container">
+  <!-- Banner Superior de Bienvenida -->
+  <header class="catalogo-hero">
+    <div class="hero-content">
+      <span class="hero-badge">Colección Oficial 2026</span>
+      <h1 class="hero-title">Catálogo Exclusivo StyleStore</h1>
+      <p class="hero-subtitle">
+        Moda de alta gama, confección premium y tendencias de temporada. Elige tu sucursal para consultar existencias exactas.
+      </p>
+
+      <!-- Selector de Sucursal en Hero -->
+      <div class="hero-branch-bar">
+        <label class="branch-label">🏬 Seleccionar Sucursal:</label>
+        <select
+          class="branch-select"
+          [value]="branchService.selectedBranchId() || 'all'"
+          (change)="onBranchChange($event)"
+        >
+          <option value="all">Todas las sucursales (Existencias globales)</option>
+          <option *ngFor="let s of sucursales()" [value]="s.id">
+            {{ s.nombre || s.name }} — {{ s.ciudad || s.city }} ({{ s.direccion || s.address }})
+          </option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <section class="filters-bar-card">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Buscar prenda por nombre, código o estilo..."
+        class="search-input"
+      />
+      <button *ngIf="searchTerm" (click)="searchTerm = ''" class="btn-clear-search">✕</button>
+    </div>
+
+    <div class="filters-row">
+      <div class="filter-group">
+        <label>Categoría:</label>
+        <select [(ngModel)]="selectedCategoriaId" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="null">Todas las Categorías</option>
+          <option *ngFor="let c of categorias()" [ngValue]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Temporada:</label>
+        <select [(ngModel)]="selectedTemporadaId" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="null">Todas las Temporadas</option>
+          <option *ngFor="let t of temporadas()" [ngValue]="t.id">{{ t.nombre }}</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Colección:</label>
+        <select [(ngModel)]="selectedColeccionId" (change)="onFilterChange()" class="filter-select">
+          <option [ngValue]="null">Todas las Colecciones</option>
+          <option *ngFor="let col of colecciones()" [ngValue]="col.id">{{ col.nombre }}</option>
+        </select>
+      </div>
+
+      <button
+        *ngIf="selectedCategoriaId || selectedTemporadaId || selectedColeccionId || searchTerm"
+        (click)="limpiarFiltros()"
+        class="btn-reset-filters"
+      >
+        Limpiar Filtros
+      </button>
+    </div>
+  </section>
+
+  <!-- Estado de Carga -->
+  <div *ngIf="isLoading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando catálogo exclusivo...</p>
+  </div>
+
+  <!-- Estado de Error -->
+  <div *ngIf="error()" class="error-banner">
+    <span>⚠️</span>
+    <p>{{ error() }}</p>
+    <button (click)="cargarCatalogo()" class="btn-retry">Reintentar</button>
+  </div>
+
+  <!-- Grid de Productos -->
+  <main *ngIf="!isLoading() && !error()" class="products-section">
+    <div class="results-header">
+      <p class="results-count">Mostrando <strong>{{ productosFiltrados.length }}</strong> prendas disponibles</p>
+    </div>
+
+    <div *ngIf="productosFiltrados.length === 0" class="empty-results">
+      <span class="empty-icon">👗</span>
+      <h3>No encontramos prendas con los filtros seleccionados</h3>
+      <p>Prueba seleccionando otra sucursal o restableciendo los filtros de búsqueda.</p>
+      <button (click)="limpiarFiltros()" class="btn-primary">Ver todas las prendas</button>
+    </div>
+
+    <div class="products-grid">
+      <article *ngFor="let p of productosFiltrados" class="product-card">
+        <div class="card-image-wrapper">
+          <img
+            [src]="getImageUrl(p.foto)"
+            [alt]="p.nombre"
+            class="product-image"
+            loading="lazy"
+          />
+          <span class="category-tag">{{ p.categoria_nombre || 'Exclusivo' }}</span>
+          <span *ngIf="p.coleccion_nombre" class="coleccion-tag">{{ p.coleccion_nombre }}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="card-header-info">
+            <span class="product-code">Ref: {{ p.codigo }}</span>
+            <span class="temporada-badge">{{ p.temporada_nombre || 'Temporada' }}</span>
+          </div>
+
+          <h3 class="product-name">{{ p.nombre }}</h3>
+          <p class="product-desc" *ngIf="p.descripcion">{{ p.descripcion }}</p>
+
+          <div class="card-footer-info">
+            <div class="price-box">
+              <span class="price-currency">Bs.</span>
+              <span class="price-amount">{{ p.precio | number:'1.2-2' }}</span>
+            </div>
+
+            <a
+              [routerLink]="['/catalogo/producto', p.codigo]"
+              class="btn-detail-action"
+            >
+              Ver Detalle / Reservar →
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>

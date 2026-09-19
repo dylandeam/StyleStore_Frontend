@@ -143,6 +143,102 @@
     </div>
   </div>
 
+  <!-- SECCIÓN DE LOS 8 REPORTES ESPECIALIZADOS v6 -->
+  <div class="card specialized-reports-card mt-4">
+    <div class="specialized-header">
+      <div>
+        <h2>Suite de Reportes Especializados StyleStore v6</h2>
+        <p class="subtitle">Selecciona uno de los 8 reportes analíticos para auditoría, finanzas, inventario o personal.</p>
+      </div>
+      <div class="sucursal-filter-specialized">
+        <label>Sucursal:</label>
+        <select class="form-control" [(ngModel)]="selectedReporteSucursalId" (change)="cargarPreviewReporteDinamico()">
+          <option value="">Todas las sucursales</option>
+          <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre || s.name }} ({{ s.ciudad || s.city || '' }})</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Grid de los 8 reportes -->
+    <div class="reports-pills-grid">
+      <div 
+        class="report-pill-item" 
+        *ngFor="let rep of reportesEspecializados"
+        [class.active]="selectedReporteTipo === rep.id"
+        (click)="seleccionarReporte(rep.id)"
+      >
+        <i class="bi" [ngClass]="rep.icon"></i>
+        <div class="pill-info">
+          <strong>{{ rep.nombre }}</strong>
+          <small>{{ rep.desc }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de acciones para el reporte seleccionado -->
+    <div class="specialized-actions-bar">
+      <div class="selected-report-title">
+        <span>Reporte seleccionado:</span>
+        <strong>{{ getNombreReporteSeleccionado() }}</strong>
+      </div>
+      <div class="action-buttons-group">
+        <button 
+          type="button" 
+          class="btn-export btn-preview"
+          [disabled]="cargandoReporteDinamico"
+          (click)="cargarPreviewReporteDinamico()"
+        >
+          <span>👁️</span> Previsualizar en Pantalla
+        </button>
+        <button 
+          type="button" 
+          class="btn-export btn-excel"
+          [disabled]="descargando"
+          (click)="descargarReporteDinamicoExcel()"
+        >
+          <span>📗</span> Descargar Excel (.xlsx)
+        </button>
+        <button 
+          type="button" 
+          class="btn-export btn-pdf"
+          [disabled]="descargando"
+          (click)="descargarReporteDinamicoPDF()"
+        >
+          <span>📕</span> Descargar PDF (.pdf)
+        </button>
+      </div>
+    </div>
+
+    <!-- Previsualización dinámica de la tabla de reporte -->
+    <div class="dynamic-preview-container" *ngIf="cargandoReporteDinamico">
+      <div class="spinner-sm"></div>
+      <p>Generando datos en vivo del reporte...</p>
+    </div>
+
+    <div class="dynamic-preview-container" *ngIf="!cargandoReporteDinamico && datosReporteDinamico">
+      <h3 class="dynamic-table-title">{{ datosReporteDinamico.title }}</h3>
+      <div class="table-responsive">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of datosReporteDinamico.columns">{{ col }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of datosReporteDinamico.data">
+              <td *ngFor="let celda of fila">{{ celda }}</td>
+            </tr>
+            <tr *ngIf="datosReporteDinamico.data.length === 0">
+              <td [attr.colspan]="datosReporteDinamico.columns.length" class="text-center text-muted">
+                No hay registros para este reporte en el período o sucursal seleccionada.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- Sección de Previsualización en Vivo -->
   <div id="seccion-preview-reporte" class="card preview-card" *ngIf="tipoPrevisualizacion">
     <div class="preview-header">

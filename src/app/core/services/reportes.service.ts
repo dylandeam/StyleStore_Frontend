@@ -105,5 +105,33 @@ export class ReportesService {
       { params }
     );
   }
+
+  // Dashboard Stats
+  getDashboardStats(sucursalId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (sucursalId !== undefined && sucursalId !== null) {
+      params = params.set('sucursal_id', sucursalId.toString());
+    }
+    return this.http.get<any>(`${this.apiUrl}/dashboard-stats`, { params });
+  }
+
+  // 8 Reportes Dinámicos
+  getReportPreview(tipo: string, sucursalId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (sucursalId) params = params.set('sucursal_id', sucursalId.toString());
+    return this.http.get<any>(`${this.apiUrl}/${tipo}/preview`, { params });
+  }
+
+  exportarReporteExcel(tipo: string, sucursalId?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (sucursalId) params = params.set('sucursal_id', sucursalId.toString());
+    return this.http.get(`${this.apiUrl}/${tipo}/excel`, { params, responseType: 'blob' });
+  }
+
+  exportarReportePDF(tipo: string, sucursalId?: number): Observable<Blob> {
+    let params = new HttpParams();
+    if (sucursalId) params = params.set('sucursal_id', sucursalId.toString());
+    return this.http.get(`${this.apiUrl}/${tipo}/pdf`, { params, responseType: 'blob' });
+  }
 }
 

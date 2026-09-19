@@ -1,0 +1,398 @@
+.mis-pagos-container {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 30px 20px 80px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #14263D;
+  margin: 0 0 6px;
+}
+
+.page-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.btn-secondary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  color: #14263D;
+  border: 1.5px solid #cbd5e1;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-secondary-link:hover {
+  background: #f8fafc;
+  border-color: #14263D;
+}
+
+/* Loading & Empty States */
+.loading-state, .empty-state {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 50px 20px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+}
+
+.empty-state h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #14263D;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #64748b;
+  max-width: 450px;
+  margin: 0 auto;
+  font-size: 0.95rem;
+}
+
+/* Table Card */
+.pagos-card-wrap {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 14px rgba(20, 38, 61, 0.04);
+  overflow: hidden;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table-pagos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.table-pagos th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-pagos td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.font-mono {
+  font-family: monospace;
+}
+
+.badge-metodo {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.metodo-paypal {
+  background: #eff6ff;
+  color: #0070ba;
+  border: 1px solid #bfdbfe;
+}
+
+.metodo-pos {
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.monto-destacado {
+  color: #b8860b;
+  font-size: 1.05rem;
+}
+
+.badge-pago-estado {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.estado-aprobado {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.estado-pendiente {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.btn-recibo {
+  background: #14263D;
+  color: #ffffff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.btn-recibo:hover {
+  background: #1e3a5f;
+}
+
+/* Modal Recibo */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.recibo-modal-card {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.recibo-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.recibo-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #14263D;
+  font-weight: 800;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #94a3b8;
+}
+
+.recibo-loading {
+  padding: 40px;
+  text-align: center;
+}
+
+/* Área Imprimible */
+.recibo-printable {
+  padding: 30px 32px;
+  background: #ffffff;
+}
+
+.recibo-store-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.store-brand h2 {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #14263D;
+  margin: 0;
+}
+
+.store-brand p {
+  font-size: 0.8rem;
+  color: #b8860b;
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.recibo-meta-right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recibo-num {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #14263D;
+}
+
+.recibo-fecha {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.recibo-divider {
+  border: none;
+  border-top: 1.5px dashed #cbd5e1;
+  margin: 16px 0;
+}
+
+.recibo-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 0.84rem;
+  color: #334155;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.recibo-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  margin-bottom: 20px;
+}
+
+.recibo-items-table th {
+  border-bottom: 2px solid #14263D;
+  padding: 8px 4px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: #14263D;
+}
+
+.recibo-items-table td {
+  padding: 10px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.total-recibo {
+  color: #b8860b;
+  font-size: 1.15rem;
+}
+
+.recibo-footer-note {
+  text-align: center;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 16px;
+  margin-top: 10px;
+}
+
+.recibo-footer-note p {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: #14263D;
+  font-size: 0.88rem;
+}
+
+.recibo-footer-note .small {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.recibo-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-print {
+  background: #14263D;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .recibo-printable, .recibo-printable * {
+    visibility: visible;
+  }
+  .recibo-printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

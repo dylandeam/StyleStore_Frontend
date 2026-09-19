@@ -23,6 +23,10 @@ export class UploadService {
     return this.http.post<UploadResponse>(`${this.apiUrl}?folder=${folder}`, formData);
   }
 
+  getFileUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
+    return this.getImageUrl(url, folder);
+  }
+
   getImageUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
     if (!url || !url.trim()) return '';
     let trimmed = url.trim();

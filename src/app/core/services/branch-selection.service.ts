@@ -18,6 +18,7 @@ export class BranchSelectionService {
 
   // Getters computados
   selectedSucursal = computed(() => this.selectedSucursalState());
+  selectedBranchId = computed(() => this.selectedSucursalState()?.id || null);
   isAllBranches = computed(() => this.isAllBranchesState());
   isSelectionMade = computed(() => this.isSelectionMadeState());
   isModalOpen = computed(() => this.isModalOpenState());
@@ -54,6 +55,28 @@ export class BranchSelectionService {
       }
     } catch {
       // Ignorar errores de parseo de localStorage
+    }
+  }
+
+  setBranch(branchId: number | 'all', sucursalesList?: Sucursal[]): void {
+    if (branchId === 'all' || !branchId) {
+      this.selectSucursal(null);
+    } else {
+      const found = (sucursalesList || []).find((s) => s.id === Number(branchId));
+      if (found) {
+        this.selectSucursal(found);
+      } else {
+        this.selectSucursal({
+          id: Number(branchId),
+          name: 'Sucursal',
+          city: '',
+          address: '',
+          phone: '',
+          active: true,
+          created_at: '',
+          updated_at: '',
+        });
+      }
     }
   }
 

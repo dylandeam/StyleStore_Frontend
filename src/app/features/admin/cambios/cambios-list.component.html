@@ -1,0 +1,230 @@
+<div class="cambios-admin-container">
+  <!-- Toast -->
+  <div *ngIf="toastMessage" class="toast-notification">
+    <i class="bi bi-check-circle-fill"></i> {{ toastMessage }}
+  </div>
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Gestión de Cambios y Devoluciones</h1>
+      <p class="page-subtitle">Revisa solicitudes de clientes (plazo 7 días), aprueba o rechaza y formaliza el canje de prendas en caja.</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-card">
+    <div class="filters-row">
+      <div class="filter-col">
+        <label class="filter-label">Sucursal:</label>
+        <select class="form-select" [(ngModel)]="selectedSucursalId" (change)="cargarSolicitudes()">
+          <option [ngValue]="null">Todas las sucursales</option>
+          <option *ngFor="let s of sucursales" [ngValue]="s.id">{{ s.nombre || s.name }} ({{ s.ciudad || s.city }})</option>
+        </select>
+      </div>
+
+      <div class="filter-col">
+        <label class="filter-label">Estado:</label>
+        <select class="form-select" [(ngModel)]="selectedEstado" (change)="cargarSolicitudes()">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="aceptada">Aceptada</option>
+          <option value="rechazada">Rechazada</option>
+          <option value="completada">Completada (en caja)</option>
+        </select>
+      </div>
+
+      <div class="filter-col-btn">
+        <button class="btn-refresh" (click)="cargarSolicitudes()">
+          <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner-border text-primary"></div>
+    <p>Cargando solicitudes de cambio...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && solicitudes.length === 0" class="empty-state">
+    <div class="empty-icon">🔄</div>
+    <h3>No se encontraron solicitudes</h3>
+    <p>No hay solicitudes registradas que coincidan con los filtros seleccionados.</p>
+  </div>
+
+  <!-- Tabla de Solicitudes -->
+  <div *ngIf="!loading && solicitudes.length > 0" class="table-card">
+    <div class="table-responsive">
+      <table class="table-cambios">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Orden / Ticket</th>
+            <th>Tipo / Prenda</th>
+            <th>Sucursal / Fecha Cita</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sol of solicitudes">
+            <td><strong class="font-mono">#{{ sol.id }}</strong></td>
+            <td>
+              <strong>{{ sol.cliente_nombre || 'Cliente' }}</strong>
+              <div class="small text-muted">{{ sol.cliente_email }}</div>
+            </td>
+            <td>
+              <div>Orden #{{ sol.orden_venta_id }}</div>
+              <div class="small text-muted font-mono" *ngIf="sol.ticket_numero">{{ sol.ticket_numero }}</div>
+            </td>
+            <td>
+              <span class="badge-tipo" [ngClass]="sol.tipo === 'cambio' ? 'tipo-cambio' : 'tipo-devolucion'">
+                {{ sol.tipo | uppercase }}
+              </span>
+              <div class="small mt-1"><strong>Original:</strong> {{ sol.producto_original }}</div>
+              <div class="small text-muted" *ngIf="sol.talla_original || sol.color_original">
+                ({{ sol.talla_original }} - {{ sol.color_original }})
+              </div>
+              <div class="small text-primary" *ngIf="sol.tipo === 'cambio' && (sol.talla_nueva || sol.color_nuevo)">
+                <strong>Solicita:</strong> {{ sol.talla_nueva || 'Talla' }} - {{ sol.color_nuevo || 'Color' }}
+              </div>
+            </td>
+            <td>
+              <strong>{{ sol.sucursal_nombre }}</strong>
+              <div class="small text-muted">Cita: {{ sol.fecha_programada | date:'mediumDate' }}</div>
+            </td>
+            <td>
+              <span class="motivo-tag">{{ sol.motivo }}</span>
+              <div class="small desc-tooltip" [title]="sol.descripcion_problema">
+                {{ sol.descripcion_problema | slice:0:40 }}...
+              </div>
+            </td>
+            <td>
+              <span class="badge-estado" [ngClass]="'estado-' + sol.estado">
+                {{ sol.estado | uppercase }}
+              </span>
+            </td>
+            <td>
+              <div class="actions-stack">
+                <!-- Si está pendiente: Aprobar o Rechazar -->
+                <ng-container *ngIf="sol.estado === 'pendiente'">
+                  <button class="btn-action btn-aprobar" (click)="abrirModalResponder(sol, 'aceptada')">
+                    <i class="bi bi-check-lg"></i> Aprobar
+                  </button>
+                  <button class="btn-action btn-rechazar" (click)="abrirModalResponder(sol, 'rechazada')">
+                    <i class="bi bi-x-lg"></i> Rechazar
+                  </button>
+                </ng-container>
+
+                <!-- Si ya fue aceptada: Completar en Caja -->
+                <button 
+                  *ngIf="sol.estado === 'aceptada'" 
+                  class="btn-action btn-completar"
+                  (click)="abrirModalCompletar(sol)"
+                >
+                  <i class="bi bi-cash-stack"></i> Canjear en Caja
+                </button>
+
+                <!-- Si ya está completada o rechazada: Ver info -->
+                <span *ngIf="sol.estado === 'completada'" class="badge-completado">
+                  <i class="bi bi-check-all"></i> Procesado
+                </span>
+                <span *ngIf="sol.estado === 'rechazada'" class="text-muted small">
+                  Rechazado
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: RESPONDER SOLICITUD -->
+  <div class="modal-backdrop" *ngIf="showResponderModal && selectedSolicitud">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>{{ nuevoEstado === 'aceptada' ? 'Aprobar Solicitud' : 'Rechazar Solicitud' }} #{{ selectedSolicitud.id }}</h3>
+          <p class="modal-sub">Cliente: {{ selectedSolicitud.cliente_nombre }} ({{ selectedSolicitud.tipo | uppercase }})</p>
+        </div>
+        <button class="btn-close" (click)="cerrarModalResponder()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="form-label">Mensaje / Indicaciones para el cliente:</label>
+          <textarea 
+            class="form-textarea" 
+            [(ngModel)]="respuestaEncargado" 
+            rows="4" 
+            placeholder="Escribe la respuesta formal del encargado..."
+            required
+          ></textarea>
+        </div>
+        <div class="notice-info">
+          <i class="bi bi-envelope"></i> Este mensaje se enviará automáticamente como notificación y correo electrónico al cliente.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cerrarModalResponder()">Cancelar</button>
+        <button 
+          class="btn-confirm" 
+          [ngClass]="nuevoEstado === 'aceptada' ? 'btn-confirm-green' : 'btn-confirm-red'"
+          [disabled]="submittingRespuesta"
+          (click)="enviarRespuesta()"
+        >
+          {{ submittingRespuesta ? 'Enviando...' : (nuevoEstado === 'aceptada' ? 'Confirmar Aprobación' : 'Confirmar Rechazo') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: COMPLETAR CANJE EN CAJA CON AJUSTE DE STOCK -->
+  <div class="modal-backdrop" *ngIf="showCompletarModal && selectedSolicitud">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Completar Canje en Caja POS</h3>
+          <p class="modal-sub">Solicitud #{{ selectedSolicitud.id }} - Sucursal {{ selectedSolicitud.sucursal_nombre }}</p>
+        </div>
+        <button class="btn-close" (click)="cerrarModalCompletar()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="canje-summary">
+          <p><strong>Prenda original recibida:</strong> {{ selectedSolicitud.producto_original }}</p>
+          <p><strong>Tipo:</strong> {{ selectedSolicitud.tipo === 'cambio' ? 'Cambio físico de prenda' : 'Devolución de dinero' }}</p>
+        </div>
+
+        <div class="form-group mb-3 mt-3">
+          <label class="checkbox-box">
+            <input type="checkbox" [(ngModel)]="reponerPrendaOriginal">
+            <span><strong>Reponer prenda original al stock disponible</strong> (si la prenda devuelta se encuentra en perfecto estado y puede venderse nuevamente).</span>
+          </label>
+        </div>
+
+        <div class="notice-caja">
+          <i class="bi bi-info-circle-fill"></i>
+          <span>Al confirmar, el sistema registrará la operación en la bitácora y finalizará la solicitud de cambio/devolución.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cerrarModalCompletar()">Cancelar</button>
+        <button 
+          class="btn-primary-caja" 
+          [disabled]="submittingCompletar"
+          (click)="ejecutarCompletarEnCaja()"
+        >
+          {{ submittingCompletar ? 'Procesando...' : 'Formalizar en Caja' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

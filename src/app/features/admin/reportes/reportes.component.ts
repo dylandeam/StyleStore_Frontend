@@ -38,6 +38,28 @@ export class ReportesComponent implements OnInit {
   invSucursalId: number | '' = '';
   invSoloBajoStock: boolean = false;
 
+  // Catálogo de los 8 Reportes Dinámicos v6
+  reportesEspecializados = [
+    { id: 'compras', nombre: 'Compras a Proveedores', icon: 'bi-truck', desc: 'Historial de órdenes de compra, costos e inventario recibido' },
+    { id: 'financiero', nombre: 'Flujo de Caja y Pagos', icon: 'bi-cash-coin', desc: 'Ingresos por PayPal, Efectivo en mostrador y QR Simple' },
+    { id: 'rotacion', nombre: 'Rotación de Inventario', icon: 'bi-arrow-repeat', desc: 'Prendas más vendidas vs menor rotación por sucursal' },
+    { id: 'caducidad', nombre: 'Obsolescencia y Temporadas', icon: 'bi-calendar-x', desc: 'Prendas de temporadas pasadas y sugerencias de liquidación' },
+    { id: 'vendedores', nombre: 'Rendimiento de Vendedores', icon: 'bi-person-badge', desc: 'Ventas generadas por empleado y sucursales activas' },
+    { id: 'auditoria', nombre: 'Bitácora y Auditoría', icon: 'bi-shield-check', desc: 'Trazabilidad de modificaciones de stock, cobros y operaciones' },
+    { id: 'garantias', nombre: 'Garantías y Devoluciones', icon: 'bi-arrow-left-right', desc: 'Historial de cambios de talla, defectos y canjes en caja' },
+    { id: 'clientes', nombre: 'Clientes Frecuentes', icon: 'bi-stars', desc: 'Fidelización, volumen de compra y clientes habilitados para reserva' },
+  ];
+
+  selectedReporteTipo: string = 'compras';
+  selectedReporteSucursalId: number | '' = '';
+  cargandoReporteDinamico: boolean = false;
+  datosReporteDinamico: { title: string; columns: string[]; data: any[][] } | null = null;
+
+  getNombreReporteSeleccionado(): string {
+    const rep = this.reportesEspecializados.find((r) => r.id === this.selectedReporteTipo);
+    return rep ? rep.nombre : this.selectedReporteTipo;
+  }
+
   ngOnInit(): void {
     this.cargarSucursales();
   }
@@ -256,6 +278,84 @@ export class ReportesComponent implements OnInit {
           });
         },
       });
+  }
+
+  // ==========================================
+  // 8 REPORTES ESPECIALIZADOS v6
+  // ==========================================
+
+  seleccionarReporte(tipo: string): void {
+    this.selectedReporteTipo = tipo;
+    this.cargarPreviewReporteDinamico();
+  }
+
+  cargarPreviewReporteDinamico(): void {
+    this.cargandoReporteDinamico = true;
+    this.datosReporteDinamico = null;
+    const sucId = this.selectedReporteSucursalId ? Number(this.selectedReporteSucursalId) : undefined;
+
+    this.reportesService.getReportPreview(this.selectedReporteTipo, sucId).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.datosReporteDinamico = res;
+          this.cargandoReporteDinamico = false;
+          this.cdr.markForCheck();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.cargandoReporteDinamico = false;
+          this.mostrarToast(err.error?.detail || 'Error al obtener reporte especializado.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  descargarReporteDinamicoExcel(): void {
+    this.descargando = true;
+    const sucId = this.selectedReporteSucursalId ? Number(this.selectedReporteSucursalId) : undefined;
+
+    this.reportesService.exportarReporteExcel(this.selectedReporteTipo, sucId).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, `reporte_${this.selectedReporteTipo}.xlsx`);
+          this.mostrarToast(`Reporte de ${this.selectedReporteTipo} exportado a Excel.`);
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al exportar reporte a Excel.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  descargarReporteDinamicoPDF(): void {
+    this.descargando = true;
+    const sucId = this.selectedReporteSucursalId ? Number(this.selectedReporteSucursalId) : undefined;
+
+    this.reportesService.exportarReportePDF(this.selectedReporteTipo, sucId).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, `reporte_${this.selectedReporteTipo}.pdf`);
+          this.mostrarToast(`Reporte de ${this.selectedReporteTipo} exportado a PDF.`);
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al exportar reporte a PDF.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
   }
 
   private guardarArchivo(blob: Blob, filename: string): void {

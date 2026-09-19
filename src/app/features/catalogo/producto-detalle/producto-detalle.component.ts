@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CarritoService, CatalogoItem } from '../../../core/services/carrito.service';
@@ -8,6 +8,7 @@ import { UploadService } from '../../../core/services/upload.service';
 import { ReservaService } from '../../../core/services/reserva.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { BranchSelectionService } from '../../../core/services/branch-selection.service';
+import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 
 @Component({
@@ -20,11 +21,13 @@ import { Sucursal } from '../../../core/models/sucursal.model';
 export class ProductoDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private carritoService = inject(CarritoService);
   private productoService = inject(ProductoService);
   private uploadService = inject(UploadService);
   private reservaService = inject(ReservaService);
   private sucursalService = inject(SucursalService);
+  private notificacionesService = inject(NotificacionesService);
   public branchService = inject(BranchSelectionService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -35,6 +38,16 @@ export class ProductoDetalleComponent implements OnInit {
   isLoading = signal<boolean>(true);
   isLoadingRecomendaciones = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
+
+  // Regla de Elegibilidad para Reservas (Punto 3)
+  puedeReservar = signal<boolean>(false);
+  comprasPrevias = signal<number>(0);
+  elegibilidadMensaje = signal<string>('');
+
+  // Fechas límite de Reserva (Máx 7 días)
+  minFechaReserva = '';
+  maxFechaReserva = '';
+  fechaLimiteReserva = '';
 
   // Selección de variantes
   varianteColor = signal<any>(null);
@@ -64,6 +77,13 @@ export class ProductoDetalleComponent implements OnInit {
   get mensajeToast(): string | null { return this.toastMessage(); }
 
   ngOnInit(): void {
+    const hoy = new Date();
+    this.minFechaReserva = hoy.toISOString().split('T')[0];
+    const max = new Date();
+    max.setDate(max.getDate() + 7);
+    this.maxFechaReserva = max.toISOString().split('T')[0];
+    this.fechaLimiteReserva = this.maxFechaReserva;
+
     // 1. Lectura inmediata desde el snapshot de la ruta
     const initialCod = this.route.snapshot.paramMap.get('codigo') || this.route.snapshot.params['codigo'];
     if (initialCod) {
@@ -72,6 +92,8 @@ export class ProductoDetalleComponent implements OnInit {
     }
 
     this.cargarSucursales();
+    this.verificarElegibilidadReserva();
+
     // 2. Suscripción continua a cambios de navegación
     this.route.paramMap.subscribe((params) => {
       const cod = params.get('codigo');
@@ -83,6 +105,41 @@ export class ProductoDetalleComponent implements OnInit {
         this.errorMessage.set('No se ha especificado el código de la prenda.');
         this.cdr.markForCheck();
       }
+    });
+  }
+
+  volver(): void {
+    this.location.back();
+  }
+
+  verificarElegibilidadReserva(): void {
+    this.reservaService.checkElegibilidad().subscribe({
+      next: (res) => {
+        this.puedeReservar.set(res.puede_reservar);
+        this.comprasPrevias.set(res.compras_previas);
+        this.elegibilidadMensaje.set(res.mensaje);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.puedeReservar.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  suscribirAvisoStock(): void {
+    const ex = this.existencia();
+    if (!ex || !ex.stock_inventario_id) {
+      this.mostrarToast('Selecciona el color y talla para avisarte cuando haya stock.');
+      return;
+    }
+    this.notificacionesService.suscribirStock(ex.stock_inventario_id).subscribe({
+      next: (res) => {
+        this.mostrarToast(res.mensaje || '¡Te avisaremos en cuanto repongamos stock!');
+      },
+      error: () => {
+        this.mostrarToast('No se pudo registrar la suscripción de alerta de stock.');
+      },
     });
   }
 
@@ -335,6 +392,7 @@ export class ProductoDetalleComponent implements OnInit {
     this.reservaService
       .createReserva({
         sucursal_id: sucId,
+        fecha_limite: this.fechaLimiteReserva || undefined,
         items: [
           {
             stock_inventario_id: ex.stock_inventario_id,

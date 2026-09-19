@@ -18,16 +18,18 @@
 
   <!-- Contenido del Producto -->
   <div class="producto-main" *ngIf="producto && !loading">
-    <!-- Migas de pan -->
-    <nav class="breadcrumb">
-      <a routerLink="/dashboard">Inicio</a>
-      <span class="sep">/</span>
-      <a routerLink="/admin/productos">Catálogo</a>
-      <span class="sep">/</span>
-      <span *ngIf="producto.categoria_nombre">{{ producto.categoria_nombre }}</span>
-      <span class="sep" *ngIf="producto.categoria_nombre">/</span>
-      <span class="current">{{ producto.nombre }}</span>
-    </nav>
+    <div class="top-nav-bar">
+      <button type="button" class="btn-back-nav" (click)="volver()">
+        ← Volver
+      </button>
+      <nav class="breadcrumb">
+        <a routerLink="/catalogo">Catálogo</a>
+        <span class="sep">/</span>
+        <span *ngIf="producto.categoria_nombre">{{ producto.categoria_nombre }}</span>
+        <span class="sep" *ngIf="producto.categoria_nombre">/</span>
+        <span class="current">{{ producto.nombre }}</span>
+      </nav>
+    </div>
 
     <div class="grid-layout">
       <!-- Columna Izquierda: Galería e Imagen -->
@@ -142,11 +144,28 @@
           <button
             type="button"
             class="btn-reserve"
-            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0"
+            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0 || !puedeReservar()"
             (click)="abrirModalReserva()"
-            title="Aparta esta prenda indicando la sucursal para pasar a probártela y abonar en caja"
+            [title]="puedeReservar() ? 'Aparta esta prenda indicando la sucursal' : 'Requiere al menos 1 compra previa pagada'"
           >
             🔖 Reservar Prenda
+          </button>
+        </div>
+
+        <!-- Aviso si no cumple regla de reserva (≥ 1 compra previa) -->
+        <div class="reserva-aviso-box" *ngIf="!puedeReservar()">
+          <span class="info-badge-icon">🔒</span>
+          <div class="reserva-aviso-text">
+            <strong>Reserva en Tienda Física:</strong>
+            <p>{{ elegibilidadMensaje() || 'Para reservar prendas sin costo previo necesitas tener al menos 1 compra previa pagada en StyleStore.' }}</p>
+          </div>
+        </div>
+
+        <!-- Alerta de reposición de stock si no hay existencias -->
+        <div class="stock-agotado-box" *ngIf="existenciaSeleccionada && existenciaSeleccionada.cantidad <= 0">
+          <span>⚠️ Talla temporalmente agotada en sucursal.</span>
+          <button type="button" class="btn-sub-stock-alert" (click)="suscribirAvisoStock()">
+            🔔 Avisarme por correo cuando repongan stock
           </button>
         </div>
 
@@ -281,6 +300,23 @@
             </select>
             <small class="help-desc-text">
               ℹ️ El sistema descontará el stock de esta sucursal y la apartará a tu nombre.
+            </small>
+          </div>
+
+          <!-- Selección de Fecha Límite (Máximo 7 días) -->
+          <div class="form-group sucursal-picker-box">
+            <label class="sucursal-picker-label">
+              <strong>📅 Fecha límite para retirar en tienda (Máx. 7 días): *</strong>
+            </label>
+            <input
+              type="date"
+              class="form-control select-sucursal-reserva"
+              [min]="minFechaReserva"
+              [max]="maxFechaReserva"
+              [(ngModel)]="fechaLimiteReserva"
+            />
+            <small class="help-desc-text">
+              ℹ️ Tu prenda estará reservada hasta esta fecha para que puedas pasar a probártela y abonar en caja física.
             </small>
           </div>
         </div>

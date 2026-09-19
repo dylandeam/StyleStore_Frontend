@@ -4,6 +4,10 @@ export interface Sucursal {
   city: string;
   address: string;
   phone: string;
+  nombre?: string;
+  ciudad?: string;
+  direccion?: string;
+  telefono?: string;
   active: boolean;
   created_at: string;
   updated_at: string;

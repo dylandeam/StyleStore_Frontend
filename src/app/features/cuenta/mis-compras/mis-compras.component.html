@@ -1,0 +1,282 @@
+<div class="mis-compras-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Mis Compras</h1>
+      <p class="page-subtitle">Revisa el historial de tus pedidos, compras en tienda y solicita cambios o devoluciones.</p>
+    </div>
+    <a routerLink="/catalogo" class="btn-seguir-comprando">
+      <i class="bi bi-bag-plus"></i> Explorar Catálogo
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p>Cargando tus compras...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && compras.length === 0" class="empty-state">
+    <div class="empty-icon">🛍️</div>
+    <h3>Aún no has realizado compras</h3>
+    <p>Explora nuestras colecciones exclusivas y realiza tu primer pedido con entrega rápida o retiro en sucursal.</p>
+    <a routerLink="/catalogo" class="btn-primary-action">Ver Catálogo</a>
+  </div>
+
+  <!-- Listado de Compras -->
+  <div *ngIf="!loading && compras.length > 0" class="compras-grid">
+    <div *ngFor="let orden of compras" class="compra-card">
+      <div class="compra-header">
+        <div class="compra-id-row">
+          <span class="badge-tipo" [ngClass]="orden.tipo_venta === 'en linea' ? 'tipo-online' : 'tipo-tienda'">
+            {{ orden.tipo_venta === 'en linea' ? '🌐 Compra Online' : '🏬 Tienda Física' }}
+          </span>
+          <span class="orden-id">Orden #{{ orden.id }}</span>
+        </div>
+        <span class="badge-estado" [ngClass]="'estado-' + (orden.estado || 'pendiente')">
+          {{ orden.estado | uppercase }}
+        </span>
+      </div>
+
+      <div class="compra-body">
+        <div class="info-row">
+          <span class="info-label">Fecha:</span>
+          <span class="info-value">{{ orden.created_at || orden.fecha | date:'medium' }}</span>
+        </div>
+        <div class="info-row" *ngIf="orden.sucursal_ciudad">
+          <span class="info-label">Sucursal:</span>
+          <span class="info-value">{{ orden.sucursal_ciudad }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Total pagado:</span>
+          <span class="info-value total-destacado">${{ orden.total | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-row" *ngIf="orden.ticket_numero">
+          <span class="info-label">Ticket POS:</span>
+          <span class="info-value font-mono">{{ orden.ticket_numero }}</span>
+        </div>
+
+        <!-- Resumen de items -->
+        <div class="items-summary" *ngIf="orden.detalles && orden.detalles.length > 0">
+          <p class="summary-label">Artículos ({{ orden.detalles.length }}):</p>
+          <ul class="items-list-compact">
+            <li *ngFor="let item of orden.detalles.slice(0, 2)">
+              <strong>{{ item.cantidad }}x</strong> {{ item.producto_nombre }} 
+              <span class="item-meta">({{ item.talla_nombre || 'Talla' }} - {{ item.color_nombre || 'Color' }})</span>
+            </li>
+            <li *ngIf="orden.detalles.length > 2" class="items-more">
+              + {{ orden.detalles.length - 2 }} artículo(s) más
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="compra-actions">
+        <button class="btn-secondary-action" (click)="verDetalle(orden)">
+          <i class="bi bi-eye"></i> Ver Detalle
+        </button>
+
+        <!-- Botón de Cambio/Devolución si está dentro de los 7 días -->
+        <button 
+          *ngIf="isEligibleForCambio(orden)" 
+          class="btn-cambio-action" 
+          (click)="abrirModalCambio(orden)"
+          [title]="'Te quedan ' + diasRestantesCambio(orden) + ' días para solicitar cambio o devolución'"
+        >
+          <i class="bi bi-arrow-left-right"></i> Solicitar Cambio ({{ diasRestantesCambio(orden) }}d)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DETALLE DE COMPRA -->
+  <div class="modal-backdrop" *ngIf="showDetailModal && selectedOrden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Detalle de Orden #{{ selectedOrden.id }}</h3>
+          <span class="badge-tipo" [ngClass]="selectedOrden.tipo_venta === 'en linea' ? 'tipo-online' : 'tipo-tienda'">
+            {{ selectedOrden.tipo_venta === 'en linea' ? 'Compra Online' : 'Venta Presencial' }}
+          </span>
+        </div>
+        <button class="btn-close-modal" (click)="cerrarDetalle()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detalle-grid">
+          <div>
+            <strong>Fecha:</strong> {{ selectedOrden.created_at || selectedOrden.fecha | date:'medium' }}
+          </div>
+          <div>
+            <strong>Estado:</strong> 
+            <span class="badge-estado" [ngClass]="'estado-' + (selectedOrden.estado || 'pendiente')">
+              {{ selectedOrden.estado | uppercase }}
+            </span>
+          </div>
+          <div *ngIf="selectedOrden.sucursal_ciudad">
+            <strong>Sucursal:</strong> {{ selectedOrden.sucursal_ciudad }}
+          </div>
+          <div *ngIf="selectedOrden.ticket_numero">
+            <strong>Ticket de Caja:</strong> {{ selectedOrden.ticket_numero }}
+          </div>
+        </div>
+
+        <!-- Información de Envío si aplica -->
+        <div class="envio-box-modal" *ngIf="selectedOrden.envio">
+          <h5><i class="bi bi-truck"></i> Información de Entrega</h5>
+          <p><strong>Destino:</strong> {{ selectedOrden.envio.direccion }}, {{ selectedOrden.envio.ciudad }}</p>
+          <p *ngIf="selectedOrden.envio.referencia"><strong>Referencia:</strong> {{ selectedOrden.envio.referencia }}</p>
+          <p *ngIf="selectedOrden.envio.yango_tracking_code">
+            <strong>Yango Delivery:</strong> 
+            <span class="tracking-pill">{{ selectedOrden.envio.yango_tracking_code }}</span>
+          </p>
+        </div>
+
+        <!-- Tabla de Productos -->
+        <h5 class="section-subtitle">Prendas y Artículos</h5>
+        <div class="table-responsive">
+          <table class="table-articulos">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Talla / Color</th>
+                <th>Cant.</th>
+                <th>P. Unit.</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of selectedOrden.detalles">
+                <td><strong>{{ det.producto_nombre }}</strong></td>
+                <td>{{ det.talla_nombre || 'N/A' }} / {{ det.color_nombre || 'N/A' }}</td>
+                <td>{{ det.cantidad }}</td>
+                <td>${{ det.precio_unitario | number:'1.2-2' }}</td>
+                <td><strong>${{ det.subtotal | number:'1.2-2' }}</strong></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-right"><strong>Total:</strong></td>
+                <td class="total-cell"><strong>${{ selectedOrden.total | number:'1.2-2' }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button 
+          *ngIf="isEligibleForCambio(selectedOrden)" 
+          class="btn-cambio-action" 
+          (click)="abrirModalCambio(selectedOrden)"
+        >
+          <i class="bi bi-arrow-left-right"></i> Solicitar Cambio / Devolución
+        </button>
+        <button class="btn-secondary-action" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SOLICITUD DE CAMBIO O DEVOLUCIÓN (7 DÍAS) -->
+  <div class="modal-backdrop" *ngIf="showCambioModal && selectedOrden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>Solicitud de Cambio o Devolución</h3>
+          <p class="modal-sub">Garantía StyleStore: Dispones de hasta 7 días posteriores a tu compra.</p>
+        </div>
+        <button class="btn-close-modal" (click)="cerrarModalCambio()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="cambioSuccessMessage" class="alert-success">
+          <i class="bi bi-check-circle-fill"></i> {{ cambioSuccessMessage }}
+        </div>
+        <div *ngIf="cambioErrorMessage" class="alert-error">
+          <i class="bi bi-exclamation-triangle-fill"></i> {{ cambioErrorMessage }}
+        </div>
+
+        <form (ngSubmit)="enviarSolicitudCambio()" *ngIf="!cambioSuccessMessage">
+          <!-- Tipo: Cambio vs Devolución -->
+          <div class="form-group mb-3">
+            <label class="form-label">¿Qué deseas solicitar?</label>
+            <div class="radio-toggle-group">
+              <label class="radio-box" [class.active]="solicitud.tipo === 'cambio'">
+                <input type="radio" [(ngModel)]="solicitud.tipo" name="tipo" value="cambio">
+                <span>🔄 Cambio de prenda / talla</span>
+              </label>
+              <label class="radio-box" [class.active]="solicitud.tipo === 'devolucion'">
+                <input type="radio" [(ngModel)]="solicitud.tipo" name="tipo" value="devolucion">
+                <span>↩️ Devolución y reembolso</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Producto de la orden -->
+          <div class="form-group mb-3" *ngIf="selectedOrden.detalles && selectedOrden.detalles.length > 0">
+            <label class="form-label">Selecciona el artículo involucrado:</label>
+            <select class="form-select" [(ngModel)]="solicitud.producto_detalle_id" name="detalleId">
+              <option *ngFor="let det of selectedOrden.detalles" [value]="det.id">
+                {{ det.producto_nombre }} ({{ det.talla_nombre }} - {{ det.color_nombre }}) - ${{ det.subtotal | number:'1.2-2' }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Motivo -->
+          <div class="form-group mb-3">
+            <label class="form-label">Motivo principal:</label>
+            <select class="form-select" [(ngModel)]="solicitud.motivo" name="motivo">
+              <option value="talla_incorrecta">Talla incorrecta o no ajusta bien</option>
+              <option value="defecto_fabrica">Defecto o falla de confección / fábrica</option>
+              <option value="no_satisfecho">El producto no coincide con mis expectativas</option>
+              <option value="otro">Otro motivo</option>
+            </select>
+          </div>
+
+          <!-- Fecha de visita a la tienda -->
+          <div class="form-group mb-3">
+            <label class="form-label">Fecha tentativa en que visitarás la sucursal:</label>
+            <input type="date" class="form-input" [(ngModel)]="fechaProgramada" name="fechaProg" required>
+          </div>
+
+          <!-- Talla o Color Solicitado (si es cambio) -->
+          <div class="form-row mb-3" *ngIf="solicitud.tipo === 'cambio'">
+            <div class="form-group col">
+              <label class="form-label">Talla deseada:</label>
+              <input type="text" class="form-input" [(ngModel)]="solicitud.talla_solicitada" name="tallaSol" placeholder="Ej: M, L, XL, 32">
+            </div>
+            <div class="form-group col">
+              <label class="form-label">Color deseado:</label>
+              <input type="text" class="form-input" [(ngModel)]="solicitud.color_solicitado" name="colorSol" placeholder="Ej: Azul Marino, Beige">
+            </div>
+          </div>
+
+          <!-- Descripción detallada -->
+          <div class="form-group mb-3">
+            <label class="form-label">Detalles adicionales del motivo:</label>
+            <textarea 
+              class="form-textarea" 
+              [(ngModel)]="solicitud.descripcion" 
+              name="descripcion" 
+              rows="3" 
+              placeholder="Explica detalladamente por qué requieres el cambio o devolución..."
+              required
+            ></textarea>
+          </div>
+
+          <div class="notice-box">
+            <i class="bi bi-info-circle"></i>
+            <span>La prenda debe encontrarse sin uso, con etiquetas originales y sin alteraciones. El canje o reintegro se hará efectivo en caja previa inspección de tienda.</span>
+          </div>
+
+          <div class="modal-form-actions">
+            <button type="button" class="btn-secondary-action" (click)="cerrarModalCambio()">Cancelar</button>
+            <button type="submit" class="btn-primary-action" [disabled]="cambioSubmitting">
+              {{ cambioSubmitting ? 'Enviando...' : 'Enviar Solicitud' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

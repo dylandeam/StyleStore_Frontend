@@ -30,4 +30,10 @@ export class ReservaService {
   deleteReserva(reservaId: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${reservaId}`);
   }
+
+  checkElegibilidad(): Observable<{ puede_reservar: boolean; compras_previas: number; mensaje: string }> {
+    return this.http.get<{ puede_reservar: boolean; compras_previas: number; mensaje: string }>(
+      `${this.apiUrl}/elegibilidad`
+    );
+  }
 }

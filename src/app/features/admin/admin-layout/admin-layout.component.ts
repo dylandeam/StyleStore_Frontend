@@ -1,25 +1,35 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificacionesService, NotificacionItem, MisNotificacionesResponse } from '../../../core/services/notificaciones.service';
+import { ChatbotWidgetComponent } from '../../chatbot/chatbot-widget/chatbot-widget.component';
 import { User } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, ChatbotWidgetComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css',
 })
 export class AdminLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly notificacionesService = inject(NotificacionesService);
 
   readonly isSidebarCollapsed = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly user = this.authService.currentUser;
+
+  // Notificaciones In-App
+  readonly notificaciones = signal<any[]>([]);
+  readonly showNotificacionesDropdown = signal<boolean>(false);
+  readonly unreadNotificationsCount = computed(() =>
+    this.notificaciones().filter((n) => !n.leida).length
+  );
 
   // Title of current section
   readonly currentTitle = signal<string>('Panel Principal');
@@ -42,10 +52,51 @@ export class AdminLayoutComponent implements OnInit {
         this.updateHeaderMeta(event.urlAfterRedirects || event.url);
         this.isMobileMenuOpen.set(false);
       });
+
+    this.cargarNotificaciones();
+  }
+
+  cargarNotificaciones(): void {
+    this.notificacionesService.getMisNotificaciones().subscribe({
+      next: (res: MisNotificacionesResponse) => this.notificaciones.set(res?.items || []),
+      error: () => {},
+    });
+  }
+
+  toggleNotificacionesDropdown(): void {
+    this.showNotificacionesDropdown.update((val) => !val);
+  }
+
+  marcarNotificacionLeida(notif: any): void {
+    if (notif.leida) return;
+    this.notificacionesService.marcarLeida(notif.id).subscribe({
+      next: () => {
+        notif.leida = true;
+        this.notificaciones.update((list) => [...list]);
+      },
+    });
   }
 
   private updateHeaderMeta(url: string): void {
-    if (url.includes('/admin/productos')) {
+    if (url.includes('/catalogo') && !url.includes('/admin')) {
+      this.currentTitle.set('Catálogo de Prendas');
+      this.currentSubtitle.set('Explora colecciones exclusivas, filtra por sucursal y reserva tus prendas');
+    } else if (url.includes('/cuenta/mis-compras')) {
+      this.currentTitle.set('Mis Compras');
+      this.currentSubtitle.set('Historial de pedidos, tickets POS y solicitud de cambios en 7 días');
+    } else if (url.includes('/cuenta/mis-pagos')) {
+      this.currentTitle.set('Historial de Pagos');
+      this.currentSubtitle.set('Comprobantes de pago, transacciones PayPal y notas de venta');
+    } else if (url.includes('/admin/cambios')) {
+      this.currentTitle.set('Cambios y Devoluciones');
+      this.currentSubtitle.set('Revisión de solicitudes (plazo 7 días) y canje en caja POS con stock');
+    } else if (url.includes('/admin/caja')) {
+      this.currentTitle.set('Caja y Punto de Venta POS');
+      this.currentSubtitle.set('Cobro de órdenes pendientes y venta directa en mostrador');
+    } else if (url.includes('/admin/reportes')) {
+      this.currentTitle.set('Suite de Reportes Especializados');
+      this.currentSubtitle.set('Generación de 8 reportes dinámicos, exportación Excel y PDF');
+    } else if (url.includes('/admin/productos')) {
       this.currentTitle.set('Catálogo de Productos');
       this.currentSubtitle.set('Prendas, calzados, stock e inventario por sucursal (CU10)');
     } else if (url.includes('/admin/colecciones')) {
@@ -119,6 +170,15 @@ export class AdminLayoutComponent implements OnInit {
 
   get isAdmin(): boolean {
     return this.user()?.role === 'administrador';
+  }
+
+  get isStaff(): boolean {
+    const role = this.user()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
+  }
+
+  get isCliente(): boolean {
+    return this.user()?.role === 'cliente';
   }
 
   get canManageStore(): boolean {

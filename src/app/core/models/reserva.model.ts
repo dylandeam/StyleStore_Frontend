@@ -30,5 +30,6 @@ export interface ReservaCreateItem {
 
 export interface ReservaCreate {
   sucursal_id: number;
+  fecha_limite?: string;
   items: ReservaCreateItem[];
 }

@@ -1,0 +1,157 @@
+<div class="mis-pagos-container">
+  <div class="header-section">
+    <div>
+      <h1 class="page-title">Historial de Pagos</h1>
+      <p class="page-subtitle">Comprobantes, transacciones y notas de venta emitidas a tu nombre.</p>
+    </div>
+    <a routerLink="/cuenta/mis-compras" class="btn-secondary-link">
+      <i class="bi bi-bag"></i> Ver Mis Compras
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p>Cargando transacciones...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && pagos.length === 0" class="empty-state">
+    <div class="empty-icon">💳</div>
+    <h3>No se registran pagos previos</h3>
+    <p>Tus pagos en línea vía PayPal o en caja física quedarán registrados aquí para tu respaldo fiscal y personal.</p>
+  </div>
+
+  <!-- Tabla / Lista de Pagos -->
+  <div *ngIf="!loading && pagos.length > 0" class="pagos-card-wrap">
+    <div class="table-responsive">
+      <table class="table-pagos">
+        <thead>
+          <tr>
+            <th>ID Pago</th>
+            <th>Fecha</th>
+            <th>Orden</th>
+            <th>Método</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos">
+            <td><strong class="font-mono">#{{ pago.id }}</strong></td>
+            <td>{{ pago.created_at | date:'mediumDate' }}</td>
+            <td>Orden #{{ pago.orden_venta_id }}</td>
+            <td>
+              <span class="badge-metodo" [ngClass]="pago.tipo_pago === 'en linea' ? 'metodo-paypal' : 'metodo-pos'">
+                {{ pago.tipo_pago === 'en linea' ? 'PayPal Orders v2' : (pago.tipo_pago | uppercase) }}
+              </span>
+            </td>
+            <td><strong class="monto-destacado">${{ pago.monto | number:'1.2-2' }}</strong></td>
+            <td>
+              <span class="badge-pago-estado" [ngClass]="pago.estado === 'aprobado' ? 'estado-aprobado' : 'estado-pendiente'">
+                {{ pago.estado | uppercase }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-recibo" (click)="verRecibo(pago.id)">
+                <i class="bi bi-receipt"></i> Recibo
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL DE RECIBO / NOTA DE VENTA -->
+  <div class="modal-backdrop" *ngIf="showReciboModal">
+    <div class="recibo-modal-card">
+      <div class="recibo-modal-header no-print">
+        <h3>Comprobante de Pago</h3>
+        <button class="btn-close-modal" (click)="cerrarRecibo()">✕</button>
+      </div>
+
+      <div *ngIf="loadingRecibo" class="recibo-loading no-print">
+        <div class="spinner-border text-primary"></div>
+        <p>Cargando nota de venta...</p>
+      </div>
+
+      <!-- FORMATO IMPRIMIBLE DEL RECIBO -->
+      <div class="recibo-printable" *ngIf="!loadingRecibo && selectedRecibo" id="area-recibo">
+        <div class="recibo-store-header">
+          <div class="store-brand">
+            <h2>STYLESTORE</h2>
+            <p>Moda y Confección Exclusiva</p>
+          </div>
+          <div class="recibo-meta-right">
+            <span class="recibo-num font-mono">RECIBO #{{ selectedRecibo.pago_id }}</span>
+            <span class="recibo-fecha">{{ selectedRecibo.fecha | date:'medium' }}</span>
+          </div>
+        </div>
+
+        <hr class="recibo-divider" />
+
+        <div class="recibo-info-grid">
+          <div>
+            <strong>Orden de Venta:</strong> #{{ selectedRecibo.orden_venta_id }}<br />
+            <strong>Método de Pago:</strong> {{ selectedRecibo.tipo_pago | uppercase }}<br />
+            <strong>Estado:</strong> {{ selectedRecibo.estado | uppercase }}
+          </div>
+          <div>
+            <span *ngIf="selectedRecibo.ticket_numero">
+              <strong>Ticket de Mostrador:</strong> {{ selectedRecibo.ticket_numero }}<br />
+            </span>
+            <span *ngIf="selectedRecibo.paypal_capture_id">
+              <strong>ID Captura PayPal:</strong> <code class="small">{{ selectedRecibo.paypal_capture_id }}</code><br />
+            </span>
+            <span *ngIf="selectedRecibo.efectivo_recibido">
+              <strong>Efectivo Recibido:</strong> ${{ selectedRecibo.efectivo_recibido | number:'1.2-2' }}<br />
+              <strong>Cambio Devuelto:</strong> ${{ selectedRecibo.cambio_devuelto | number:'1.2-2' }}<br />
+            </span>
+          </div>
+        </div>
+
+        <table class="recibo-items-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th class="text-center">Cant.</th>
+              <th class="text-right">P. Unit</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let it of selectedRecibo.items">
+              <td>
+                <strong>{{ it.producto }}</strong>
+                <div class="small text-muted">{{ it.talla }} / {{ it.color }}</div>
+              </td>
+              <td class="text-center">{{ it.cantidad }}</td>
+              <td class="text-right">${{ it.precio_unitario | number:'1.2-2' }}</td>
+              <td class="text-right">${{ it.subtotal | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-right"><strong>TOTAL PAGADO:</strong></td>
+              <td class="text-right"><strong class="total-recibo">${{ selectedRecibo.total | number:'1.2-2' }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="recibo-footer-note">
+          <p>¡Gracias por tu preferencia en StyleStore!</p>
+          <p class="small">Este comprobante es válido para solicitudes de cambio o garantía física dentro de los 7 días posteriores a su emisión.</p>
+        </div>
+      </div>
+
+      <div class="recibo-actions no-print" *ngIf="!loadingRecibo && selectedRecibo">
+        <button class="btn-print" (click)="imprimirRecibo()">
+          <i class="bi bi-printer"></i> Imprimir o Guardar PDF
+        </button>
+        <button class="btn-secondary" (click)="cerrarRecibo()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

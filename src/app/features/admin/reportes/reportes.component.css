@@ -564,3 +564,143 @@ h1 {
 .font-bold {
   font-weight: 700;
 }
+
+/* ========================================== */
+/* 8 REPORTES ESPECIALIZADOS v6 ESTILOS       */
+/* ========================================== */
+.specialized-reports-card {
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(20, 38, 61, 0.05);
+}
+
+.specialized-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.specialized-header h2 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #14263D;
+  margin: 0 0 4px;
+}
+
+.sucursal-filter-specialized {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 250px;
+}
+
+.sucursal-filter-specialized label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.reports-pills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.report-pill-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-pill-item i {
+  font-size: 1.4rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.report-pill-item .pill-info strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.report-pill-item .pill-info small {
+  font-size: 0.74rem;
+  color: #64748b;
+  line-height: 1.25;
+  display: block;
+}
+
+.report-pill-item:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.report-pill-item.active {
+  border-color: #14263D;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(20, 38, 61, 0.08);
+}
+
+.report-pill-item.active i {
+  color: #b8860b;
+}
+
+.report-pill-item.active .pill-info strong {
+  color: #14263D;
+}
+
+.specialized-actions-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.selected-report-title span {
+  font-size: 0.8rem;
+  color: #64748b;
+  display: block;
+}
+
+.selected-report-title strong {
+  font-size: 1.05rem;
+  color: #14263D;
+}
+
+.action-buttons-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dynamic-preview-container {
+  margin-top: 10px;
+}
+
+.dynamic-table-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #14263D;
+  margin: 0 0 12px;
+}
+

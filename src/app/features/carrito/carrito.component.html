@@ -198,31 +198,21 @@
           </div>
         </div>
 
-        <!-- Selección de Método de Pago -->
+        <!-- Método de Pago Online Oficial: Exclusivo PayPal v2 -->
         <div class="metodos-pago-box">
-          <h3 class="box-subtitle">Selecciona Método de Pago</h3>
-
-          <label class="metodo-radio-option" [class.selected]="metodoPago === 'paypal'">
-            <input type="radio" name="pago" [(ngModel)]="metodoPago" value="paypal" />
-            <div class="metodo-content">
-              <div class="metodo-header">
-                <strong>PayPal Orders v2</strong>
-                <span class="badge-online">En Línea</span>
-              </div>
-              <p>Paga con saldo de PayPal, tarjeta de crédito o débito internacional con protección al comprador.</p>
+          <h3 class="box-subtitle">Método de Pago Online</h3>
+          <div class="paypal-exclusive-card">
+            <div class="paypal-badge-row">
+              <span class="paypal-secure-badge">🛡️ Checkout Oficial Protegido</span>
+              <span class="paypal-brand-logo">PayPal v2</span>
             </div>
-          </label>
-
-          <label class="metodo-radio-option" [class.selected]="metodoPago === 'efectivo'">
-            <input type="radio" name="pago" [(ngModel)]="metodoPago" value="efectivo" />
-            <div class="metodo-content">
-              <div class="metodo-header">
-                <strong>Efectivo / Caja POS</strong>
-                <span class="badge-cash">Contra Entrega / Sucursal</span>
-              </div>
-              <p>Abona tu compra presencialmente en efectivo al recibirla o al recogerla en caja con ticket numerado.</p>
+            <p class="paypal-info-text">
+              Procesamiento inmediato con saldo PayPal y tarjetas internacionales Visa / MasterCard. Protección al comprador incluida.
+            </p>
+            <div class="paypal-cash-note">
+              ℹ️ ¿Deseas pagar en <strong>Efectivo o QR Simple</strong>? Visita nuestras sucursales físicas para compras presenciales en caja.
             </div>
-          </label>
+          </div>
         </div>
 
         <!-- Desglose de Totales -->
@@ -253,9 +243,9 @@
           (click)="procesarCheckout()"
         >
           <span *ngIf="!procesando">
-            {{ metodoPago === 'paypal' ? '💳 Pagar con PayPal' : '✓ Confirmar Pedido en Efectivo' }}
+            💳 Proceder al Pago con PayPal
           </span>
-          <span *ngIf="procesando">Procesando tu pedido...</span>
+          <span *ngIf="procesando">Conectando con PayPal...</span>
         </button>
 
         <p class="secure-checkout-notice">

@@ -40,30 +40,44 @@
           <span class="nav-icon">📊</span>
         </a>
 
-        <!-- Catálogo de Productos (Visible para todos) -->
-        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
-          <span class="nav-icon">👕</span>
-        </a>
-
-        <!-- Colecciones -->
-        <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item icon-only" title="Colecciones">
-          <span class="nav-icon">🧵</span>
-        </a>
-
-        <!-- Próximamente -->
-        <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item icon-only" title="Próximamente">
-          <span class="nav-icon">⏳</span>
-        </a>
-
-        <!-- Bolsa / Carrito -->
-        <a routerLink="/carrito" routerLinkActive="active" class="nav-item icon-only" title="Bolsa de Compras">
-          <span class="nav-icon">🛒</span>
-        </a>
-
-        <!-- Inventario (Visible para todos) -->
-        <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item icon-only" title="Inventario">
-          <span class="nav-icon">📦</span>
-        </a>
+        <!-- OPCIONES CLIENTES (COLAPSADO) -->
+        @if (isCliente) {
+          <a routerLink="/catalogo" routerLinkActive="active" class="nav-item icon-only" title="Catálogo de Prendas">
+            <span class="nav-icon">✨</span>
+          </a>
+          <a routerLink="/cuenta/mis-compras" routerLinkActive="active" class="nav-item icon-only" title="Mis Compras">
+            <span class="nav-icon">🛍️</span>
+          </a>
+          <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item icon-only" title="Mis Pagos y Recibos">
+            <span class="nav-icon">💳</span>
+          </a>
+          <a routerLink="/carrito" routerLinkActive="active" class="nav-item icon-only" title="Bolsa de Compras">
+            <span class="nav-icon">🛒</span>
+          </a>
+        } @else {
+          <!-- OPCIONES STAFF (COLAPSADO) -->
+          <a routerLink="/catalogo" routerLinkActive="active" class="nav-item icon-only" title="Vista Catálogo">
+            <span class="nav-icon">✨</span>
+          </a>
+          <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
+            <span class="nav-icon">👕</span>
+          </a>
+          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Caja POS">
+            <span class="nav-icon">💵</span>
+          </a>
+          <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item icon-only" title="Cambios y Devoluciones">
+            <span class="nav-icon">🔄</span>
+          </a>
+          <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item icon-only" title="Colecciones">
+            <span class="nav-icon">🧵</span>
+          </a>
+          <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item icon-only" title="Próximamente">
+            <span class="nav-icon">⏳</span>
+          </a>
+          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item icon-only" title="Inventario">
+            <span class="nav-icon">📦</span>
+          </a>
+        }
 
         <!-- Gestión de Catálogo (Solo Administrativos) -->
         @if (canManageStore) {
@@ -150,87 +164,114 @@
           <span class="nav-label">Dashboard</span>
         </a>
 
-        <!-- Sección: CATÁLOGO -->
-        <div class="nav-group-title mt-group">CATÁLOGO</div>
+        <!-- NAVEGACIÓN EXCLUSIVA CLIENTES -->
+        @if (isCliente) {
+          <div class="nav-group-title mt-group">TIENDA ONLINE</div>
 
-        <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">👕</span>
-          <span class="nav-label">Productos</span>
-        </a>
-
-        <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🧵</span>
-          <span class="nav-label">Colecciones</span>
-        </a>
-
-        <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">⏳</span>
-          <span class="nav-label">Próximamente</span>
-        </a>
-
-        <!-- Bolsa de compras para clientes y usuarios -->
-        <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🛒</span>
-          <span class="nav-label">Bolsa de Compras</span>
-        </a>
-
-        <!-- Control de Inventario (Visible para todos) -->
-        <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📦</span>
-          <span class="nav-label">Inventario</span>
-        </a>
-
-        @if (canManageStore) {
-          <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">📁</span>
-            <span class="nav-label">Categorías</span>
+          <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">✨</span>
+            <span class="nav-label">Catálogo de Prendas</span>
           </a>
 
-          <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🎨</span>
-            <span class="nav-label">Colores</span>
+          <a routerLink="/cuenta/mis-compras" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🛍️</span>
+            <span class="nav-label">Mis Compras & Cambios</span>
           </a>
 
-          <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">📏</span>
-            <span class="nav-label">Tallas</span>
+          <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">💳</span>
+            <span class="nav-label">Mis Pagos y Recibos</span>
           </a>
 
-          <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🗓️</span>
-            <span class="nav-label">Temporadas</span>
+          <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🛒</span>
+            <span class="nav-label">Bolsa de Compras</span>
           </a>
-        }
+        } @else {
+          <!-- NAVEGACIÓN STAFF Y ADMINISTRACIÓN -->
+          <!-- Sección: CATÁLOGO -->
+          <div class="nav-group-title mt-group">CATÁLOGO</div>
 
-        <!-- Sección: VENTAS Y PEDIDOS -->
-        <div class="nav-group-title mt-group">VENTAS Y PEDIDOS</div>
+          <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">✨</span>
+            <span class="nav-label">Vista Catálogo Tienda</span>
+          </a>
 
-        @if (canManageStore) {
+          <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👕</span>
+            <span class="nav-label">Gestión de Productos</span>
+          </a>
+
+          <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🧵</span>
+            <span class="nav-label">Colecciones</span>
+          </a>
+
+          <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">⏳</span>
+            <span class="nav-label">Próximamente</span>
+          </a>
+
+          <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📦</span>
+            <span class="nav-label">Control de Inventario</span>
+          </a>
+
+          @if (canManageStore) {
+            <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📁</span>
+              <span class="nav-label">Categorías</span>
+            </a>
+
+            <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🎨</span>
+              <span class="nav-label">Colores</span>
+            </a>
+
+            <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📏</span>
+              <span class="nav-label">Tallas</span>
+            </a>
+
+            <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🗓️</span>
+              <span class="nav-label">Temporadas</span>
+            </a>
+          }
+
+          <!-- Sección: VENTAS Y OPERACIONES -->
+          <div class="nav-group-title mt-group">VENTAS Y OPERACIONES</div>
+
           <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">💵</span>
-            <span class="nav-label">Caja POS</span>
+            <span class="nav-label">Caja POS Mostrador</span>
+          </a>
+
+          <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔄</span>
+            <span class="nav-label">Cambios y Devoluciones</span>
           </a>
 
           <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">📊</span>
-            <span class="nav-label">Reportes (Excel & PDF)</span>
+            <span class="nav-label">Suite de Reportes</span>
+          </a>
+
+          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">💼</span>
+            <span class="nav-label">Gestión de Ventas</span>
+          </a>
+
+          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔖</span>
+            <span class="nav-label">Reservas y Tickets</span>
+          </a>
+
+          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🚚</span>
+            <span class="nav-label">Despachos y Envíos (Yango)</span>
           </a>
         }
-
-        <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">💼</span>
-          <span class="nav-label">Gestión de Ventas</span>
-        </a>
-
-        <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🔖</span>
-          <span class="nav-label">Reservas y Tickets</span>
-        </a>
-
-        <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">🚚</span>
-          <span class="nav-label">Despachos y Envíos (Yango)</span>
-        </a>
 
         <!-- Sección: ADMINISTRACIÓN -->
         <div class="nav-group-title mt-group">ADMINISTRACIÓN</div>
@@ -349,6 +390,49 @@
       </div>
 
       <div class="header-right-actions">
+        <!-- Campana de Notificaciones -->
+        <div class="notifications-wrapper">
+          <button 
+            type="button" 
+            class="top-notif-btn" 
+            (click)="toggleNotificacionesDropdown()"
+            title="Notificaciones"
+          >
+            <span class="bell-icon">🔔</span>
+            <span class="notif-badge" *ngIf="unreadNotificationsCount() > 0">
+              {{ unreadNotificationsCount() }}
+            </span>
+          </button>
+
+          <!-- Dropdown flotante de Notificaciones -->
+          <div class="notif-dropdown-menu" *ngIf="showNotificacionesDropdown()">
+            <div class="notif-dropdown-header">
+              <h4>Notificaciones</h4>
+              <span class="unread-tag">{{ unreadNotificationsCount() }} nuevas</span>
+            </div>
+
+            <div class="notif-list-scroll">
+              <div *ngIf="notificaciones().length === 0" class="empty-notif-msg">
+                <p>No tienes notificaciones pendientes.</p>
+              </div>
+
+              <div 
+                *ngFor="let notif of notificaciones()" 
+                class="notif-dropdown-item" 
+                [class.unread]="!notif.leida"
+                (click)="marcarNotificacionLeida(notif)"
+              >
+                <div class="notif-item-top">
+                  <strong class="notif-titulo">{{ notif.titulo }}</strong>
+                  <span class="notif-time">{{ notif.created_at | date:'shortTime' }}</span>
+                </div>
+                <p class="notif-msg">{{ notif.mensaje }}</p>
+                <span *ngIf="!notif.leida" class="mark-read-hint">Click para marcar como leída</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Botón Rápido Bolsa / Carrito -->
         <a routerLink="/carrito" class="top-cart-btn" title="Bolsa de Compras">
           <span class="cart-emoji">🛒</span>
@@ -374,4 +458,7 @@
       <router-outlet></router-outlet>
     </div>
   </main>
+
+  <!-- Chatbot Asistente Inteligente StyleStore con Chips de Navegación -->
+  <app-chatbot-widget></app-chatbot-widget>
 </div>

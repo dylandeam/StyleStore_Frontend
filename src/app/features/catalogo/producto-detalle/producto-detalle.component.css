@@ -831,3 +831,97 @@
   flex-wrap: wrap;
 }
 
+/* Barra Superior con Botón Volver */
+.top-nav-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.btn-back-nav {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border, #E8E2D8);
+  color: var(--color-navy, #14263D);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.btn-back-nav:hover {
+  background: var(--color-navy, #14263D);
+  color: #FAF7F2;
+  transform: translateX(-2px);
+}
+
+/* Aviso de Bloqueo de Reserva */
+.reserva-aviso-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-left: 4px solid #D97706;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 14px;
+}
+
+.info-badge-icon {
+  font-size: 20px;
+}
+
+.reserva-aviso-text strong {
+  color: #92400E;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.reserva-aviso-text p {
+  color: #B45309;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Alerta de Stock Agotado */
+.stock-agotado-box {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stock-agotado-box span {
+  font-size: 12px;
+  color: #991B1B;
+  font-weight: 600;
+}
+
+.btn-sub-stock-alert {
+  background: #991B1B;
+  color: #FFFFFF;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-sub-stock-alert:hover {
+  opacity: 0.9;
+}
+
