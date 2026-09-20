@@ -60,6 +60,8 @@ export class ReportesComponent implements OnInit {
   // ========================================================
   preguntaIA: string = '';
   isLoadingIA: boolean = false;
+  isExportingIAPdf: boolean = false;
+  isExportingIAExcel: boolean = false;
   respuestaIA: string | null = null;
   kpisIA: Array<{ label: string; valor: string }> = [];
   isListeningIA: boolean = false;
@@ -247,6 +249,54 @@ export class ReportesComponent implements OnInit {
     this.preguntaIA = '';
     this.respuestaIA = null;
     this.kpisIA = [];
+  }
+
+  exportarConsultaIAPDF(): void {
+    if (!this.respuestaIA || this.isExportingIAPdf) return;
+    this.isExportingIAPdf = true;
+    this.cdr.markForCheck();
+
+    this.reportesService.exportarConsultaIAPDF(this.preguntaIA, this.respuestaIA, this.kpisIA).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.isExportingIAPdf = false;
+          this.guardarArchivo(blob, `reporte_ia_${new Date().getTime()}.pdf`);
+          this.mostrarToast('Reporte analítico de IA exportado en PDF exitosamente.');
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.isExportingIAPdf = false;
+          this.mostrarToast('No se pudo generar el archivo PDF de la consulta.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  exportarConsultaIAExcel(): void {
+    if (!this.respuestaIA || this.isExportingIAExcel) return;
+    this.isExportingIAExcel = true;
+    this.cdr.markForCheck();
+
+    this.reportesService.exportarConsultaIAExcel(this.preguntaIA, this.respuestaIA, this.kpisIA).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.isExportingIAExcel = false;
+          this.guardarArchivo(blob, `reporte_ia_${new Date().getTime()}.xlsx`);
+          this.mostrarToast('Reporte analítico de IA exportado en Excel exitosamente.');
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.isExportingIAExcel = false;
+          this.mostrarToast('No se pudo generar el archivo Excel de la consulta.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
   }
 
   abrirModalGuia(): void {

@@ -138,6 +138,14 @@ export class ReportesService {
   consultarAsistenteIA(pregunta: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/asistente-ia`, { pregunta });
   }
+
+  exportarConsultaIAPDF(pregunta: string, respuesta: string, kpis: any[] = []): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/asistente-ia/pdf`, { pregunta, respuesta, kpis }, { responseType: 'blob' });
+  }
+
+  exportarConsultaIAExcel(pregunta: string, respuesta: string, kpis: any[] = []): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/asistente-ia/excel`, { pregunta, respuesta, kpis }, { responseType: 'blob' });
+  }
 }
 
 

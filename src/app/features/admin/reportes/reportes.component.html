@@ -105,6 +105,35 @@
           <p class="ai-formatted-text" style="white-space: pre-line;">{{ respuestaIA }}</p>
         </div>
       </div>
+
+      <!-- Barra de Exportación Directa de la Consulta IA -->
+      <div class="ai-export-actions">
+        <span class="ai-export-label">📥 Exportar esta consulta analítica:</span>
+        <div class="ai-export-btns">
+          <button
+            type="button"
+            class="btn-ai-export btn-ai-pdf"
+            (click)="exportarConsultaIAPDF()"
+            [disabled]="isExportingIAPdf"
+            title="Descargar en documento PDF oficial"
+          >
+            <span class="export-icon">📄</span>
+            <span *ngIf="!isExportingIAPdf">Exportar a PDF</span>
+            <span *ngIf="isExportingIAPdf">Generando PDF...</span>
+          </button>
+          <button
+            type="button"
+            class="btn-ai-export btn-ai-excel"
+            (click)="exportarConsultaIAExcel()"
+            [disabled]="isExportingIAExcel"
+            title="Descargar en formato Excel (.xlsx)"
+          >
+            <span class="export-icon">📊</span>
+            <span *ngIf="!isExportingIAExcel">Exportar a Excel (.xlsx)</span>
+            <span *ngIf="isExportingIAExcel">Generando Excel...</span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
