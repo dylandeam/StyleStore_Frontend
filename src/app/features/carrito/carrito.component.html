@@ -191,8 +191,10 @@
                   <p>Abre la app de <strong>Yango</strong> para verificar el costo exacto de la carrera desde la sucursal hasta tu ubicación. El valor del viaje se cancela directamente al conductor al entregarte el pedido.</p>
                 </div>
               </div>
-              <div class="origen-envio-info" *ngIf="branchService.selectedSucursal()">
-                🏢 Sucursal de despacho: <strong>{{ branchService.selectedSucursal()?.name }}</strong> — {{ branchService.selectedSucursal()?.address }}
+              <div class="origen-envio-info" *ngIf="sucursalDespacho">
+                🏢 Sucursal de despacho: <strong>{{ sucursalDespacho.nombre }}</strong>
+                <span *ngIf="sucursalDespacho.ciudad"> ({{ sucursalDespacho.ciudad }})</span>
+                <span *ngIf="sucursalDespacho.direccion"> — {{ sucursalDespacho.direccion }}</span>
               </div>
             </div>
           </div>

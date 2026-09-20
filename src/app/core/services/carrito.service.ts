@@ -13,7 +13,10 @@ export interface CarritoItem {
   producto_nombre?: string;
   color_nombre?: string;
   talla_nombre?: string;
+  sucursal_id?: number;
   sucursal_nombre?: string;
+  sucursal_ciudad?: string;
+  sucursal_direccion?: string;
   foto?: string;
 }
 

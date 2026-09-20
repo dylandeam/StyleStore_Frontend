@@ -76,6 +76,7 @@ export class ProductoDetalleComponent implements OnInit {
   onSucursalFiltroChange(sucId: any): void {
     const parsedId = sucId ? Number(sucId) : null;
     this.sucursalFiltroId.set(parsedId);
+    this.branchService.setBranch(parsedId || 'all', this.sucursalesList());
     this.cargarProducto(this.codigoState(), parsedId);
   }
 
@@ -100,11 +101,17 @@ export class ProductoDetalleComponent implements OnInit {
     this.maxFechaReserva = max.toISOString().split('T')[0];
     this.fechaLimiteReserva = this.maxFechaReserva;
 
+    // Adoptar la sucursal activa previamente seleccionada en el catálogo
+    const currentBranchId = this.branchService.selectedBranchId();
+    if (currentBranchId) {
+      this.sucursalFiltroId.set(currentBranchId);
+    }
+
     // 1. Lectura inmediata desde el snapshot de la ruta
     const initialCod = this.route.snapshot.paramMap.get('codigo') || this.route.snapshot.params['codigo'];
     if (initialCod) {
       this.codigoState.set(initialCod);
-      this.cargarProducto(initialCod);
+      this.cargarProducto(initialCod, currentBranchId);
     }
 
     this.cargarSucursales();
@@ -115,7 +122,7 @@ export class ProductoDetalleComponent implements OnInit {
       const cod = params.get('codigo');
       if (cod && cod !== this.codigoState()) {
         this.codigoState.set(cod);
-        this.cargarProducto(cod);
+        this.cargarProducto(cod, this.sucursalFiltroId());
       } else if (!cod && !this.codigoState()) {
         this.isLoading.set(false);
         this.errorMessage.set('No se ha especificado el código de la prenda.');
@@ -269,8 +276,19 @@ export class ProductoDetalleComponent implements OnInit {
   seleccionarColor(variante: any): void {
     this.varianteColor.set(variante);
     if (variante?.existencias && variante.existencias.length > 0) {
-      const conStock = variante.existencias.find((e: any) => e.cantidad > 0);
-      this.existencia.set(conStock || variante.existencias[0]);
+      const sucId = this.sucursalFiltroId();
+      let elegida: any = null;
+      if (sucId) {
+        elegida = variante.existencias.find((e: any) => e.sucursal_id === sucId && e.cantidad > 0)
+               || variante.existencias.find((e: any) => e.sucursal_id === sucId);
+      }
+      if (!elegida) {
+        elegida = variante.existencias.find((e: any) => e.cantidad > 0) || variante.existencias[0];
+      }
+      this.existencia.set(elegida);
+      if (elegida && elegida.sucursal_id) {
+        this.branchService.setBranch(elegida.sucursal_id, this.sucursalesList());
+      }
     } else {
       this.existencia.set(null);
     }
@@ -280,6 +298,9 @@ export class ProductoDetalleComponent implements OnInit {
 
   seleccionarTalla(existenciaItem: any): void {
     this.existencia.set(existenciaItem);
+    if (existenciaItem && existenciaItem.sucursal_id) {
+      this.branchService.setBranch(existenciaItem.sucursal_id, this.sucursalesList());
+    }
     this.cantidadValue.set(1);
     this.cdr.markForCheck();
   }
@@ -322,6 +343,11 @@ export class ProductoDetalleComponent implements OnInit {
     if (ex.cantidad <= 0) {
       this.mostrarToast('No hay existencias disponibles para esta variante.');
       return;
+    }
+
+    // Sincronizar sucursal de donde se extrae la prenda físicamente
+    if (ex.sucursal_id) {
+      this.branchService.setBranch(ex.sucursal_id, this.sucursalesList());
     }
 
     this.isAgregando.set(true);

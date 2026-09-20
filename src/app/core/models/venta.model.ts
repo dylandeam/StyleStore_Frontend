@@ -21,6 +21,8 @@ export interface OrdenVenta {
   metodo_pago?: string;
   ticket_numero?: string;
   sucursal_id?: number;
+  sucursal_nombre?: string;
+  sucursal_direccion?: string;
   codigo_cliente: string;
   cliente_nombre?: string;
   cliente_email?: string;

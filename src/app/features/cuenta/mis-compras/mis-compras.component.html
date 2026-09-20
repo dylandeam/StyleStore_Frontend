@@ -90,9 +90,9 @@
           <span class="info-label">Fecha:</span>
           <span class="info-value">{{ orden.created_at || orden.fecha | date:'medium' }}</span>
         </div>
-        <div class="info-row" *ngIf="orden.sucursal_ciudad">
+        <div class="info-row" *ngIf="orden.sucursal_nombre || orden.sucursal_ciudad">
           <span class="info-label">Sucursal:</span>
-          <span class="info-value">{{ orden.sucursal_ciudad }}</span>
+          <span class="info-value">{{ orden.sucursal_nombre ? (orden.sucursal_nombre + (orden.sucursal_ciudad ? ' — ' + orden.sucursal_ciudad : '')) : orden.sucursal_ciudad }}</span>
         </div>
         <div class="info-row">
           <span class="info-label">Total pagado:</span>
@@ -163,8 +163,8 @@
               {{ selectedOrden.estado | uppercase }}
             </span>
           </div>
-          <div *ngIf="selectedOrden.sucursal_ciudad">
-            <strong>Sucursal:</strong> {{ selectedOrden.sucursal_ciudad }}
+          <div *ngIf="selectedOrden.sucursal_nombre || selectedOrden.sucursal_ciudad">
+            <strong>Sucursal:</strong> {{ selectedOrden.sucursal_nombre ? (selectedOrden.sucursal_nombre + (selectedOrden.sucursal_ciudad ? ' — ' + selectedOrden.sucursal_ciudad : '')) : selectedOrden.sucursal_ciudad }}
           </div>
           <div *ngIf="selectedOrden.ticket_numero">
             <strong>Ticket de Caja:</strong> {{ selectedOrden.ticket_numero }}

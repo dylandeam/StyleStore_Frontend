@@ -167,6 +167,30 @@ export class CarritoComponent implements OnInit {
     }, 3500);
   }
 
+  get sucursalDespacho(): { id?: number; nombre?: string; ciudad?: string; direccion?: string } | null {
+    if (this.carrito?.items && this.carrito.items.length > 0) {
+      const it = this.carrito.items.find((i) => i.sucursal_id || i.sucursal_nombre);
+      if (it && (it.sucursal_id || it.sucursal_nombre)) {
+        return {
+          id: it.sucursal_id,
+          nombre: it.sucursal_nombre,
+          ciudad: it.sucursal_ciudad,
+          direccion: it.sucursal_direccion,
+        };
+      }
+    }
+    const s = this.branchService.selectedSucursal();
+    if (s) {
+      return {
+        id: s.id,
+        nombre: s.nombre || s.name,
+        ciudad: s.ciudad || s.city,
+        direccion: s.direccion || s.address,
+      };
+    }
+    return null;
+  }
+
   procesarCheckout(): void {
     if (!this.carrito || !this.carrito.items || this.carrito.items.length === 0) {
       this.mostrarToast('Tu carrito está vacío.');
@@ -191,10 +215,12 @@ export class CarritoComponent implements OnInit {
       ? (this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio'))
       : undefined;
 
-    // 1. Confirmar el carrito en el backend y generar la orden de venta indicando la sucursal
+    // 1. Confirmar el carrito con la sucursal de procedencia del inventario
+    const sucIdFinal = this.sucursalDespacho?.id || this.branchService.getSucursalId();
+
     this.carritoService
       .confirmarCarrito({
-        sucursal_id: this.branchService.getSucursalId(),
+        sucursal_id: sucIdFinal,
         metodo_pago: this.metodoPago,
         direccion_envio: dirFinal,
         despacho_yango: this.conEnvio,
@@ -203,13 +229,14 @@ export class CarritoComponent implements OnInit {
         next: (res) => {
           const ordenId = res.orden_venta_id;
 
-          // 2. Si hay envío, registrar el despacho con Yango (costo 0 en tienda, pago directo a repartidor Yango)
+          // 2. Si hay envío, registrar el despacho con Yango
           if (this.conEnvio) {
+            const ciudadDespacho = this.ciudad.trim() || this.sucursalDespacho?.ciudad || this.branchService.selectedSucursal()?.city || 'Santa Cruz';
             this.envioService
               .createEnvio({
                 orden_venta_id: ordenId,
                 direccion: dirFinal || 'Entrega a domicilio',
-                ciudad: this.ciudad.trim() || this.branchService.selectedSucursal()?.city || 'Santa Cruz',
+                ciudad: ciudadDespacho,
                 referencia: this.referencia.trim() || undefined,
                 ubicacion_url: this.ubicacionUrl.trim() || undefined,
                 costo: 0,
