@@ -241,6 +241,9 @@
         >
           <div class="ia-card-img-wrap">
             <img [src]="getImageUrl(rec.foto)" [alt]="rec.nombre" class="ia-card-img" />
+            <span class="incentivo-badge" *ngIf="rec.tag_incentivo">
+              {{ rec.tag_incentivo }}
+            </span>
             <span class="afinidad-badge">
               {{ (rec.score_afinidad * 100) | number:'1.0-0' }}% Afinidad
             </span>

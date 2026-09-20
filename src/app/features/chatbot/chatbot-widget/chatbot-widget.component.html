@@ -7,7 +7,7 @@
         <div class="chatbot-avatar">✨</div>
         <div>
           <h4 class="chatbot-title">StyleStore Assistant</h4>
-          <span class="chatbot-status">En línea | Inteligencia Local</span>
+          <span class="chatbot-status">En línea | IA Groq & Búsqueda por Voz</span>
         </div>
       </div>
       <button type="button" class="btn-close-chat" (click)="toggleChat()" title="Cerrar chat">✕</button>
@@ -44,12 +44,29 @@
       </div>
     </div>
 
+    <!-- Banner de escucha por voz -->
+    <div class="voice-listening-banner" *ngIf="isListening">
+      <div class="voice-pulse-ring"></div>
+      <span class="pulse-mic">🎙️</span>
+      <span class="voice-listening-text">Escuchando tu voz... Habla ahora</span>
+      <button type="button" class="btn-voice-cancel" (click)="toggleVoiceSearch()">✕</button>
+    </div>
+
     <div class="chatbot-input-area">
+      <button
+        type="button"
+        class="btn-voice"
+        [class.listening]="isListening"
+        (click)="toggleVoiceSearch()"
+        [title]="isListening ? 'Detener micrófono' : 'Consultar por voz (micrófono)'"
+      >
+        🎙️
+      </button>
       <input
         type="text"
         [(ngModel)]="inputText"
         (keyup.enter)="sendMessage()"
-        placeholder="Escribe tu consulta (sucursales, prendas, pedidos)..."
+        [placeholder]="isListening ? 'Escuchando tu voz...' : 'Escribe o habla (ej: qué sucursales hay?)...'"
         class="chat-input"
         [disabled]="isLoading"
       />

@@ -30,11 +30,14 @@ export class ChatbotWidgetComponent implements OnInit {
   isOpen = false;
   inputText = '';
   isLoading = false;
+  isListening = false;
+  speechSupported = false;
+  private recognition: any = null;
 
   messages: ChatMessage[] = [
     {
       remitente: 'bot',
-      texto: '¡Hola! 👋 Soy el asistente virtual inteligente de StyleStore. Puedo asesorarte con recomendaciones de moda, sucursales o agregar prendas directamente a tu carrito si me dices por ejemplo: "agrega el vestido rojo al carrito". ¿En qué te colaboro hoy?',
+      texto: '¡Hola! 👋 Soy el asistente virtual inteligente de StyleStore potenciado por IA. Puedo responder preguntas sobre nuestras prendas, precios, sucursales, envíos o agregar prendas a tu carrito si me dices por ejemplo: "agrega el vestido rojo al carrito". ¡También puedes pulsar el micrófono 🎙️ para consultarme por voz!',
       hora: this.getHoraActual(),
       chips: [
         { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
@@ -45,7 +48,89 @@ export class ChatbotWidgetComponent implements OnInit {
     },
   ];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.initSpeechRecognition();
+  }
+
+  private initSpeechRecognition(): void {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRec) {
+      this.speechSupported = true;
+      try {
+        this.recognition = new SpeechRec();
+        this.recognition.lang = 'es-BO';
+        this.recognition.continuous = false;
+        this.recognition.interimResults = false;
+
+        this.recognition.onstart = () => {
+          this.ngZone.run(() => {
+            this.isListening = true;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+
+        this.recognition.onresult = (event: any) => {
+          this.ngZone.run(() => {
+            if (event.results && event.results[0] && event.results[0][0]) {
+              const transcripcion = event.results[0][0].transcript;
+              if (transcripcion) {
+                this.inputText = transcripcion;
+                this.isListening = false;
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+                this.sendMessage();
+              }
+            }
+          });
+        };
+
+        this.recognition.onerror = (err: any) => {
+          this.ngZone.run(() => {
+            console.warn('SpeechRecognition error:', err);
+            this.isListening = false;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+
+        this.recognition.onend = () => {
+          this.ngZone.run(() => {
+            this.isListening = false;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+      } catch (e) {
+        console.warn('Error inicializando SpeechRecognition:', e);
+      }
+    }
+  }
+
+  toggleVoiceSearch(): void {
+    if (!this.speechSupported || !this.recognition) {
+      alert('Tu navegador no soporta el reconocimiento de voz nativo. Te sugerimos usar Google Chrome, Microsoft Edge o Safari en iPhone/iPad.');
+      return;
+    }
+
+    if (this.isListening) {
+      try {
+        this.recognition.stop();
+      } catch (e) {
+        console.warn('Error deteniendo recognition:', e);
+      }
+      this.isListening = false;
+    } else {
+      try {
+        this.recognition.start();
+      } catch (e) {
+        console.warn('Error iniciando recognition:', e);
+        this.isListening = false;
+      }
+    }
+  }
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
