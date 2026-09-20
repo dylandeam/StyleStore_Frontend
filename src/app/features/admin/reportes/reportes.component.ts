@@ -55,6 +55,75 @@ export class ReportesComponent implements OnInit {
   cargandoReporteDinamico: boolean = false;
   datosReporteDinamico: { title: string; columns: string[]; data: any[][] } | null = null;
 
+  // ========================================================
+  // ASISTENTE DE IA PARA REPORTES Y BÚSQUEDA POR VOZ
+  // ========================================================
+  preguntaIA: string = '';
+  isLoadingIA: boolean = false;
+  respuestaIA: string | null = null;
+  kpisIA: Array<{ label: string; valor: string }> = [];
+  isListeningIA: boolean = false;
+  speechSupportedIA: boolean = false;
+  private recognitionIA: any = null;
+  isModalGuiaOpen: boolean = false;
+
+  // Guía de consultas e instrucciones categorizadas para el modal
+  categoriasGuia = [
+    {
+      categoria: '📊 Ventas y Recaudación',
+      icono: 'bi-cash-stack',
+      descripcion: 'Consulta ingresos, órdenes y prendas vendidas hoy o acumuladas.',
+      preguntas: [
+        '¿Cuántas ropas se vendieron hoy? y ¿cuáles son?',
+        '¿Cuál es la recaudación total de hoy?',
+        '¿Cuánto se ha vendido en total en lo que va del mes?',
+        '¿Cuántas órdenes de compra se procesaron hoy?',
+      ],
+    },
+    {
+      categoria: '🏢 Sucursales y Tiendas Físicas',
+      icono: 'bi-shop',
+      descripcion: 'Reportes financieros individualizados por sucursal.',
+      preguntas: [
+        '¿Cuánto dinero recaudó la sucursal alemana hoy?',
+        '¿Cuál es la recaudación de la Sucursal Test este mes?',
+        '¿Qué sucursal tiene mayores ingresos registrados?',
+        '¿Qué tiendas están activas en el sistema?',
+      ],
+    },
+    {
+      categoria: '🚚 Delivery y Despachos en Vivo',
+      icono: 'bi-bicycle',
+      descripcion: 'Estado de entregas a domicilio, repartidores y tarifas.',
+      preguntas: [
+        '¿Cuántos pedidos por delivery hubo hoy?',
+        '¿Cuántos envíos están en camino y cuántos entregados?',
+        '¿Cuánto se cobró por tarifas de delivery hoy?',
+        '¿Cuántos pedidos a domicilio se realizaron este mes?',
+      ],
+    },
+    {
+      categoria: '⚠️ Inventario y Stock Crítico',
+      icono: 'bi-exclamation-triangle',
+      descripcion: 'Alertas tempranas de prendas agotadas o con bajo stock.',
+      preguntas: [
+        '¿Qué prendas tienen bajo stock o están por agotarse?',
+        '¿Cuáles son las prendas con 5 o menos unidades en inventario?',
+        '¿Hay productos agotados en alguna sucursal?',
+      ],
+    },
+    {
+      categoria: '💳 Finanzas y Formas de Pago',
+      icono: 'bi-credit-card',
+      descripcion: 'Distribución de pagos en Efectivo, QR Simple, Tarjeta y PayPal.',
+      preguntas: [
+        '¿Cuánto dinero se cobró por efectivo y cuánto por QR hoy?',
+        '¿Cuáles son los métodos de pago más utilizados hoy?',
+        '¿Hay pagos registrados con PayPal en la fecha actual?',
+      ],
+    },
+  ];
+
   getNombreReporteSeleccionado(): string {
     const rep = this.reportesEspecializados.find((r) => r.id === this.selectedReporteTipo);
     return rep ? rep.nombre : this.selectedReporteTipo;
@@ -62,6 +131,136 @@ export class ReportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarSucursales();
+    this.initSpeechRecognitionIA();
+  }
+
+  initSpeechRecognitionIA(): void {
+    if (typeof window === 'undefined') return;
+    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRec) {
+      this.speechSupportedIA = true;
+      try {
+        this.recognitionIA = new SpeechRec();
+        this.recognitionIA.lang = 'es-BO';
+        this.recognitionIA.continuous = false;
+        this.recognitionIA.interimResults = false;
+
+        this.recognitionIA.onstart = () => {
+          this.ngZone.run(() => {
+            this.isListeningIA = true;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+
+        this.recognitionIA.onresult = (event: any) => {
+          this.ngZone.run(() => {
+            if (event.results && event.results[0] && event.results[0][0]) {
+              const transcripcion = event.results[0][0].transcript;
+              if (transcripcion) {
+                this.preguntaIA = transcripcion;
+                this.isListeningIA = false;
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+                this.consultarIA();
+              }
+            }
+          });
+        };
+
+        this.recognitionIA.onerror = (err: any) => {
+          this.ngZone.run(() => {
+            console.warn('SpeechRecognition error en reportes:', err);
+            this.isListeningIA = false;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+
+        this.recognitionIA.onend = () => {
+          this.ngZone.run(() => {
+            this.isListeningIA = false;
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+          });
+        };
+      } catch (e) {
+        console.warn('Error inicializando SpeechRecognition en reportes:', e);
+      }
+    }
+  }
+
+  toggleVoiceSearchIA(): void {
+    if (!this.speechSupportedIA || !this.recognitionIA) {
+      alert('Tu navegador no tiene activado el soporte de voz nativo. Te sugerimos usar Google Chrome, Microsoft Edge o Safari en iPhone/iPad.');
+      return;
+    }
+
+    if (this.isListeningIA) {
+      try {
+        this.recognitionIA.stop();
+      } catch (e) {
+        console.warn('Error deteniendo voz en reportes:', e);
+      }
+      this.isListeningIA = false;
+    } else {
+      try {
+        this.recognitionIA.start();
+      } catch (e) {
+        console.warn('Error iniciando voz en reportes:', e);
+        this.isListeningIA = false;
+      }
+    }
+  }
+
+  consultarIA(): void {
+    const q = this.preguntaIA.trim();
+    if (!q || this.isLoadingIA) return;
+
+    this.isLoadingIA = true;
+    this.respuestaIA = null;
+    this.kpisIA = [];
+    this.cdr.markForCheck();
+
+    this.reportesService.consultarAsistenteIA(q).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.isLoadingIA = false;
+          this.respuestaIA = res.respuesta;
+          this.kpisIA = res.kpis || [];
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.isLoadingIA = false;
+          this.respuestaIA = 'Ocurrió un error al procesar tu consulta con el asistente de IA. Por favor intenta nuevamente.';
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  limpiarConsultaIA(): void {
+    this.preguntaIA = '';
+    this.respuestaIA = null;
+    this.kpisIA = [];
+  }
+
+  abrirModalGuia(): void {
+    this.isModalGuiaOpen = true;
+  }
+
+  cerrarModalGuia(): void {
+    this.isModalGuiaOpen = false;
+  }
+
+  usarPreguntaSugerida(pregunta: string): void {
+    this.preguntaIA = pregunta;
+    this.isModalGuiaOpen = false;
+    this.consultarIA();
   }
 
   cargarSucursales(): void {

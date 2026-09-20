@@ -133,5 +133,11 @@ export class ReportesService {
     if (sucursalId) params = params.set('sucursal_id', sucursalId.toString());
     return this.http.get(`${this.apiUrl}/${tipo}/pdf`, { params, responseType: 'blob' });
   }
+
+  // Asistente Ejecutivo IA para Reportes
+  consultarAsistenteIA(pregunta: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/asistente-ia`, { pregunta });
+  }
 }
+
 

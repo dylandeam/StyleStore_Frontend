@@ -12,6 +12,102 @@
     </div>
   </div>
 
+  <!-- ========================================================= -->
+  <!-- ASISTENTE DE IA EJECUTIVA PARA REPORTES & COMANDOS DE VOZ -->
+  <!-- ========================================================= -->
+  <div class="ai-report-banner">
+    <div class="ai-banner-header">
+      <div class="ai-header-title-box">
+        <div class="ai-badge-chip">
+          <span class="sparkle">✦</span> ASISTENTE DE INTELIGENCIA ARTIFICIAL & BI
+        </div>
+        <h2 class="ai-main-title">Consultas Ejecutivas en Lenguaje Natural y Voz</h2>
+        <p class="ai-desc">
+          Pregunta en tiempo real sobre ventas del día, recaudación de sucursales, pedidos por delivery, inventario crítico o métodos de pago escribiendo o usando el micrófono.
+        </p>
+      </div>
+
+      <button type="button" class="btn-instrucciones-modal" (click)="abrirModalGuia()">
+        <span class="btn-icon">📋</span> Instrucciones para Reportes
+      </button>
+    </div>
+
+    <!-- Barra de Consulta con Micrófono -->
+    <div class="ai-input-bar-wrap">
+      <button
+        type="button"
+        class="btn-voice-report"
+        [class.listening]="isListeningIA"
+        (click)="toggleVoiceSearchIA()"
+        [title]="isListeningIA ? 'Detener micrófono' : 'Consultar por voz (micrófono)'"
+      >
+        <span class="mic-icon">🎙️</span>
+        <span class="listening-ping" *ngIf="isListeningIA"></span>
+      </button>
+
+      <input
+        type="text"
+        class="ai-search-input"
+        [(ngModel)]="preguntaIA"
+        (keyup.enter)="consultarIA()"
+        [placeholder]="isListeningIA ? 'Escuchando tu voz... Habla ahora' : 'Ej: ¿cuántas ropas se vendieron hoy? o ¿cuánto recaudó la sucursal alemana?'"
+        [disabled]="isLoadingIA"
+      />
+
+      <button
+        type="button"
+        class="btn-consultar-ai"
+        (click)="consultarIA()"
+        [disabled]="isLoadingIA || !preguntaIA.trim()"
+      >
+        <span *ngIf="!isLoadingIA">Consultar IA →</span>
+        <span *ngIf="isLoadingIA">Analizando...</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn-limpiar-ai"
+        *ngIf="respuestaIA || preguntaIA"
+        (click)="limpiarConsultaIA()"
+        title="Limpiar consulta"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Banner de Escucha Activa por Micrófono -->
+    <div class="ai-voice-active-indicator" *ngIf="isListeningIA">
+      <span class="wave-anim">🎙️</span>
+      <span>Escuchando tu consulta por micrófono... Puedes preguntar: <em>"¿Cuántas ropas se vendieron hoy?"</em></span>
+      <button type="button" class="btn-stop-voice" (click)="toggleVoiceSearchIA()">Detener</button>
+    </div>
+
+    <!-- Indicador de Carga IA -->
+    <div class="ai-loading-state" *ngIf="isLoadingIA">
+      <div class="spinner-ai"></div>
+      <span>Procesando datos con Inteligencia Artificial Groq en tiempo real...</span>
+    </div>
+
+    <!-- Resultado de la Consulta IA -->
+    <div class="ai-result-panel" *ngIf="respuestaIA && !isLoadingIA">
+      <!-- Tarjetas KPIs generadas -->
+      <div class="ai-kpis-grid" *ngIf="kpisIA && kpisIA.length > 0">
+        <div class="ai-kpi-card" *ngFor="let k of kpisIA">
+          <span class="ai-kpi-label">{{ k.label }}</span>
+          <span class="ai-kpi-val">{{ k.valor }}</span>
+        </div>
+      </div>
+
+      <!-- Texto Analítico de la Respuesta -->
+      <div class="ai-response-content">
+        <div class="ai-bot-avatar">✨</div>
+        <div class="ai-text-box">
+          <p class="ai-formatted-text" style="white-space: pre-line;">{{ respuestaIA }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="reportes-grid">
     <!-- 1. Reporte de Ventas -->
     <div class="card reporte-card">
@@ -397,4 +493,56 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL DE INSTRUCCIONES Y GUÍA DE CONSULTAS PARA REPORTES -->
+  <!-- ========================================================= -->
+  <div class="modal-backdrop" *ngIf="isModalGuiaOpen" (click)="cerrarModalGuia()">
+    <div class="modal-card modal-guia-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-icon-box">
+          <span class="modal-badge-icon">📋</span>
+          <div>
+            <h3>Instrucciones para Reportes con IA</h3>
+            <p class="modal-subtitle">Descubre qué consultas puedes formular por voz o texto al asistente de Business Intelligence.</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" (click)="cerrarModalGuia()" title="Cerrar modal">✕</button>
+      </div>
+
+      <div class="modal-body modal-guia-body">
+        <div class="guia-tip-banner">
+          <span class="tip-icon">💡</span>
+          <span><strong>Tip Ejecutivo:</strong> Haz clic en cualquier pregunta de la lista para probarla y ejecutarla inmediatamente, o presiona el botón de micrófono 🎙️ para dictarla por voz.</span>
+        </div>
+
+        <div class="guia-categorias-grid">
+          <div class="guia-cat-card" *ngFor="let cat of categoriasGuia">
+            <div class="guia-cat-header">
+              <span class="guia-cat-title">{{ cat.categoria }}</span>
+            </div>
+            <p class="guia-cat-desc">{{ cat.descripcion }}</p>
+            
+            <div class="guia-preguntas-list">
+              <button
+                type="button"
+                class="guia-pregunta-btn"
+                *ngFor="let preg of cat.preguntas"
+                (click)="usarPreguntaSugerida(preg)"
+                title="Hacer esta consulta"
+              >
+                <span class="preg-text">{{ preg }}</span>
+                <span class="preg-action">Consultar →</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-close" (click)="cerrarModalGuia()">Cerrar Guía</button>
+      </div>
+    </div>
+  </div>
 </div>
+
