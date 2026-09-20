@@ -59,10 +59,16 @@ export class CarritoComponent implements OnInit {
   get mensajeToast(): string | null { return this.toastMsg(); }
   set mensajeToast(val: string | null) { this.toastMsg.set(val); }
 
+  calculandoDistanciaState = signal<boolean>(false);
+  get calculandoDistancia(): boolean { return this.calculandoDistanciaState(); }
+
   get conEnvio(): boolean { return this.conEnvioState(); }
   set conEnvio(val: boolean) {
     this.conEnvioState.set(val);
     if (val) {
+      if (!this.distanciaKmState() || this.distanciaKmState() < 0.5) {
+        this.distanciaKmState.set(3.5);
+      }
       this.recalcularTarifaEnvio();
     } else {
       this.costoEnvioState.set(0);
@@ -78,10 +84,20 @@ export class CarritoComponent implements OnInit {
   }
 
   get direccion(): string { return this.direccionState(); }
-  set direccion(val: string) { this.direccionState.set(val); }
+  set direccion(val: string) {
+    this.direccionState.set(val);
+    if (this.conEnvio) {
+      this.recalcularTarifaEnvio();
+    }
+  }
 
   get ciudad(): string { return this.ciudadState(); }
-  set ciudad(val: string) { this.ciudadState.set(val); }
+  set ciudad(val: string) {
+    this.ciudadState.set(val);
+    if (this.conEnvio) {
+      this.recalcularTarifaEnvio();
+    }
+  }
 
   get referencia(): string { return this.referenciaState(); }
   set referencia(val: string) { this.referenciaState.set(val); }
@@ -110,41 +126,98 @@ export class CarritoComponent implements OnInit {
     this.cargarCarrito();
   }
 
+  onSliderChange(): void {
+    const dist = Math.max(0.5, this.distanciaKm || 0.5);
+    this.costoEnvioState.set(Math.round((5.00 + dist * 0.60) * 100) / 100);
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  extraerCoordsDeUrl(url?: string | null): { lat: number; lon: number } | null {
+    if (!url) return null;
+    const str = String(url).trim();
+    const m1 = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m1) return { lat: parseFloat(m1[1]), lon: parseFloat(m1[2]) };
+    const m2 = str.match(/[?&](?:q|ll|query|daddr|destination|saddr)=(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (m2) return { lat: parseFloat(m2[1]), lon: parseFloat(m2[2]) };
+    const m3 = str.match(/(-?\d{1,2}\.\d{3,}),\s*(-?\d{1,3}\.\d{3,})/);
+    if (m3) return { lat: parseFloat(m3[1]), lon: parseFloat(m3[2]) };
+    return null;
+  }
+
+  calcularHaversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371.0;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c * 100) / 100;
+  }
+
   recalcularTarifaEnvio(): void {
     if (!this.conEnvio) {
       this.costoEnvioState.set(0);
       return;
     }
-    const dist = Math.max(0, this.distanciaKm || 0);
-    // Fórmula oficial: Tarifa fija 5.00 Bs + 0.60 Bs por km
-    const baseCosto = Math.round((5.00 + dist * 0.60) * 100) / 100;
-    this.costoEnvioState.set(baseCosto);
 
-    if (this.ubicacionUrl.trim()) {
-      const sucId = this.sucursalDespacho?.id || this.branchService.getSucursalId();
-      this.envioService
-        .cotizarPorDistancia({
-          sucursal_id: sucId,
-          ubicacion_url: this.ubicacionUrl.trim(),
-          ciudad: this.ciudad,
-          direccion: this.direccion,
-        })
-        .subscribe({
-          next: (res) => {
-            if (res && typeof res.costo === 'number') {
-              if (res.distancia_km !== undefined && res.distancia_km !== null) {
-                this.distanciaKmState.set(res.distancia_km);
-              }
-              this.costoEnvioState.set(res.costo);
-              this.cdr.markForCheck();
-              this.cdr.detectChanges();
-            }
-          },
-          error: () => {
-            // Se conserva el cálculo de la fórmula oficial
-          },
-        });
+    const suc = this.sucursalDespacho;
+    const sucId = suc?.id || this.branchService.getSucursalId();
+    const sucMaps = suc?.maps_url;
+    const cliMaps = this.ubicacionUrl.trim();
+    const cliDir = this.direccion.trim();
+
+    // 1. Si ambas URLs tienen coordenadas visibles, calcular inmediatamente
+    const cCli = this.extraerCoordsDeUrl(cliMaps);
+    const cSuc = this.extraerCoordsDeUrl(sucMaps);
+    if (cCli && cSuc) {
+      const d = this.calcularHaversineKm(cSuc.lat, cSuc.lon, cCli.lat, cCli.lon);
+      if (d >= 0.2) {
+        this.distanciaKmState.set(d);
+        this.costoEnvioState.set(Math.round((5.00 + d * 0.60) * 100) / 100);
+      }
+    } else {
+      const distActual = Math.max(0.5, this.distanciaKm || 3.5);
+      this.costoEnvioState.set(Math.round((5.00 + distActual * 0.60) * 100) / 100);
     }
+
+    // 2. Cotizar y comparar ubicaciones en el Backend
+    this.calculandoDistanciaState.set(true);
+    this.envioService
+      .cotizarPorDistancia({
+        sucursal_id: sucId,
+        sucursal_nombre: suc?.nombre,
+        sucursal_direccion: suc?.direccion,
+        sucursal_maps_url: sucMaps,
+        ubicacion_url: cliMaps || undefined,
+        direccion: cliDir || undefined,
+        ciudad: this.ciudad.trim() || suc?.ciudad || 'Santa Cruz',
+      })
+      .subscribe({
+        next: (res) => {
+          this.calculandoDistanciaState.set(false);
+          if (res && typeof res.costo === 'number') {
+            if (res.distancia_km !== undefined && res.distancia_km !== null && res.distancia_km >= 0.2) {
+              this.distanciaKmState.set(res.distancia_km);
+            }
+            this.costoEnvioState.set(res.costo);
+            if (res.sucursal_maps_url && this.sucursalDespacho) {
+              this.sucursalDespacho.maps_url = res.sucursal_maps_url;
+            }
+          }
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.calculandoDistanciaState.set(false);
+          const dist = Math.max(0.5, this.distanciaKm || 3.5);
+          this.costoEnvioState.set(Math.round((5.00 + dist * 0.60) * 100) / 100);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        },
+      });
+
     this.cdr.markForCheck();
     this.cdr.detectChanges();
   }

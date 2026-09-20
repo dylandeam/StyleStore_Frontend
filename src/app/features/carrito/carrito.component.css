@@ -410,6 +410,179 @@
   line-height: 1.35;
 }
 
+.comparador-ubicaciones-card {
+  background: #ffffff;
+  border: 1.5px solid #fed7aa;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.05);
+}
+
+.comparador-header-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #9a3412;
+  margin-bottom: 12px;
+}
+
+.spinner-calculando {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ea580c;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.comparador-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .comparador-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .conector-ruta {
+    flex-direction: row !important;
+    padding: 4px 0 !important;
+  }
+}
+
+.ubicacion-bloque {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.origen-bloque {
+  border-left: 3px solid #3b82f6;
+  background: #f0f7ff;
+}
+
+.destino-bloque {
+  border-left: 3px solid #10b981;
+  background: #f0fdf4;
+}
+
+.bloque-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.origen-bloque .bloque-tag {
+  color: #2563eb;
+}
+
+.destino-bloque .bloque-tag {
+  color: #059669;
+}
+
+.bloque-nombre {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.bloque-detalles {
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.bloque-link-wrap {
+  margin-top: 4px;
+}
+
+.btn-maps-mini {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-decoration: none;
+  background: #ffffff;
+  border: 1px solid #93c5fd;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-maps-mini:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.conector-ruta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.flecha-ruta {
+  font-size: 1.1rem;
+  color: #ea580c;
+  font-weight: bold;
+}
+
+.badge-km {
+  background: #ea580c;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.btn-comparar-wrap {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.btn-comparar-accion {
+  width: 100%;
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  color: #ffffff;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.2);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.btn-comparar-accion:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+.btn-comparar-accion:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .distancia-calculo-box {
   background: #ffffff;
   border: 1px solid #fed7aa;
@@ -450,24 +623,6 @@
 .tarifa-desglose-calculada strong {
   color: #c2410c;
   font-size: 0.95rem;
-}
-
-.origen-envio-info {
-  font-size: 0.8rem;
-  color: #1e3a8a;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 10px 12px;
-  border-radius: 8px;
-  margin-top: 8px;
-}
-
-.origen-envio-header {
-  margin-bottom: 6px;
-}
-
-.origen-envio-action {
-  margin-top: 4px;
 }
 
 .btn-sucursal-maps {

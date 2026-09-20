@@ -128,7 +128,9 @@
                   type="url"
                   class="form-control gps-input"
                   [(ngModel)]="ubicacionUrl"
-                  placeholder="https://maps.app.goo.gl/... o https://maps.apple.com/..."
+                  (ngModelChange)="recalcularTarifaEnvio()"
+                  (blur)="recalcularTarifaEnvio()"
+                  placeholder="https://maps.app.goo.gl/... o https://maps.google.com/..."
                 />
                 <a
                   *ngIf="ubicacionUrl"
@@ -141,11 +143,11 @@
                 </a>
               </div>
               <p class="gps-helper-text">
-                💡 <em>En tu app de mapas (Google Maps o Apple Maps), mantén presionado tu domicilio para marcar el pin, pulsa <strong>Compartir</strong> y copia el enlace aquí. El repartidor de StyleStore llegará exactamente a tu puerta.</em>
+                💡 <em>En tu app de mapas (Google Maps o Apple Maps), marca tu domicilio, pulsa <strong>Compartir</strong> y copia el enlace aquí. Comparamos la ubicación de la sucursal con la tuya para calcular los kilómetros exactos.</em>
               </p>
             </div>
 
-            <!-- 2. REFERENCIAS Y DETALLES DEL DOMICILIO (Mayor peso) -->
+            <!-- 2. REFERENCIAS Y DETALLES DEL DOMICILIO -->
             <div class="form-group">
               <label><strong>🏠 Referencias y Detalles del Domicilio</strong></label>
               <textarea
@@ -165,13 +167,22 @@
                   type="text"
                   class="form-control"
                   [(ngModel)]="direccion"
+                  (ngModelChange)="recalcularTarifaEnvio()"
+                  (blur)="recalcularTarifaEnvio()"
                   placeholder="Ej: Sirari, Calle Los Claveles #120"
                 />
               </div>
 
               <div class="form-group">
                 <label>Ciudad</label>
-                <input type="text" class="form-control" [(ngModel)]="ciudad" placeholder="Ej: Santa Cruz" />
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="ciudad"
+                  (ngModelChange)="recalcularTarifaEnvio()"
+                  (blur)="recalcularTarifaEnvio()"
+                  placeholder="Ej: Santa Cruz"
+                />
               </div>
             </div>
 
@@ -182,20 +193,67 @@
                 <strong>Delivery StyleStore Oficial</strong>
               </div>
               <p class="aviso-delivery-desc">
-                Servicio de despacho oficial de StyleStore. Tu pedido se prepara en sucursal y se asigna a un repartidor de la tienda con <strong>código de seguimiento y rastreo en tiempo real</strong>.
+                Servicio de despacho oficial de StyleStore con repartidor propio y <strong>rastreo en tiempo real</strong>.
               </p>
-              <div class="aviso-delivery-callout">
-                <span class="callout-icon">📍</span>
-                <div>
-                  <strong>Tarifa Delivery Privado StyleStore:</strong>
-                  <p>Tarifa fija de <strong>Bs. 5.00</strong> + <strong>Bs. 0.60 por kilómetro</strong> recorrido desde la sucursal hasta tu domicilio.</p>
+
+              <!-- COMPARADOR DE UBICACIONES: SUCURSAL VS DESTINO DEL CLIENTE -->
+              <div class="comparador-ubicaciones-card">
+                <div class="comparador-header-title">
+                  <span>🗺️ Comparación de Ubicaciones (Sucursal vs. Destino)</span>
+                  <span *ngIf="calculandoDistancia" class="spinner-calculando">Calculando ruta...</span>
+                </div>
+
+                <div class="comparador-grid">
+                  <!-- Punto Origen: Sucursal -->
+                  <div class="ubicacion-bloque origen-bloque">
+                    <div class="bloque-tag">Punto A: Sucursal de Despacho</div>
+                    <div class="bloque-nombre">🏢 {{ sucursalDespacho?.nombre || 'Sucursal StyleStore' }}</div>
+                    <div class="bloque-detalles text-muted">
+                      {{ sucursalDespacho?.direccion || 'Punto central de despacho' }} ({{ sucursalDespacho?.ciudad || ciudad }})
+                    </div>
+                    <div class="bloque-link-wrap" *ngIf="sucursalDespacho?.maps_url">
+                      <a [href]="sucursalDespacho.maps_url" target="_blank" rel="noopener noreferrer" class="btn-maps-mini">
+                        📍 Ver sucursal en Google Maps ↗
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Indicador de Ruta -->
+                  <div class="conector-ruta">
+                    <span class="flecha-ruta">➔</span>
+                    <span class="badge-km">{{ distanciaKm | number:'1.1-2' }} km</span>
+                  </div>
+
+                  <!-- Punto Destino: Cliente -->
+                  <div class="ubicacion-bloque destino-bloque">
+                    <div class="bloque-tag">Punto B: Tu Destino de Entrega</div>
+                    <div class="bloque-nombre">
+                      📍 {{ direccion.trim() ? direccion : (ubicacionUrl.trim() ? 'Ubicación GPS fijada' : 'Tu dirección ingresada') }}
+                    </div>
+                    <div class="bloque-detalles text-muted">
+                      {{ ciudad || 'Santa Cruz' }} {{ referencia ? '• ' + referencia : '' }}
+                    </div>
+                    <div class="bloque-link-wrap" *ngIf="ubicacionUrl">
+                      <a [href]="ubicacionUrl" target="_blank" rel="noopener noreferrer" class="btn-maps-mini">
+                        🗺️ Ver tu ubicación en Maps ↗
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Botón de Comparación y Recálculo -->
+                <div class="btn-comparar-wrap">
+                  <button type="button" class="btn-comparar-accion" (click)="recalcularTarifaEnvio()" [disabled]="calculandoDistancia">
+                    <span *ngIf="!calculandoDistancia">📍 Comparar Ubicaciones y Calcular Tarifa</span>
+                    <span *ngIf="calculandoDistancia">Calculando distancia exacta...</span>
+                  </button>
                 </div>
               </div>
 
               <!-- Calculador Dinámico de Distancia -->
               <div class="distancia-calculo-box">
                 <div class="distancia-header">
-                  <span>Distancia estimada de entrega:</span>
+                  <span>Distancia recorrida entre ambas ubicaciones:</span>
                   <strong>{{ distanciaKm | number:'1.1-2' }} km</strong>
                 </div>
                 <div class="distancia-slider-wrap">
@@ -205,26 +263,13 @@
                     max="35"
                     step="0.5"
                     [(ngModel)]="distanciaKm"
-                    (input)="recalcularTarifaEnvio()"
+                    (input)="onSliderChange()"
                     class="distancia-slider"
                   />
                 </div>
                 <div class="tarifa-desglose-calculada">
                   Costo de delivery: <strong>Bs. {{ costoEnvio | number:'1.2-2' }}</strong>
-                  <small class="text-muted">(Fijo Bs. 5.00 + {{ distanciaKm }} km × Bs. 0.60/km)</small>
-                </div>
-              </div>
-
-              <div class="origen-envio-info" *ngIf="sucursalDespacho">
-                <div class="origen-envio-header">
-                  🏢 Sucursal de despacho: <strong>{{ sucursalDespacho.nombre }}</strong>
-                  <span *ngIf="sucursalDespacho.ciudad"> ({{ sucursalDespacho.ciudad }})</span>
-                  <span *ngIf="sucursalDespacho.direccion"> — {{ sucursalDespacho.direccion }}</span>
-                </div>
-                <div *ngIf="sucursalDespacho.maps_url" class="origen-envio-action">
-                  <a [href]="sucursalDespacho.maps_url" target="_blank" rel="noopener noreferrer" class="btn-sucursal-maps">
-                    📍 Ver ubicación exacta de la sucursal en Google Maps ↗
-                  </a>
+                  <small class="text-muted">(Fijo Bs. 5.00 + {{ distanciaKm | number:'1.1-2' }} km × Bs. 0.60/km)</small>
                 </div>
               </div>
             </div>
