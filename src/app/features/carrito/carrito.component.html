@@ -212,7 +212,7 @@
                       {{ sucursalDespacho?.direccion || 'Punto central de despacho' }} ({{ sucursalDespacho?.ciudad || ciudad }})
                     </div>
                     <div class="bloque-link-wrap" *ngIf="sucursalDespacho?.maps_url">
-                      <a [href]="sucursalDespacho.maps_url" target="_blank" rel="noopener noreferrer" class="btn-maps-mini">
+                      <a [href]="sucursalDespacho?.maps_url" target="_blank" rel="noopener noreferrer" class="btn-maps-mini">
                         📍 Ver sucursal en Google Maps ↗
                       </a>
                     </div>
