@@ -355,8 +355,8 @@
   font-size: 0.88rem;
 }
 
-/* Aviso y Recomendación Yango */
-.aviso-tarifa-yango {
+/* Aviso y Recomendación Delivery StyleStore */
+.aviso-tarifa-delivery {
   background: #fffbeb;
   border: 1.5px solid #fde68a;
   border-radius: 12px;
@@ -364,7 +364,7 @@
   margin-top: 4px;
 }
 
-.aviso-yango-header {
+.aviso-delivery-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -374,14 +374,14 @@
   margin-bottom: 6px;
 }
 
-.aviso-yango-desc {
+.aviso-delivery-desc {
   font-size: 0.82rem;
   color: #78350f;
   margin: 0 0 10px;
   line-height: 1.4;
 }
 
-.aviso-yango-callout {
+.aviso-delivery-callout {
   display: flex;
   gap: 10px;
   background: #ffffff;
@@ -396,14 +396,14 @@
   line-height: 1;
 }
 
-.aviso-yango-callout strong {
+.aviso-delivery-callout strong {
   display: block;
   color: #14263D;
   font-size: 0.82rem;
   margin-bottom: 3px;
 }
 
-.aviso-yango-callout p {
+.aviso-delivery-callout p {
   font-size: 0.8rem;
   color: #334155;
   margin: 0;
@@ -420,7 +420,7 @@
   margin-top: 6px;
 }
 
-.yango-pago-directo {
+.delivery-pago-directo {
   color: #059669;
   font-weight: 700;
   font-size: 0.82rem;

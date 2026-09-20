@@ -223,13 +223,14 @@ export class CarritoComponent implements OnInit {
         sucursal_id: sucIdFinal,
         metodo_pago: this.metodoPago,
         direccion_envio: dirFinal,
+        despacho_delivery: this.conEnvio,
         despacho_yango: this.conEnvio,
       })
       .subscribe({
         next: (res) => {
           const ordenId = res.orden_venta_id;
 
-          // 2. Si hay envío, registrar el despacho con Yango
+          // 2. Si hay envío, registrar el despacho con Delivery StyleStore
           if (this.conEnvio) {
             const ciudadDespacho = this.ciudad.trim() || this.sucursalDespacho?.ciudad || this.branchService.selectedSucursal()?.city || 'Santa Cruz';
             this.envioService

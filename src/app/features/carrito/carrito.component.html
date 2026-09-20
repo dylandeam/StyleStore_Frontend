@@ -25,7 +25,7 @@
       <div>Total a abonar: <strong>Bs. {{ ordenGenerada.total | number:'1.2-2' }}</strong></div>
       <div>Método seleccionado: <strong>Efectivo / En Caja POS</strong></div>
       <div *ngIf="conEnvio">
-        Despacho: <strong>Yango Delivery (Conductor asignado en camino)</strong>
+        Despacho: <strong>Delivery StyleStore (Repartidor asignado en camino)</strong>
       </div>
     </div>
     <div class="success-actions">
@@ -101,18 +101,18 @@
       <div class="summary-card">
         <h2 class="summary-title">Resumen de Compra</h2>
 
-        <!-- Checkbox Despacho Yango -->
+        <!-- Checkbox Despacho Delivery StyleStore -->
         <div class="envio-toggle-box">
           <label class="toggle-label">
             <input type="checkbox" [(ngModel)]="conEnvio" />
             <span class="toggle-custom"></span>
             <span class="toggle-text">
-              <strong>🚚 Despacho a Domicilio con Yango</strong>
-              <small>Entrega express con rastreo de conductor en vivo.</small>
+              <strong>🚚 Despacho a Domicilio (Delivery StyleStore)</strong>
+              <small>Entrega express propia con rastreo de conductor en vivo.</small>
             </span>
           </label>
 
-          <!-- Formulario de Entrega Yango -->
+          <!-- Formulario de Entrega Delivery StyleStore -->
           <div class="envio-form" *ngIf="conEnvio">
             <!-- 1. CAMPO PRINCIPAL: Enlace GPS de Google Maps o Apple Maps (mayor peso visual) -->
             <div class="form-group gps-highlight-group">
@@ -141,7 +141,7 @@
                 </a>
               </div>
               <p class="gps-helper-text">
-                💡 <em>En tu app de mapas (Google Maps o Apple Maps), mantén presionado tu domicilio para marcar el pin, pulsa <strong>Compartir</strong> y copia el enlace aquí. El repartidor de Yango llegará exactamente a tu puerta.</em>
+                💡 <em>En tu app de mapas (Google Maps o Apple Maps), mantén presionado tu domicilio para marcar el pin, pulsa <strong>Compartir</strong> y copia el enlace aquí. El repartidor de StyleStore llegará exactamente a tu puerta.</em>
               </p>
             </div>
 
@@ -175,20 +175,20 @@
               </div>
             </div>
 
-            <!-- TARJETA INFORMATIVA Y RECOMENDACIÓN DE TARIFA DINÁMICA YANGO -->
-            <div class="aviso-tarifa-yango">
-              <div class="aviso-yango-header">
+            <!-- TARJETA INFORMATIVA DELIVERY STYLESTORE -->
+            <div class="aviso-tarifa-delivery">
+              <div class="aviso-delivery-header">
                 <span class="aviso-icono">🛵</span>
-                <strong>Tarifa Dinámica de Yango Delivery</strong>
+                <strong>Delivery StyleStore Oficial</strong>
               </div>
-              <p class="aviso-yango-desc">
-                No cobramos un costo estimado por adelantado en la tienda porque la tarifa de Yango es dinámica y depende en tiempo real de factores externos como <strong>lluvia, tráfico y disponibilidad de repartidores</strong>.
+              <p class="aviso-delivery-desc">
+                Servicio de despacho oficial de StyleStore. Tu pedido se prepara en sucursal y se asigna a un repartidor de la tienda con <strong>código de seguimiento y rastreo en tiempo real</strong>.
               </p>
-              <div class="aviso-yango-callout">
-                <span class="callout-icon">📲</span>
+              <div class="aviso-delivery-callout">
+                <span class="callout-icon">📍</span>
                 <div>
-                  <strong>Recomendación para el cliente:</strong>
-                  <p>Abre la app de <strong>Yango</strong> para verificar el costo exacto de la carrera desde la sucursal hasta tu ubicación. El valor del viaje se cancela directamente al conductor al entregarte el pedido.</p>
+                  <strong>Información del despacho:</strong>
+                  <p>El costo de entrega se coordina según distancia y se abona directamente al repartidor al recibir tu compra. Podrás seguir el estado y ubicación desde tu panel de compras.</p>
                 </div>
               </div>
               <div class="origen-envio-info" *ngIf="sucursalDespacho">
@@ -225,8 +225,8 @@
           </div>
 
           <div class="total-row" *ngIf="conEnvio">
-            <span>Envío Yango Delivery</span>
-            <span class="yango-pago-directo">Directo en app Yango</span>
+            <span>Envío Delivery StyleStore</span>
+            <span class="delivery-pago-directo">Contra entrega / Rastreo</span>
           </div>
 
           <hr class="summary-divider" />

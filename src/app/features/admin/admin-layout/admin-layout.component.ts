@@ -164,7 +164,7 @@ export class AdminLayoutComponent implements OnInit {
       this.currentSubtitle.set('Ficha técnica, variantes de color y recomendaciones de IA');
     } else if (url.includes('/carrito')) {
       this.currentTitle.set('Bolsa de Compras');
-      this.currentSubtitle.set('Resumen de pedido, despacho con Yango y pasarela de pago');
+      this.currentSubtitle.set('Resumen de pedido, despacho con Delivery StyleStore y pasarela de pago');
     } else {
       this.currentTitle.set('Dashboard');
       this.currentSubtitle.set('Resumen general y módulos del sistema');

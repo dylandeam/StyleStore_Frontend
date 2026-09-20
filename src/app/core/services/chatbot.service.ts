@@ -113,10 +113,10 @@ export class ChatbotService {
       };
     }
 
-    if (norm.includes('envio') || norm.includes('yango') || norm.includes('delivery')) {
+    if (norm.includes('envio') || norm.includes('delivery') || norm.includes('despacho') || norm.includes('yango')) {
       return {
         respuesta:
-          '🛵 **Envíos Yango Delivery:**\n\nRealizamos despachos a domicilio con Yango. Al finalizar tu pedido proporciona tu enlace de Google Maps o Apple Maps. La tarifa es variable según la app oficial de Yango.',
+          '🛵 **Delivery StyleStore Oficial:**\n\nRealizamos despachos a domicilio con nuestro servicio propio de Delivery StyleStore. Proporciona tu enlace de Google Maps o Apple Maps al finalizar tu pedido para seguimiento en tiempo real y asignación de repartidor.',
         chips: [
           { label: '📦 Mis Compras', action: 'navigate', route: '/cuenta/mis-compras' },
           { label: '🛍️ Ir al Carrito', action: 'navigate', route: '/carrito' },
@@ -148,7 +148,7 @@ export class ChatbotService {
 
     return {
       respuesta:
-        '¡Hola! Como asistente virtual de StyleStore puedo colaborarte con sucursales, ropa disponible (pantalones, camisas, polos), envíos con Yango, reservas o cambios. ¿Qué te gustaría consultar?',
+        '¡Hola! Como asistente virtual de StyleStore puedo colaborarte con sucursales, ropa disponible (pantalones, camisas, polos), envíos con Delivery StyleStore, reservas o cambios. ¿Qué te gustaría consultar?',
       chips: [
         { label: '👗 Catálogo de Ropa', action: 'navigate', route: '/catalogo' },
         { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },

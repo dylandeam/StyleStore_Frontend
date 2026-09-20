@@ -34,7 +34,7 @@ export class EnvioService {
     return this.http.patch<Envio>(`${this.apiUrl}/${id}/completar`, {});
   }
 
-  /** Actualizar tracking de Delivery StyleStore (reemplaza Yango) */
+  /** Actualizar tracking de Delivery StyleStore */
   updateDeliveryTracking(id: number, data: any): Observable<Envio> {
     return this.http.patch<Envio>(`${this.apiUrl}/${id}/delivery`, data);
   }

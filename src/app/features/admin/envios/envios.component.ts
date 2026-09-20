@@ -66,7 +66,7 @@ export class EnviosComponent implements OnInit {
     }
   }
 
-  // ─── Delivery Modal (reemplaza Yango) ───
+  // ─── Modal Delivery StyleStore ───
 
   openDeliveryModal(e: Envio): void {
     this.selectedEnvio.set(e);

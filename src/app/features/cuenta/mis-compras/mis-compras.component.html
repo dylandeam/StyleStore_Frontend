@@ -176,9 +176,9 @@
           <h5><i class="bi bi-truck"></i> Información de Entrega</h5>
           <p><strong>Destino:</strong> {{ selectedOrden.envio.direccion }}, {{ selectedOrden.envio.ciudad }}</p>
           <p *ngIf="selectedOrden.envio.referencia"><strong>Referencia:</strong> {{ selectedOrden.envio.referencia }}</p>
-          <p *ngIf="selectedOrden.envio.yango_tracking_code">
-            <strong>Yango Delivery:</strong> 
-            <span class="tracking-pill">{{ selectedOrden.envio.yango_tracking_code }}</span>
+          <p *ngIf="selectedOrden.envio.tracking_code || selectedOrden.envio.yango_tracking_code">
+            <strong>Delivery StyleStore:</strong> 
+            <span class="tracking-pill">{{ selectedOrden.envio.tracking_code || selectedOrden.envio.yango_tracking_code }}</span>
           </p>
         </div>
 

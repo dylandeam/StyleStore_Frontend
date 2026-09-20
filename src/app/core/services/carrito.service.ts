@@ -91,6 +91,7 @@ export class CarritoService {
     sucursal_id?: number;
     metodo_pago?: string;
     direccion_envio?: string;
+    despacho_delivery?: boolean;
     despacho_yango?: boolean;
   }): Observable<{ message: string; orden_venta_id: number; total: number; estado: string }> {
     const payload = typeof data === 'number' ? { sucursal_id: data } : (data || {});
