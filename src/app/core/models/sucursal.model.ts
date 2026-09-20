@@ -4,6 +4,10 @@ export interface Sucursal {
   city: string;
   address: string;
   phone: string;
+  maps_url?: string;
+  ubicacion_url?: string;
+  latitud?: number;
+  longitud?: number;
   nombre?: string;
   ciudad?: string;
   direccion?: string;
@@ -18,5 +22,9 @@ export interface SucursalCreate {
   city: string;
   address: string;
   phone: string;
+  maps_url?: string;
+  ubicacion_url?: string;
+  latitud?: number;
+  longitud?: number;
   active?: boolean;
 }

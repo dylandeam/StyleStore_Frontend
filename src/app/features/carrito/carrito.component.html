@@ -187,14 +187,45 @@
               <div class="aviso-delivery-callout">
                 <span class="callout-icon">📍</span>
                 <div>
-                  <strong>Información del despacho:</strong>
-                  <p>El costo de entrega se coordina según distancia y se abona directamente al repartidor al recibir tu compra. Podrás seguir el estado y ubicación desde tu panel de compras.</p>
+                  <strong>Tarifa Delivery Privado StyleStore:</strong>
+                  <p>Tarifa fija de <strong>Bs. 5.00</strong> + <strong>Bs. 0.60 por kilómetro</strong> recorrido desde la sucursal hasta tu domicilio.</p>
                 </div>
               </div>
+
+              <!-- Calculador Dinámico de Distancia -->
+              <div class="distancia-calculo-box">
+                <div class="distancia-header">
+                  <span>Distancia estimada de entrega:</span>
+                  <strong>{{ distanciaKm | number:'1.1-2' }} km</strong>
+                </div>
+                <div class="distancia-slider-wrap">
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="35"
+                    step="0.5"
+                    [(ngModel)]="distanciaKm"
+                    (input)="recalcularTarifaEnvio()"
+                    class="distancia-slider"
+                  />
+                </div>
+                <div class="tarifa-desglose-calculada">
+                  Costo de delivery: <strong>Bs. {{ costoEnvio | number:'1.2-2' }}</strong>
+                  <small class="text-muted">(Fijo Bs. 5.00 + {{ distanciaKm }} km × Bs. 0.60/km)</small>
+                </div>
+              </div>
+
               <div class="origen-envio-info" *ngIf="sucursalDespacho">
-                🏢 Sucursal de despacho: <strong>{{ sucursalDespacho.nombre }}</strong>
-                <span *ngIf="sucursalDespacho.ciudad"> ({{ sucursalDespacho.ciudad }})</span>
-                <span *ngIf="sucursalDespacho.direccion"> — {{ sucursalDespacho.direccion }}</span>
+                <div class="origen-envio-header">
+                  🏢 Sucursal de despacho: <strong>{{ sucursalDespacho.nombre }}</strong>
+                  <span *ngIf="sucursalDespacho.ciudad"> ({{ sucursalDespacho.ciudad }})</span>
+                  <span *ngIf="sucursalDespacho.direccion"> — {{ sucursalDespacho.direccion }}</span>
+                </div>
+                <div *ngIf="sucursalDespacho.maps_url" class="origen-envio-action">
+                  <a [href]="sucursalDespacho.maps_url" target="_blank" rel="noopener noreferrer" class="btn-sucursal-maps">
+                    📍 Ver ubicación exacta de la sucursal en Google Maps ↗
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -225,8 +256,8 @@
           </div>
 
           <div class="total-row" *ngIf="conEnvio">
-            <span>Envío Delivery StyleStore</span>
-            <span class="delivery-pago-directo">Contra entrega / Rastreo</span>
+            <span>Envío Delivery StyleStore ({{ distanciaKm | number:'1.1-2' }} km)</span>
+            <span class="delivery-tarifa-badge">Bs. {{ costoEnvio | number:'1.2-2' }}</span>
           </div>
 
           <hr class="summary-divider" />

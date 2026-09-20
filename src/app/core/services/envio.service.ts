@@ -52,7 +52,7 @@ export class EnvioService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 
-  cotizarPorDistancia(data: { sucursal_id?: number; lat?: number; lon?: number; direccion?: string; ciudad?: string }): Observable<any> {
+  cotizarPorDistancia(data: { sucursal_id?: number; lat?: number; lon?: number; direccion?: string; ciudad?: string; ubicacion_url?: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/cotizar-distancia`, data);
   }
 

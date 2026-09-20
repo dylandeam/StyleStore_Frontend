@@ -355,6 +355,29 @@ h1 {
   animation: spin 0.8s linear infinite;
 }
 
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+.detail-link svg {
+  color: #ea4335 !important;
+}
+
+.maps-btn-link {
+  color: #1a73e8;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.maps-btn-link:hover {
+  text-decoration: underline;
+  color: #1558b0;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

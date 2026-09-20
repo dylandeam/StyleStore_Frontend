@@ -39,6 +39,7 @@ export class SucursalesListComponent implements OnInit {
     city: '',
     address: '',
     phone: '',
+    maps_url: '',
     active: true,
   };
 
@@ -76,6 +77,7 @@ export class SucursalesListComponent implements OnInit {
       city: '',
       address: '',
       phone: '',
+      maps_url: '',
       active: true,
     };
     this.modalError.set('');
@@ -91,6 +93,7 @@ export class SucursalesListComponent implements OnInit {
       city: s.city,
       address: s.address,
       phone: s.phone,
+      maps_url: s.maps_url || s.ubicacion_url || '',
       active: s.active,
     };
     this.modalError.set('');

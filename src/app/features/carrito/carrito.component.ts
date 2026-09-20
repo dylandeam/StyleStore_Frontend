@@ -60,10 +60,22 @@ export class CarritoComponent implements OnInit {
   set mensajeToast(val: string | null) { this.toastMsg.set(val); }
 
   get conEnvio(): boolean { return this.conEnvioState(); }
-  set conEnvio(val: boolean) { this.conEnvioState.set(val); }
+  set conEnvio(val: boolean) {
+    this.conEnvioState.set(val);
+    if (val) {
+      this.recalcularTarifaEnvio();
+    } else {
+      this.costoEnvioState.set(0);
+    }
+  }
 
   get ubicacionUrl(): string { return this.ubicacionUrlState(); }
-  set ubicacionUrl(val: string) { this.ubicacionUrlState.set(val); }
+  set ubicacionUrl(val: string) {
+    this.ubicacionUrlState.set(val);
+    if (this.conEnvio) {
+      this.recalcularTarifaEnvio();
+    }
+  }
 
   get direccion(): string { return this.direccionState(); }
   set direccion(val: string) { this.direccionState.set(val); }
@@ -75,7 +87,12 @@ export class CarritoComponent implements OnInit {
   set referencia(val: string) { this.referenciaState.set(val); }
 
   get distanciaKm(): number { return this.distanciaKmState(); }
-  set distanciaKm(val: number) { this.distanciaKmState.set(val); }
+  set distanciaKm(val: number) {
+    this.distanciaKmState.set(val);
+    if (this.conEnvio) {
+      this.recalcularTarifaEnvio();
+    }
+  }
 
   get costoEnvio(): number { return this.costoEnvioState(); }
   set costoEnvio(val: number) { this.costoEnvioState.set(val); }
@@ -91,6 +108,45 @@ export class CarritoComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarCarrito();
+  }
+
+  recalcularTarifaEnvio(): void {
+    if (!this.conEnvio) {
+      this.costoEnvioState.set(0);
+      return;
+    }
+    const dist = Math.max(0, this.distanciaKm || 0);
+    // Fórmula oficial: Tarifa fija 5.00 Bs + 0.60 Bs por km
+    const baseCosto = Math.round((5.00 + dist * 0.60) * 100) / 100;
+    this.costoEnvioState.set(baseCosto);
+
+    if (this.ubicacionUrl.trim()) {
+      const sucId = this.sucursalDespacho?.id || this.branchService.getSucursalId();
+      this.envioService
+        .cotizarPorDistancia({
+          sucursal_id: sucId,
+          ubicacion_url: this.ubicacionUrl.trim(),
+          ciudad: this.ciudad,
+          direccion: this.direccion,
+        })
+        .subscribe({
+          next: (res) => {
+            if (res && typeof res.costo === 'number') {
+              if (res.distancia_km !== undefined && res.distancia_km !== null) {
+                this.distanciaKmState.set(res.distancia_km);
+              }
+              this.costoEnvioState.set(res.costo);
+              this.cdr.markForCheck();
+              this.cdr.detectChanges();
+            }
+          },
+          error: () => {
+            // Se conserva el cálculo de la fórmula oficial
+          },
+        });
+    }
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
   }
 
   cargarCarrito(): void {
@@ -149,7 +205,9 @@ export class CarritoComponent implements OnInit {
   }
 
   get totalFinal(): number {
-    return this.carrito?.total || 0;
+    const subtotal = this.carrito?.total || 0;
+    const envio = this.conEnvio ? (this.costoEnvio || 5.0) : 0;
+    return Math.round((subtotal + envio) * 100) / 100;
   }
 
   getImageUrl(foto?: string | null): string {
@@ -167,7 +225,7 @@ export class CarritoComponent implements OnInit {
     }, 3500);
   }
 
-  get sucursalDespacho(): { id?: number; nombre?: string; ciudad?: string; direccion?: string } | null {
+  get sucursalDespacho(): { id?: number; nombre?: string; ciudad?: string; direccion?: string; maps_url?: string } | null {
     if (this.carrito?.items && this.carrito.items.length > 0) {
       const it = this.carrito.items.find((i) => i.sucursal_id || i.sucursal_nombre);
       if (it && (it.sucursal_id || it.sucursal_nombre)) {
@@ -176,6 +234,7 @@ export class CarritoComponent implements OnInit {
           nombre: it.sucursal_nombre,
           ciudad: it.sucursal_ciudad,
           direccion: it.sucursal_direccion,
+          maps_url: (it as any).sucursal_maps_url || this.branchService.selectedSucursal()?.maps_url || this.branchService.selectedSucursal()?.ubicacion_url,
         };
       }
     }
@@ -186,6 +245,7 @@ export class CarritoComponent implements OnInit {
         nombre: s.nombre || s.name,
         ciudad: s.ciudad || s.city,
         direccion: s.direccion || s.address,
+        maps_url: s.maps_url || s.ubicacion_url,
       };
     }
     return null;
@@ -230,9 +290,10 @@ export class CarritoComponent implements OnInit {
         next: (res) => {
           const ordenId = res.orden_venta_id;
 
-          // 2. Si hay envío, registrar el despacho con Delivery StyleStore
+          // 2. Si hay envío, registrar el despacho con Delivery StyleStore con la tarifa calculada
           if (this.conEnvio) {
             const ciudadDespacho = this.ciudad.trim() || this.sucursalDespacho?.ciudad || this.branchService.selectedSucursal()?.city || 'Santa Cruz';
+            const costoDelivery = this.costoEnvio || Math.round((5.00 + (this.distanciaKm || 0) * 0.60) * 100) / 100;
             this.envioService
               .createEnvio({
                 orden_venta_id: ordenId,
@@ -240,7 +301,8 @@ export class CarritoComponent implements OnInit {
                 ciudad: ciudadDespacho,
                 referencia: this.referencia.trim() || undefined,
                 ubicacion_url: this.ubicacionUrl.trim() || undefined,
-                costo: 0,
+                distancia_km: this.distanciaKm,
+                costo: costoDelivery,
               })
               .subscribe({
                 next: () => {

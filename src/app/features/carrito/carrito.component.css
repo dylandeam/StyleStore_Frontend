@@ -410,20 +410,91 @@
   line-height: 1.35;
 }
 
+.distancia-calculo-box {
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.distancia-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #9a3412;
+  margin-bottom: 8px;
+}
+
+.distancia-slider-wrap {
+  width: 100%;
+}
+
+.distancia-slider {
+  width: 100%;
+  accent-color: #ea580c;
+  cursor: pointer;
+}
+
+.tarifa-desglose-calculada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.84rem;
+  color: #1e293b;
+}
+
+.tarifa-desglose-calculada strong {
+  color: #c2410c;
+  font-size: 0.95rem;
+}
+
 .origen-envio-info {
   font-size: 0.8rem;
   color: #1e3a8a;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
-  padding: 6px 10px;
-  border-radius: 6px;
-  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-top: 8px;
 }
 
-.delivery-pago-directo {
-  color: #059669;
+.origen-envio-header {
+  margin-bottom: 6px;
+}
+
+.origen-envio-action {
+  margin-top: 4px;
+}
+
+.btn-sucursal-maps {
+  display: inline-flex;
+  align-items: center;
+  color: #1d4ed8;
+  background: #ffffff;
+  border: 1px solid #93c5fd;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-sucursal-maps:hover {
+  background: #dbeafe;
+  border-color: #60a5fa;
+  color: #1e40af;
+}
+
+.delivery-pago-directo,
+.delivery-tarifa-badge {
+  color: #047857;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   background: #ecfdf5;
   padding: 3px 8px;
   border-radius: 6px;
