@@ -1,0 +1,127 @@
+<div class="rastreo-page">
+  <!-- Header -->
+  <header class="rastreo-header">
+    <div class="brand-row">
+      <span class="brand-icon">📍</span>
+      <div>
+        <h1 class="brand-title">StyleStore Delivery</h1>
+        <p class="brand-sub">Rastreo en Tiempo Real</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-card">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p>Conectando con el rastreo del pedido...</p>
+    </div>
+  }
+
+  <!-- Entregado State -->
+  @if (entregado()) {
+    <div class="entregado-card">
+      <div class="entregado-anim">
+        <span class="party">🎉</span>
+        <span class="check-big">✅</span>
+        <span class="party">🎉</span>
+      </div>
+      <h2>¡Tu pedido ha sido entregado!</h2>
+      <p>El repartidor confirmó la entrega. ¡Disfruta tu compra!</p>
+    </div>
+  }
+
+  @if (tracking() && !isLoading()) {
+    <!-- Status Bar -->
+    <div class="status-bar" [class.entregado-bar]="entregado()">
+      <div class="status-info">
+        <span class="status-label">Estado del Envío</span>
+        <span class="status-value" [class.en-camino]="tracking().estado === 'en camino'" [class.pendiente]="tracking().estado === 'pendiente'" [class.completado]="tracking().estado === 'entregado' || tracking().estado === 'completado'">
+          {{ tracking().estado | uppercase }}
+        </span>
+      </div>
+      <div class="status-meta">
+        <div class="meta-item">
+          <span class="meta-label">Repartidor</span>
+          <span class="meta-value">🛵 {{ tracking().delivery_conductor }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Distancia</span>
+          <span class="meta-value">{{ tracking().distancia_km }} km</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Tiempo Est.</span>
+          <span class="meta-value">~{{ tracking().minutos_estimados }} min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Container -->
+    @if (!entregado()) {
+      <div class="map-wrapper">
+        <div class="map-live-badge">
+          <div class="live-dot"></div>
+          <span>EN VIVO</span>
+        </div>
+        <div id="cliente-map-element" class="map-container"></div>
+      </div>
+    }
+
+    <!-- Delivery Info -->
+    <div class="delivery-info-card">
+      <div class="info-row">
+        <span class="info-icon">🏬</span>
+        <div>
+          <span class="info-label">Origen</span>
+          <span class="info-value">{{ tracking().origen.nombre }} — {{ tracking().origen.ciudad }}</span>
+        </div>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-row">
+        <span class="info-icon">🏠</span>
+        <div>
+          <span class="info-label">Tu Domicilio</span>
+          <span class="info-value">{{ tracking().destino.direccion }} — {{ tracking().destino.ciudad }}</span>
+        </div>
+      </div>
+      @if (tracking().destino.referencia) {
+        <div class="info-row ref-row">
+          <span class="info-icon">📋</span>
+          <div>
+            <span class="info-label">Referencia</span>
+            <span class="info-value gold">{{ tracking().destino.referencia }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Live update indicator -->
+    @if (!entregado() && tracking().repartidor) {
+      <div class="live-update-bar">
+        <div class="pulse-dot-sm"></div>
+        <span>Actualizando cada 5 segundos...</span>
+      </div>
+    }
+
+    @if (!entregado() && !tracking().repartidor) {
+      <div class="waiting-card">
+        <span class="waiting-icon">⏳</span>
+        <p>Esperando a que el repartidor inicie la transmisión de su ubicación...</p>
+        <p class="waiting-sub">El mapa se actualizará automáticamente cuando el conductor comparta su GPS.</p>
+      </div>
+    }
+  }
+
+  <!-- Footer -->
+  <footer class="rastreo-footer">
+    <p>StyleStore Delivery © {{ currentYear }} — Rastreo gratuito con OpenStreetMap</p>
+  </footer>
+</div>

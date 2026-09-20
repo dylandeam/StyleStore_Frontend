@@ -34,8 +34,14 @@ export class EnvioService {
     return this.http.patch<Envio>(`${this.apiUrl}/${id}/completar`, {});
   }
 
+  /** Actualizar tracking de Delivery StyleStore (reemplaza Yango) */
+  updateDeliveryTracking(id: number, data: any): Observable<Envio> {
+    return this.http.patch<Envio>(`${this.apiUrl}/${id}/delivery`, data);
+  }
+
+  /** Compat alias — redirige al nuevo endpoint */
   updateYangoTracking(id: number, data: any): Observable<Envio> {
-    return this.http.patch<Envio>(`${this.apiUrl}/${id}/yango`, data);
+    return this.updateDeliveryTracking(id, data);
   }
 
   getEnvioByOrden(ordenId: number): Observable<Envio> {
@@ -68,5 +74,27 @@ export class EnvioService {
 
   getTrackingMap(envioId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${envioId}/tracking`);
+  }
+
+  // ─── ENDPOINTS PÚBLICOS PARA CONDUCTOR Y CLIENTE (sin auth) ───
+
+  /** Obtener datos del pedido para el conductor (público) */
+  getPublicConductor(token: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/public/conductor/${token}`);
+  }
+
+  /** Enviar posición GPS del conductor (público) */
+  reportarPosicionConductor(token: string, lat: number, lon: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/public/conductor/${token}/posicion`, { lat, lon });
+  }
+
+  /** Marcar como entregado por el conductor (público) */
+  marcarEntregadoConductor(token: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/public/conductor/${token}/entregar`, {});
+  }
+
+  /** Obtener datos de rastreo para el cliente (público) */
+  getRastreoCliente(token: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/public/rastreo/${token}`);
   }
 }

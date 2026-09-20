@@ -171,11 +171,11 @@
   gap: 10px;
 }
 
-/* Yango Delivery */
-.btn-action-yango {
+/* Delivery StyleStore */
+.btn-action-delivery {
   padding: 5px 10px;
-  background: #ffcc00;
-  color: #000000;
+  background: linear-gradient(135deg, #C9A96E, #b8943f);
+  color: #14263D;
   border: none;
   border-radius: 6px;
   font-size: 0.78rem;
@@ -185,8 +185,8 @@
   margin-right: 6px;
 }
 
-.btn-action-yango:hover {
-  background: #e6b800;
+.btn-action-delivery:hover {
+  background: linear-gradient(135deg, #b8943f, #a07c2e);
   transform: translateY(-1px);
 }
 
@@ -202,32 +202,22 @@
   50% { opacity: 0.7; }
 }
 
-.yango-cell {
+.delivery-cell {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.yango-code {
+.delivery-conductor-badge {
   font-weight: 700;
   color: #14263D;
   font-size: 0.8rem;
 }
 
-.yango-conductor {
+.tracking-token {
   color: #64748b;
   font-size: 0.72rem;
-}
-
-.yango-link {
-  color: #b8860b;
-  font-weight: 700;
-  font-size: 0.75rem;
-  text-decoration: none;
-}
-
-.yango-link:hover {
-  text-decoration: underline;
+  font-family: 'Courier New', monospace;
 }
 
 .modal-desc {
@@ -287,13 +277,17 @@
   border-color: #6ee7b7;
 }
 
-/* Tarjeta Destino Modal Yango */
+/* Tarjeta Destino Modal Delivery */
 .modal-dest-card {
   background: #f8fafc;
   border: 1.5px solid #cbd5e1;
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 16px;
+}
+
+.modal-delivery-card {
+  max-width: 560px;
 }
 
 .dest-card-header {
@@ -313,20 +307,94 @@
   letter-spacing: 0.5px;
 }
 
-.btn-copy-yango-action {
-  background: #ffcc00;
-  color: #000;
+.btn-copy-delivery-action {
+  background: linear-gradient(135deg, #C9A96E, #b8943f);
+  color: #14263D;
   font-weight: 800;
   font-size: 0.78rem;
   padding: 4px 10px;
-  border: 1px solid #e6b800;
+  border: 1px solid #b8943f;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.btn-copy-yango-action:hover {
-  background: #e6b800;
+.btn-copy-delivery-action:hover {
+  background: linear-gradient(135deg, #b8943f, #a07c2e);
+  transform: translateY(-1px);
+}
+
+/* Tracking Links Card */
+.tracking-links-card {
+  background: #f0f9ff;
+  border: 1.5px solid #bae6fd;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.tracking-links-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #14263D;
+  margin: 0 0 12px;
+}
+
+.tracking-link-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.tracking-link-row:last-child {
+  margin-bottom: 0;
+}
+
+.tracking-link-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.tl-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.tracking-link-info strong {
+  display: block;
+  font-size: 0.82rem;
+  color: #14263D;
+}
+
+.tracking-link-info small {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.btn-copy-track {
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-copy-track:hover {
+  background: #047857;
   transform: translateY(-1px);
 }
 

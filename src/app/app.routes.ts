@@ -39,6 +39,8 @@ import { MisReservasComponent } from './features/cuenta/mis-reservas/mis-reserva
 import { CambiosListComponent } from './features/admin/cambios/cambios-list.component';
 import { ComprasListComponent } from './features/admin/compras/compras-list/compras-list.component';
 import { OutfitsComponent } from './features/outfits/outfits.component';
+import { ConductorTrackerComponent } from './features/delivery/conductor/conductor-tracker.component';
+import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tracker.component';
 
 export const routes: Routes = [
   {
@@ -54,6 +56,15 @@ export const routes: Routes = [
   {
     path: 'cuenta/confirmar-password',
     component: ConfirmarPasswordComponent,
+  },
+  // Rutas Públicas — Delivery Tracker (sin auth)
+  {
+    path: 'delivery/conductor/:token',
+    component: ConductorTrackerComponent,
+  },
+  {
+    path: 'delivery/rastreo/:token',
+    component: ClienteTrackerComponent,
   },
   {
     path: '',

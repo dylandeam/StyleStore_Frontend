@@ -1,8 +1,8 @@
 <div class="page-container">
   <div class="page-header">
     <div class="header-titles">
-      <h2>🚚 Gestión de Envíos y Despachos (Yango Delivery)</h2>
-      <p class="subtitle">Monitoreo de entregas a domicilio y asignación de repartidores Yango en tiempo real.</p>
+      <h2>🚚 Gestión de Envíos y Despachos (Delivery StyleStore)</h2>
+      <p class="subtitle">Monitoreo de entregas a domicilio y asignación de repartidores con rastreo GPS en tiempo real.</p>
     </div>
   </div>
 
@@ -32,7 +32,7 @@
               <th>Ciudad</th>
               <th>Costo</th>
               <th>Estado</th>
-              <th>Rastreo Yango</th>
+              <th>Delivery</th>
               <th>Fecha</th>
               <th>Acciones</th>
             </tr>
@@ -53,7 +53,7 @@
                       <a [href]="e.ubicacion_url" target="_blank" rel="noopener noreferrer" class="btn-maps-badge" title="Abrir ubicación en Google Maps / Apple Maps">
                         📍 Mapa GPS ↗
                       </a>
-                      <button type="button" class="btn-copy-gps" (click)="copiarUbicacion(e.ubicacion_url)" title="Copiar enlace para pegar en la app de Yango">
+                      <button type="button" class="btn-copy-gps" (click)="copiarUbicacion(e.ubicacion_url)" title="Copiar enlace de ubicación">
                         📋 Copiar Link
                       </button>
                     </div>
@@ -66,16 +66,15 @@
                     {{ e.estado | uppercase }}
                   </span>
                 </td>
-                <!-- Celda Yango -->
+                <!-- Celda Delivery -->
                 <td>
-                  @if (e.yango_tracking_code) {
-                    <div class="yango-cell">
-                      <span class="yango-code">🛵 {{ e.yango_tracking_code }}</span>
+                  @if (e.delivery_conductor || e.token_seguimiento) {
+                    <div class="delivery-cell">
                       @if (e.delivery_conductor) {
-                        <small class="yango-conductor">{{ e.delivery_conductor }}</small>
+                        <span class="delivery-conductor-badge">🛵 {{ e.delivery_conductor }}</span>
                       }
-                      @if (e.yango_tracking_url) {
-                        <a [href]="e.yango_tracking_url" target="_blank" class="yango-link">Ver en vivo ↗</a>
+                      @if (e.token_seguimiento) {
+                        <small class="tracking-token">{{ e.token_seguimiento }}</small>
                       }
                     </div>
                   } @else {
@@ -87,8 +86,8 @@
                   <button class="btn-action-map" (click)="abrirMapaTracking(e)" title="Ver trazado y distancia en Mapa Leaflet">
                     🗺️ Mapa
                   </button>
-                  <button class="btn-action-yango" (click)="openYangoModal(e)" title="Asignar o editar código de Yango Delivery">
-                    🛵 Yango
+                  <button class="btn-action-delivery" (click)="openDeliveryModal(e)" title="Asignar Delivery StyleStore">
+                    🛵 Delivery
                   </button>
                   <button class="btn-icon btn-edit" (click)="openEdit(e)" title="Editar">✏️</button>
                   <button class="btn-icon btn-delete" (click)="deleteEnvio(e)" title="Eliminar">🗑️</button>
@@ -108,22 +107,22 @@
     }
   </div>
 
-  <!-- MODAL ASIGNAR YANGO DELIVERY A MANO POR EL ENCARGADO -->
-  @if (isYangoModalOpen() && selectedEnvio()) {
-    <div class="modal-backdrop" (click)="closeYangoModal()">
-      <div class="modal-card" (click)="$event.stopPropagation()">
+  <!-- MODAL ASIGNAR DELIVERY STYLESTORE -->
+  @if (isDeliveryModalOpen() && selectedEnvio()) {
+    <div class="modal-backdrop" (click)="closeDeliveryModal()">
+      <div class="modal-card modal-delivery-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>🛵 Asignar Yango Delivery a Orden #{{ selectedEnvio()!.orden_venta_id }}</h3>
-          <button class="btn-close" (click)="closeYangoModal()">✕</button>
+          <h3>🛵 Asignar Delivery StyleStore a Orden #{{ selectedEnvio()!.orden_venta_id }}</h3>
+          <button class="btn-close" (click)="closeDeliveryModal()">✕</button>
         </div>
         <div class="modal-body">
-          <!-- TARJETA DESTINO PARA EL ENCARGADO / YANGO -->
+          <!-- TARJETA DESTINO -->
           <div class="modal-dest-card">
             <div class="dest-card-header">
               <span class="dest-badge">📍 Destino del Pedido</span>
               @if (selectedEnvio()!.ubicacion_url) {
-                <button type="button" class="btn-copy-yango-action" (click)="copiarUbicacion(selectedEnvio()!.ubicacion_url)" title="Copiar enlace para pegarlo directamente en la app Yango">
-                  📋 Copiar Link para Yango
+                <button type="button" class="btn-copy-delivery-action" (click)="copiarUbicacion(selectedEnvio()!.ubicacion_url)" title="Copiar enlace de ubicación GPS">
+                  📋 Copiar Link GPS
                 </button>
               }
             </div>
@@ -147,37 +146,44 @@
                 </div>
               } @else {
                 <div class="dest-notice-warning">
-                  ℹ️ El cliente no adjuntó link de mapas. Usa la dirección escrita para solicitar el móvil en Yango.
+                  ℹ️ El cliente no adjuntó link de mapas. Usa la dirección escrita para indicar la ruta al repartidor.
                 </div>
               }
             </div>
           </div>
 
-          <p class="modal-desc">
-            Copia la ubicación exacta arriba, pégala en la app de Yango al solicitar la moto, y luego ingresa aquí los datos del viaje para que el cliente rastree su pedido:
-          </p>
+          <!-- LINKS DE TRACKING -->
+          @if (selectedEnvio()!.token_seguimiento) {
+            <div class="tracking-links-card">
+              <h4 class="tracking-links-title">📲 Enlaces de Rastreo en Tiempo Real</h4>
 
-          <div class="form-group">
-            <label>Código de Rastreo Yango *</label>
-            <input
-              type="text"
-              class="form-control"
-              placeholder="Ej: YANGO-SCZ-9921"
-              [ngModel]="editYangoCode()"
-              (ngModelChange)="editYangoCode.set($event)"
-            />
-          </div>
+              <div class="tracking-link-row">
+                <div class="tracking-link-info">
+                  <span class="tl-icon">🛵</span>
+                  <div>
+                    <strong>Link del Conductor</strong>
+                    <small>Enviar por WhatsApp al repartidor para que comparta su GPS</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-copy-track" (click)="copiarLinkConductor()">
+                  📋 Copiar
+                </button>
+              </div>
 
-          <div class="form-group">
-            <label>URL de Seguimiento en Vivo Yango</label>
-            <input
-              type="url"
-              class="form-control"
-              placeholder="https://yango.delivery/track/..."
-              [ngModel]="editYangoUrl()"
-              (ngModelChange)="editYangoUrl.set($event)"
-            />
-          </div>
+              <div class="tracking-link-row">
+                <div class="tracking-link-info">
+                  <span class="tl-icon">📍</span>
+                  <div>
+                    <strong>Link del Cliente</strong>
+                    <small>El cliente puede ver la ubicación del repartidor en un mapa en vivo</small>
+                  </div>
+                </div>
+                <button type="button" class="btn-copy-track" (click)="copiarLinkCliente()">
+                  📋 Copiar
+                </button>
+              </div>
+            </div>
+          }
 
           <div class="form-group">
             <label>Conductor / Repartidor Asignado</label>
@@ -200,8 +206,8 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" (click)="closeYangoModal()">Cancelar</button>
-          <button class="btn btn-primary" (click)="saveYangoTracking()">Guardar Despacho Yango</button>
+          <button class="btn btn-secondary" (click)="closeDeliveryModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveDeliveryTracking()">Guardar Despacho</button>
         </div>
       </div>
     </div>
@@ -220,7 +226,7 @@
             <label>Estado del Despacho</label>
             <select class="form-control" [ngModel]="editEstado()" (ngModelChange)="editEstado.set($event)">
               <option value="pendiente">Pendiente</option>
-              <option value="en camino">En Camino (Yango)</option>
+              <option value="en camino">En Camino</option>
               <option value="entregado">Entregado</option>
               <option value="completado">Completado</option>
             </select>
@@ -287,7 +293,7 @@
     </div>
   }
 
-  <!-- MODAL: MAPA INTERACTIVO LEAFLET + OSM (v7 Punto 7) -->
+  <!-- MODAL: MAPA INTERACTIVO LEAFLET + OSM -->
   <div class="modal-backdrop" *ngIf="isMapModalOpen" (click)="cerrarMapaModal()">
     <div class="modal-card modal-map-card" (click)="$event.stopPropagation()">
       <div class="modal-header">

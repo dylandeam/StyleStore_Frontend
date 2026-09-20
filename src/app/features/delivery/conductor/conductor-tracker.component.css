@@ -1,0 +1,402 @@
+/* ═══════════════════════════════════════════
+   Conductor Tracker — StyleStore Delivery
+   Mobile-first responsive design
+   ═══════════════════════════════════════════ */
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f1724 0%, #1a2a42 50%, #14263D 100%);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.conductor-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+/* Header */
+.conductor-header {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 2.4rem;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.brand-sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 2px 0 0;
+}
+
+/* Cards */
+.info-card,
+.gps-card,
+.entrega-card,
+.error-card,
+.loading-card,
+.entregado-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+/* Info Card */
+.info-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.info-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #C9A96E;
+}
+
+.estado-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.estado-badge.en-camino {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.estado-badge.pendiente {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.info-value.clickable {
+  color: #60a5fa;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.info-value.highlight {
+  color: #C9A96E;
+  font-weight: 600;
+}
+
+.btn-maps {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-maps:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* GPS Card */
+.gps-title {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.btn-gps-start {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s;
+}
+
+.btn-gps-start:active {
+  transform: scale(0.97);
+}
+
+.gps-hint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.gps-active-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  color: #34d399;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+}
+
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.gps-status-text {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 8px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.gps-status-text.warning {
+  color: #fbbf24;
+}
+
+.gps-coords {
+  display: flex;
+  gap: 12px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Courier New', monospace;
+  margin: 8px 0 12px;
+  flex-wrap: wrap;
+}
+
+.send-count {
+  color: #34d399;
+  font-weight: 600;
+}
+
+.btn-gps-stop {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-gps-stop:active {
+  background: rgba(239, 68, 68, 0.35);
+}
+
+/* Entrega Card */
+.btn-entrega {
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #C9A96E, #b8943f);
+  color: #14263D;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(201, 169, 110, 0.3);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-entrega:active {
+  transform: scale(0.97);
+}
+
+.btn-entrega:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.entrega-hint {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Error */
+.error-card {
+  text-align: center;
+  padding: 32px;
+}
+
+.error-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.error-card p {
+  color: #f87171;
+  font-size: 0.95rem;
+}
+
+/* Loading */
+.loading-card {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-card p {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #C9A96E;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+.spinner-sm {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(20, 38, 61, 0.2);
+  border-top-color: #14263D;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Entregado */
+.entregado-card {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.entregado-icon-wrap {
+  margin-bottom: 16px;
+}
+
+.entregado-check {
+  font-size: 3rem;
+  animation: bounceIn 0.5s ease;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.entregado-card h2 {
+  font-size: 1.5rem;
+  color: #34d399;
+  margin: 0 0 8px;
+}
+
+.entregado-card p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.entregado-sub {
+  margin-top: 12px !important;
+  font-size: 1rem !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Footer */
+.conductor-footer {
+  text-align: center;
+  padding: 20px;
+}
+
+.conductor-footer p {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 0;
+}

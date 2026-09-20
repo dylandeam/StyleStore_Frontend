@@ -10,9 +10,19 @@ export interface Envio {
   fecha: string;
   created_at: string;
   cliente_nombre?: string;
+  // Legacy compatibility
   yango_tracking_code?: string;
   yango_tracking_url?: string;
+  // New delivery tracking
+  tracking_code?: string;
+  tracking_url?: string;
+  tracking_activo?: boolean;
+  token_seguimiento?: string;
   delivery_conductor?: string;
+  repartidor_lat?: number;
+  repartidor_lon?: number;
+  repartidor_nombre?: string;
+  repartidor_actualizado_en?: string;
 }
 
 export interface EnvioCreate {
@@ -32,14 +42,12 @@ export interface EnvioUpdate {
   ubicacion_url?: string;
   costo?: number;
   estado?: string;
-  yango_tracking_code?: string;
-  yango_tracking_url?: string;
   delivery_conductor?: string;
 }
 
-export interface EnvioYangoUpdate {
-  yango_tracking_code?: string;
-  yango_tracking_url?: string;
+export interface EnvioDeliveryUpdate {
   delivery_conductor?: string;
   estado?: string;
+  tracking_code?: string;
+  tracking_url?: string;
 }

@@ -1,0 +1,133 @@
+<div class="conductor-page">
+  <!-- Header Branding -->
+  <header class="conductor-header">
+    <div class="brand-row">
+      <span class="brand-icon">🛵</span>
+      <div>
+        <h1 class="brand-title">StyleStore Delivery</h1>
+        <p class="brand-sub">Panel del Conductor</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Error State -->
+  @if (error()) {
+    <div class="error-card">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-card">
+      <div class="spinner"></div>
+      <p>Cargando datos del pedido...</p>
+    </div>
+  }
+
+  <!-- Entregado State -->
+  @if (entregado()) {
+    <div class="entregado-card">
+      <div class="entregado-icon-wrap">
+        <span class="entregado-check">✅</span>
+      </div>
+      <h2>¡Pedido Entregado!</h2>
+      <p>La transmisión de ubicación ha sido finalizada correctamente.</p>
+      <p class="entregado-sub">Gracias por tu servicio de delivery. 🎉</p>
+    </div>
+  }
+
+  <!-- Main Content -->
+  @if (pedido() && !entregado() && !isLoading()) {
+    <!-- Pedido Info Card -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <span class="info-badge">📦 Pedido #{{ pedido().orden_venta_id }}</span>
+        <span class="estado-badge" [class.en-camino]="pedido().estado === 'en camino'" [class.pendiente]="pedido().estado === 'pendiente'">
+          {{ pedido().estado | uppercase }}
+        </span>
+      </div>
+
+      <div class="info-rows">
+        <div class="info-row">
+          <span class="info-label">👤 Cliente</span>
+          <span class="info-value">{{ pedido().cliente_nombre }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📞 Teléfono</span>
+          <span class="info-value clickable" (click)="llamarCliente()">{{ pedido().cliente_telefono }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">📍 Dirección</span>
+          <span class="info-value">{{ pedido().direccion }} — {{ pedido().ciudad }}</span>
+        </div>
+        @if (pedido().referencia) {
+          <div class="info-row">
+            <span class="info-label">🏠 Referencia</span>
+            <span class="info-value highlight">{{ pedido().referencia }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Abrir en Maps -->
+      <button class="btn-maps" (click)="abrirEnMaps()">
+        🗺️ Abrir Destino en Google Maps
+      </button>
+    </div>
+
+    <!-- GPS Control Card -->
+    <div class="gps-card">
+      <h3 class="gps-title">📡 Transmisión GPS en Tiempo Real</h3>
+
+      @if (!gpsActivo()) {
+        <button class="btn-gps-start" (click)="iniciarGps()">
+          🟢 Iniciar Transmisión GPS en Vivo
+        </button>
+        <p class="gps-hint">Al presionar, tu navegador solicitará permiso para acceder a tu ubicación. El cliente podrá ver tu posición en tiempo real.</p>
+      } @else {
+        <div class="gps-active-indicator">
+          <div class="pulse-dot"></div>
+          <span>Compartiendo ubicación...</span>
+        </div>
+
+        @if (gpsStatus()) {
+          <p class="gps-status-text">{{ gpsStatus() }}</p>
+        }
+
+        @if (ultimaPosicion()) {
+          <div class="gps-coords">
+            <span>Lat: {{ ultimaPosicion()!.lat.toFixed(5) }}</span>
+            <span>Lon: {{ ultimaPosicion()!.lon.toFixed(5) }}</span>
+            <span class="send-count">📤 {{ enviandoCount() }} envíos</span>
+          </div>
+        }
+
+        <button class="btn-gps-stop" (click)="detenerGps()">
+          🔴 Detener Transmisión
+        </button>
+      }
+
+      @if (!gpsActivo() && gpsStatus()) {
+        <p class="gps-status-text warning">{{ gpsStatus() }}</p>
+      }
+    </div>
+
+    <!-- Confirmar Entrega -->
+    <div class="entrega-card">
+      <button class="btn-entrega" (click)="confirmarEntrega()" [disabled]="entregando()">
+        @if (entregando()) {
+          <span class="spinner-sm"></span> Confirmando...
+        } @else {
+          ✅ Confirmar Entrega del Paquete
+        }
+      </button>
+      <p class="entrega-hint">Al confirmar, se detendrá la transmisión GPS y el pedido se marcará como entregado.</p>
+    </div>
+  }
+
+  <!-- Footer -->
+  <footer class="conductor-footer">
+    <p>StyleStore Delivery © {{ currentYear }}</p>
+  </footer>
+</div>

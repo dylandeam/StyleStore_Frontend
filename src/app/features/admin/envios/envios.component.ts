@@ -26,7 +26,7 @@ export class EnviosComponent implements OnInit {
 
   selectedEnvio = signal<Envio | null>(null);
   isEditModalOpen = signal<boolean>(false);
-  isYangoModalOpen = signal<boolean>(false);
+  isDeliveryModalOpen = signal<boolean>(false);
   editEstado = signal<string>('pendiente');
   editDireccion = signal<string>('');
   editCiudad = signal<string>('');
@@ -34,12 +34,10 @@ export class EnviosComponent implements OnInit {
   editReferencia = signal<string>('');
   editUbicacionUrl = signal<string>('');
 
-  // Yango Delivery Tracking
-  editYangoCode = signal<string>('');
-  editYangoUrl = signal<string>('');
+  // Delivery StyleStore Tracking
   editDeliveryConductor = signal<string>('');
 
-  // Mapa Leaflet + OSM (v7 Punto 7)
+  // Mapa Leaflet + OSM
   isMapModalOpen: boolean = false;
   trackingData: any = null;
   private mapInstance: any = null;
@@ -68,68 +66,86 @@ export class EnviosComponent implements OnInit {
     }
   }
 
-  openYangoModal(e: Envio): void {
+  // ─── Delivery Modal (reemplaza Yango) ───
+
+  openDeliveryModal(e: Envio): void {
     this.selectedEnvio.set(e);
-    this.editYangoCode.set(e.yango_tracking_code || '');
-    this.editYangoUrl.set(e.yango_tracking_url || '');
     this.editDeliveryConductor.set(e.delivery_conductor || '');
     this.editEstado.set(e.estado || 'en camino');
-    this.isYangoModalOpen.set(true);
+    this.isDeliveryModalOpen.set(true);
   }
 
-  closeYangoModal(): void {
-    this.isYangoModalOpen.set(false);
+  closeDeliveryModal(): void {
+    this.isDeliveryModalOpen.set(false);
+  }
+
+  copiarLinkConductor(): void {
+    const token = this.selectedEnvio()?.token_seguimiento;
+    if (!token) return;
+    const url = `${window.location.origin}/delivery/conductor/${token}`;
+    this.copiarAlPortapapeles(url, '¡Link del Conductor copiado! Envíalo por WhatsApp al repartidor.');
+  }
+
+  copiarLinkCliente(): void {
+    const token = this.selectedEnvio()?.token_seguimiento;
+    if (!token) return;
+    const url = `${window.location.origin}/delivery/rastreo/${token}`;
+    this.copiarAlPortapapeles(url, '¡Link de Rastreo del Cliente copiado!');
+  }
+
+  private copiarAlPortapapeles(text: string, msg: string): void {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.successMessage.set(msg);
+        setTimeout(() => this.successMessage.set(null), 4000);
+      }).catch(() => {
+        this.copiarFallback(text, msg);
+      });
+    } else {
+      this.copiarFallback(text, msg);
+    }
   }
 
   copiarUbicacion(url?: string): void {
     if (!url) return;
-    if (navigator?.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        this.successMessage.set('¡Enlace de ubicación copiado!');
-        setTimeout(() => this.successMessage.set(null), 3000);
-      }).catch(() => {
-        this.copiarFallback(url);
-      });
-    } else {
-      this.copiarFallback(url);
-    }
+    this.copiarAlPortapapeles(url, '¡Enlace de ubicación copiado!');
   }
 
-  private copiarFallback(url: string): void {
+  private copiarFallback(text: string, msg: string): void {
     const el = document.createElement('textarea');
-    el.value = url;
+    el.value = text;
     document.body.appendChild(el);
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
-    this.successMessage.set('¡Enlace de ubicación copiado!');
-    setTimeout(() => this.successMessage.set(null), 3000);
+    this.successMessage.set(msg);
+    setTimeout(() => this.successMessage.set(null), 4000);
   }
 
-  saveYangoTracking(): void {
+  saveDeliveryTracking(): void {
     if (!this.selectedEnvio()) return;
     this.isLoading.set(true);
 
     this.envioService
-      .updateYangoTracking(this.selectedEnvio()!.id, {
-        yango_tracking_code: this.editYangoCode().trim(),
-        yango_tracking_url: this.editYangoUrl().trim(),
+      .updateDeliveryTracking(this.selectedEnvio()!.id, {
         delivery_conductor: this.editDeliveryConductor().trim(),
         estado: this.editEstado(),
       })
       .subscribe({
         next: () => {
-          this.successMessage.set(`Tracking Yango asignado al Envío #${this.selectedEnvio()!.id}`);
-          this.closeYangoModal();
+          this.successMessage.set(`Delivery asignado al Envío #${this.selectedEnvio()!.id}`);
+          this.closeDeliveryModal();
           this.loadEnvios();
           setTimeout(() => this.successMessage.set(null), 3000);
         },
         error: (err) => {
-          this.errorMessage.set(err.error?.detail || 'Error al actualizar tracking Yango.');
+          this.errorMessage.set(err.error?.detail || 'Error al actualizar delivery.');
           this.isLoading.set(false);
         },
       });
   }
+
+  // ─── Listado ───
 
   loadEnvios(): void {
     this.isLoading.set(true);
@@ -146,6 +162,8 @@ export class EnviosComponent implements OnInit {
       },
     });
   }
+
+  // ─── Edit Modal ───
 
   openEdit(e: Envio): void {
     this.selectedEnvio.set(e);
@@ -207,7 +225,7 @@ export class EnviosComponent implements OnInit {
   }
 
   // ==============================================================
-  // MAPA INTERACTIVO LEAFLET + OSM (v7 Punto 7)
+  // MAPA INTERACTIVO LEAFLET + OSM
   // ==============================================================
 
   abrirMapaTracking(envio: Envio): void {
