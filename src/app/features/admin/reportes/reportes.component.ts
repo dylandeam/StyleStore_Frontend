@@ -139,78 +139,92 @@ export class ReportesComponent implements OnInit {
   initSpeechRecognitionIA(): void {
     if (typeof window === 'undefined') return;
     const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRec) {
-      this.speechSupportedIA = true;
-      try {
-        this.recognitionIA = new SpeechRec();
-        this.recognitionIA.lang = 'es-BO';
-        this.recognitionIA.continuous = false;
-        this.recognitionIA.interimResults = false;
+    this.speechSupportedIA = !!SpeechRec;
+  }
 
-        this.recognitionIA.onstart = () => {
-          this.ngZone.run(() => {
-            this.isListeningIA = true;
-            this.cdr.markForCheck();
-            this.cdr.detectChanges();
-          });
-        };
+  private setupRecognitionIA(SpeechRec: any): void {
+    try {
+      this.recognitionIA = new SpeechRec();
+      const navLang = typeof navigator !== 'undefined' && navigator.language ? navigator.language : 'es-ES';
+      this.recognitionIA.lang = navLang.startsWith('es') ? navLang : 'es-ES';
+      this.recognitionIA.continuous = false;
+      this.recognitionIA.interimResults = false;
 
-        this.recognitionIA.onresult = (event: any) => {
-          this.ngZone.run(() => {
-            if (event.results && event.results[0] && event.results[0][0]) {
-              const transcripcion = event.results[0][0].transcript;
-              if (transcripcion) {
-                this.preguntaIA = transcripcion;
-                this.isListeningIA = false;
-                this.cdr.markForCheck();
-                this.cdr.detectChanges();
-                this.consultarIA();
-              }
+      this.recognitionIA.onstart = () => {
+        this.ngZone.run(() => {
+          this.isListeningIA = true;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      };
+
+      this.recognitionIA.onresult = (event: any) => {
+        this.ngZone.run(() => {
+          if (event.results && event.results[0] && event.results[0][0]) {
+            const transcripcion = event.results[0][0].transcript;
+            if (transcripcion) {
+              this.preguntaIA = transcripcion;
+              this.isListeningIA = false;
+              this.cdr.markForCheck();
+              this.cdr.detectChanges();
+              this.consultarIA();
             }
-          });
-        };
+          }
+        });
+      };
 
-        this.recognitionIA.onerror = (err: any) => {
-          this.ngZone.run(() => {
-            console.warn('SpeechRecognition error en reportes:', err);
-            this.isListeningIA = false;
-            this.cdr.markForCheck();
-            this.cdr.detectChanges();
-          });
-        };
+      this.recognitionIA.onerror = (err: any) => {
+        this.ngZone.run(() => {
+          console.warn('SpeechRecognition error en reportes:', err);
+          this.isListeningIA = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+          if (err.error === 'not-allowed') {
+            this.mostrarToast('Permiso de micrófono denegado. Permite el acceso en los ajustes de tu navegador.');
+          }
+        });
+      };
 
-        this.recognitionIA.onend = () => {
-          this.ngZone.run(() => {
-            this.isListeningIA = false;
-            this.cdr.markForCheck();
-            this.cdr.detectChanges();
-          });
-        };
-      } catch (e) {
-        console.warn('Error inicializando SpeechRecognition en reportes:', e);
-      }
+      this.recognitionIA.onend = () => {
+        this.ngZone.run(() => {
+          this.isListeningIA = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      };
+    } catch (e) {
+      console.warn('Error configurando SpeechRecognition en reportes:', e);
     }
   }
 
   toggleVoiceSearchIA(): void {
-    if (!this.speechSupportedIA || !this.recognitionIA) {
-      alert('Tu navegador no tiene activado el soporte de voz nativo. Te sugerimos usar Google Chrome, Microsoft Edge o Safari en iPhone/iPad.');
+    const SpeechRec = typeof window !== 'undefined' ? ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition) : null;
+    if (!SpeechRec) {
+      this.mostrarToast('Tu navegador no tiene activado el soporte de voz nativo. Te sugerimos usar Safari en iPhone o Chrome en Android.');
       return;
     }
 
     if (this.isListeningIA) {
       try {
-        this.recognitionIA.stop();
+        if (this.recognitionIA) {
+          this.recognitionIA.stop();
+        }
       } catch (e) {
         console.warn('Error deteniendo voz en reportes:', e);
       }
       this.isListeningIA = false;
+      this.cdr.markForCheck();
     } else {
       try {
-        this.recognitionIA.start();
-      } catch (e) {
+        this.setupRecognitionIA(SpeechRec);
+        if (this.recognitionIA) {
+          this.recognitionIA.start();
+        }
+      } catch (e: any) {
         console.warn('Error iniciando voz en reportes:', e);
         this.isListeningIA = false;
+        this.mostrarToast('No se pudo acceder al micrófono. Verifica los permisos.');
+        this.cdr.markForCheck();
       }
     }
   }

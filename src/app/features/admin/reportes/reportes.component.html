@@ -34,25 +34,39 @@
 
     <!-- Barra de Consulta con Micrófono -->
     <div class="ai-input-bar-wrap">
-      <button
-        type="button"
-        class="btn-voice-report"
-        [class.listening]="isListeningIA"
-        (click)="toggleVoiceSearchIA()"
-        [title]="isListeningIA ? 'Detener micrófono' : 'Consultar por voz (micrófono)'"
-      >
-        <span class="mic-icon">🎙️</span>
-        <span class="listening-ping" *ngIf="isListeningIA"></span>
-      </button>
+      <div class="ai-input-row">
+        <button
+          type="button"
+          class="btn-voice-report"
+          [class.listening]="isListeningIA"
+          (click)="toggleVoiceSearchIA()"
+          [title]="isListeningIA ? 'Detener micrófono' : 'Consultar por voz (micrófono)'"
+          aria-label="Consultar por voz con micrófono"
+        >
+          <span class="mic-icon">🎙️</span>
+          <span class="listening-ping" *ngIf="isListeningIA"></span>
+        </button>
 
-      <input
-        type="text"
-        class="ai-search-input"
-        [(ngModel)]="preguntaIA"
-        (keyup.enter)="consultarIA()"
-        [placeholder]="isListeningIA ? 'Escuchando tu voz... Habla ahora' : 'Ej: ¿cuántas ropas se vendieron hoy? o ¿cuánto recaudó la sucursal alemana?'"
-        [disabled]="isLoadingIA"
-      />
+        <input
+          type="text"
+          class="ai-search-input"
+          [(ngModel)]="preguntaIA"
+          (keyup.enter)="consultarIA()"
+          [placeholder]="isListeningIA ? 'Escuchando tu voz... Habla ahora' : 'Escribe o presiona 🎙️ para preguntar...'"
+          [disabled]="isLoadingIA"
+        />
+
+        <button
+          type="button"
+          class="btn-limpiar-ai"
+          *ngIf="respuestaIA || preguntaIA"
+          (click)="limpiarConsultaIA()"
+          title="Limpiar consulta"
+          aria-label="Limpiar consulta"
+        >
+          ✕
+        </button>
+      </div>
 
       <button
         type="button"
@@ -62,16 +76,6 @@
       >
         <span *ngIf="!isLoadingIA">Consultar IA →</span>
         <span *ngIf="isLoadingIA">Analizando...</span>
-      </button>
-
-      <button
-        type="button"
-        class="btn-limpiar-ai"
-        *ngIf="respuestaIA || preguntaIA"
-        (click)="limpiarConsultaIA()"
-        title="Limpiar consulta"
-      >
-        ✕
       </button>
     </div>
 
