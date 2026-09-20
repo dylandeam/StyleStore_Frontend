@@ -982,4 +982,490 @@
   cursor: pointer;
 }
 
+/* ========================================================= */
+/* ESTILOS DE VENTA DIRECTA EN MOSTRADOR (POS)              */
+/* ========================================================= */
+.pos-directa-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  margin-top: 10px;
+}
+
+@media (max-width: 1024px) {
+  .pos-directa-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pos-catalog-panel {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.catalog-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #edf2f7;
+}
+
+@media (max-width: 640px) {
+  .catalog-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #14263D;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pos-select,
+.pos-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.pos-select:focus,
+.pos-input:focus {
+  border-color: #14263D;
+  box-shadow: 0 0 0 3px rgba(20, 38, 61, 0.12);
+}
+
+.catalog-items-area {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.empty-notice {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #cbd5e1;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.pos-product-card {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.pos-product-card:hover {
+  border-color: #14263D;
+  box-shadow: 0 6px 14px rgba(20, 38, 61, 0.08);
+  transform: translateY(-2px);
+}
+
+.p-thumb {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  margin-bottom: 10px;
+}
+
+.p-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.p-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  line-height: 1.25;
+}
+
+.p-meta {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.p-badge {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.p-badge.color {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.p-price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px dashed #f1f5f9;
+}
+
+.p-price {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #14263D;
+}
+
+.p-stock {
+  font-size: 0.75rem;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.btn-add-p {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #14263D;
+  color: #ffffff;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Panel Canasta POS */
+.pos-cart-panel {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.pos-cart-panel h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #14263D;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metodo-pago-selector {
+  margin-bottom: 16px;
+}
+
+.metodo-pago-selector label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.metodo-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-metodo {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-metodo.active {
+  border-color: #14263D;
+  background: #14263D;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(20, 38, 61, 0.2);
+}
+
+.cart-items-list {
+  flex: 1;
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 16px;
+  background: #fafafa;
+}
+
+.empty-cart-notice {
+  text-align: center;
+  padding: 30px 10px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
+.cart-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.ci-info {
+  flex: 1;
+}
+
+.ci-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ci-variant {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.ci-unit-price {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.ci-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ci-qty-controls button {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.ci-qty-controls span {
+  font-weight: 800;
+  font-size: 0.9rem;
+  min-width: 16px;
+  text-align: center;
+}
+
+.ci-subtotal {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #14263D;
+  min-width: 70px;
+  text-align: right;
+}
+
+.ci-btn-remove {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.cart-summary {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #edf2f7;
+}
+
+.summary-line.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #14263D;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px dashed #cbd5e1;
+}
+
+.summary-line.total strong {
+  font-size: 1.4rem;
+  color: #16a34a;
+}
+
+.direct-cash-controls {
+  margin-bottom: 16px;
+}
+
+.direct-cash-controls label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.cash-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #14263D;
+  background: #ffffff;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.cash-input:focus {
+  border-color: #14263D;
+}
+
+.quick-cash-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-cash {
+  flex: 1;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cash:hover {
+  background: #e2e8f0;
+}
+
+.btn-cash.exact {
+  background: #14263D;
+  color: #ffffff;
+  border-color: #14263D;
+}
+
+.cambio-display.valid {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cambio-label {
+  font-weight: 800;
+  color: #166534;
+  font-size: 0.9rem;
+}
+
+.cambio-value {
+  font-weight: 900;
+  color: #15803d;
+  font-size: 1.25rem;
+}
+
+.qr-notice-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.82rem;
+  color: #1e40af;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.btn-emitir-ticket {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #14263D;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(20, 38, 61, 0.2);
+}
+
+.btn-emitir-ticket:hover:not(:disabled) {
+  background: #1e3a5f;
+  transform: translateY(-1px);
+}
+
+.btn-emitir-ticket:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+
 

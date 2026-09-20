@@ -201,7 +201,19 @@ export class CajaPosComponent implements OnInit {
   cargarSucursales(): void {
     this.sucursalService.getSucursales().subscribe({
       next: (res) => {
-        this.sucursales = res || [];
+        this.sucursales = (res || []).map((s: any) => ({
+          ...s,
+          id: s.id,
+          name: s.name || s.nombre || `Sucursal #${s.id}`,
+          nombre: s.nombre || s.name || `Sucursal #${s.id}`,
+          city: s.city || s.ciudad || '',
+          ciudad: s.ciudad || s.city || '',
+          address: s.address || s.direccion || '',
+          direccion: s.direccion || s.address || '',
+          phone: s.phone || s.telefono || '',
+          telefono: s.telefono || s.phone || '',
+        }));
+
         const user = this.authService.currentUser();
         if (user && user.sucursal_id) {
           this.selectedSucursalId = user.sucursal_id;
@@ -219,7 +231,26 @@ export class CajaPosComponent implements OnInit {
     this.loadingInventario = true;
     this.inventarioService.getInventarioSucursal(this.selectedSucursalId).subscribe({
       next: (items) => {
-        this.inventarioItems = (items || []).filter((it) => it.cantidad_disponible > 0);
+        this.inventarioItems = (items || [])
+          .map((it: any) => {
+            const disp = Number(it.cantidad_disponible ?? it.cantidad ?? 0);
+            return {
+              ...it,
+              stock_inventario_id: it.stock_inventario_id || it.id,
+              id: it.stock_inventario_id || it.id,
+              producto_nombre: it.producto_nombre || 'Prenda StyleStore',
+              precio_unitario: Number(it.precio_unitario || it.precio || 0),
+              precio: Number(it.precio_unitario || it.precio || 0),
+              cantidad: disp,
+              cantidad_disponible: disp,
+              talla_nombre: it.talla_nombre || it.talla || 'Talla Única',
+              talla: it.talla_nombre || it.talla || 'Talla Única',
+              color_nombre: it.color_nombre || it.color || '',
+              color: it.color_nombre || it.color || '',
+              foto: it.foto || null,
+            };
+          })
+          .filter((it: any) => it.cantidad_disponible > 0);
         this.loadingInventario = false;
         this.cdr.markForCheck();
       },

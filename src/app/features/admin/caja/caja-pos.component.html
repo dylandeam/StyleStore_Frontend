@@ -254,7 +254,9 @@
         <div class="filter-group">
           <label>Sucursal de Atención:</label>
           <select [(ngModel)]="selectedSucursalId" (change)="cargarInventarioSucursal()" class="pos-select">
-            <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
+            <option *ngFor="let s of sucursales" [value]="s.id">
+              🏢 {{ s.nombre || s.name }}{{ (s.ciudad || s.city) ? ' — ' + (s.ciudad || s.city) : '' }}
+            </option>
           </select>
         </div>
 
