@@ -8,6 +8,9 @@ export interface PayPalOrderResponse {
   status: string;
   links: Array<{ href: string; rel: string; method: string }>;
   mock?: boolean;
+  orden_id?: number;
+  orden_total_bob?: number;
+  total?: number;
 }
 
 export interface CobroCajaResponse {

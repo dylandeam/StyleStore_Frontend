@@ -278,9 +278,10 @@ export class CarritoComponent implements OnInit {
   }
 
   get totalFinal(): number {
-    const subtotal = this.carrito?.total || 0;
-    const envio = this.conEnvio ? (this.costoEnvio || 5.0) : 0;
-    return Math.round((subtotal + envio) * 100) / 100;
+    const subtotal = Number(this.carrito?.total) || 0;
+    const envio = this.conEnvio ? (Number(this.costoEnvio) || 5.0) : 0;
+    const total = subtotal + envio;
+    return isNaN(total) || total <= 0 ? (this.conEnvio ? 5.0 : 0) : Math.round(total * 100) / 100;
   }
 
   getImageUrl(foto?: string | null): string {
@@ -344,6 +345,13 @@ export class CarritoComponent implements OnInit {
     this.isProcesando.set(true);
     this.cdr.markForCheck();
 
+    // Snapshot robusto del monto total esperado (prendas + delivery) antes de confirmar el carrito
+    const subtotalPrendas = Number(this.carrito?.total) || 0;
+    const costoDelivery = this.conEnvio
+      ? (Number(this.costoEnvio) || Math.round((5.00 + (Number(this.distanciaKm) || 0) * 0.60) * 100) / 100)
+      : 0;
+    const totalEsperado = Math.round((subtotalPrendas + costoDelivery) * 100) / 100;
+
     const dirFinal = this.conEnvio
       ? (this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio'))
       : undefined;
@@ -366,7 +374,7 @@ export class CarritoComponent implements OnInit {
           // 2. Si hay envío, registrar el despacho con Delivery StyleStore con la tarifa calculada
           if (this.conEnvio) {
             const ciudadDespacho = this.ciudad.trim() || this.sucursalDespacho?.ciudad || this.branchService.selectedSucursal()?.city || 'Santa Cruz';
-            const costoDelivery = this.costoEnvio || Math.round((5.00 + (this.distanciaKm || 0) * 0.60) * 100) / 100;
+            const costoDeliveryFinal = this.costoEnvio || Math.round((5.00 + (this.distanciaKm || 0) * 0.60) * 100) / 100;
             this.envioService
               .createEnvio({
                 orden_venta_id: ordenId,
@@ -375,18 +383,18 @@ export class CarritoComponent implements OnInit {
                 referencia: this.referencia.trim() || undefined,
                 ubicacion_url: this.ubicacionUrl.trim() || undefined,
                 distancia_km: this.distanciaKm,
-                costo: costoDelivery,
+                costo: costoDeliveryFinal,
               })
               .subscribe({
                 next: () => {
-                  this.procederConPago(ordenId);
+                  this.procederConPago(ordenId, totalEsperado);
                 },
                 error: () => {
-                  this.procederConPago(ordenId);
+                  this.procederConPago(ordenId, totalEsperado);
                 },
               });
           } else {
-            this.procederConPago(ordenId);
+            this.procederConPago(ordenId, totalEsperado);
           }
         },
       error: (err) => {
@@ -411,10 +419,11 @@ export class CarritoComponent implements OnInit {
   paypalErrorMessage = signal<string>('');
 
   abrirPayPalSandboxModal(ordenId: number, token: string, approveUrl: string, total: number): void {
+    const totalSeguro = Number(total) || this.totalFinal || 5.0;
     this.paypalOrderId.set(ordenId);
     this.paypalToken.set(token);
     this.paypalApproveUrl.set(approveUrl);
-    this.paypalTotal.set(total);
+    this.paypalTotal.set(Math.round(totalSeguro * 100) / 100);
     this.paypalStep.set('login');
     this.paypalErrorMessage.set('');
     this.showPayPalModal.set(true);
@@ -476,7 +485,9 @@ export class CarritoComponent implements OnInit {
     });
   }
 
-  procederConPago(ordenId: number): void {
+  procederConPago(ordenId: number, montoEsperado?: number): void {
+    const fallbackMonto = montoEsperado || this.totalFinal || 0;
+
     if (this.metodoPago === 'paypal') {
       // Checkout con PayPal v2
       localStorage.setItem('stylestore_pending_order_id', String(ordenId));
@@ -487,7 +498,8 @@ export class CarritoComponent implements OnInit {
           this.cdr.markForCheck();
           this.cdr.detectChanges();
           const approveLink = ppRes.links?.find((l) => l.rel === 'approve')?.href || '';
-          this.abrirPayPalSandboxModal(ordenId, ppRes.id, approveLink, this.totalFinal);
+          const montoTotal = Number(ppRes.orden_total_bob ?? ppRes.total ?? fallbackMonto ?? this.totalFinal ?? 0);
+          this.abrirPayPalSandboxModal(ordenId, ppRes.id, approveLink, montoTotal);
         },
         error: (err) => {
           this.isProcesando.set(false);
@@ -502,7 +514,7 @@ export class CarritoComponent implements OnInit {
       this.isProcesando.set(false);
       this.ordenGeneradaState.set({
         orden_id: ordenId,
-        total: this.totalFinal,
+        total: fallbackMonto,
         metodo: 'efectivo',
         mensaje: 'Tu pedido ha sido registrado con éxito para pago contra entrega o en caja.',
       });

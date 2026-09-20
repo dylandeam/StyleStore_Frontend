@@ -360,7 +360,7 @@
             <div class="pp-order-num">Orden #{{ paypalOrderId() }}</div>
           </div>
           <div class="pp-order-amount">
-            Bs. {{ paypalTotal() | number:'1.2-2' }}
+            Bs. {{ (paypalTotal() || totalFinal || 0) | number:'1.2-2' }}
           </div>
         </div>
 
@@ -460,7 +460,7 @@
           </div>
           <div class="pp-summary-row total">
             <span>Total a transferir:</span>
-            <span>Bs. {{ paypalTotal() | number:'1.2-2' }}</span>
+            <span>Bs. {{ (paypalTotal() || totalFinal || 0) | number:'1.2-2' }}</span>
           </div>
         </div>
 
