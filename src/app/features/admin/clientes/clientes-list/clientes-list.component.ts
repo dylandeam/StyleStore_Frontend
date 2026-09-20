@@ -169,8 +169,19 @@ export class ClientesListComponent implements OnInit {
     }
   }
 
+  getNombreCompleto(c: Cliente): string {
+    const nombre = (c.nombre || '').trim();
+    const apellido = (c.apellido || '').trim();
+    if (!apellido) return nombre;
+    if (!nombre) return apellido;
+    if (nombre.toLowerCase().endsWith(apellido.toLowerCase())) {
+      return nombre;
+    }
+    return `${nombre} ${apellido}`;
+  }
+
   deleteCliente(c: Cliente): void {
-    if (!confirm(`¿Está seguro de eliminar al cliente ${c.nombre} ${c.apellido} (Código: ${c.codigo})?`)) {
+    if (!confirm(`¿Está seguro de eliminar al cliente ${this.getNombreCompleto(c)} (Código: ${c.codigo})?`)) {
       return;
     }
 

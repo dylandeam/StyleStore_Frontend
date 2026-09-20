@@ -116,13 +116,26 @@
           <input type="password" name="prevent_autofill_pass" tabindex="-1" style="position: absolute; top: -9999px; left: -9999px; opacity: 0; width: 0; height: 0;" autocomplete="current-password" />
 
           <div class="form-group">
-            <label>Nombre Completo</label>
+            <label>Nombres *</label>
             <input
               type="text"
               [(ngModel)]="newEmployee.name"
-              name="user_full_name"
+              name="user_first_name"
               class="form-control"
-              placeholder="Ej: Laura Méndez"
+              placeholder="Ej: Laura"
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Apellidos *</label>
+            <input
+              type="text"
+              [(ngModel)]="newEmployee.apellido"
+              name="user_last_name"
+              class="form-control"
+              placeholder="Ej: Méndez"
               autocomplete="off"
               required
             />

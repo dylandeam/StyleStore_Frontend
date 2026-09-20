@@ -57,6 +57,7 @@ export class UsuariosListComponent implements OnInit {
   openCreateModal(): void {
     this.newEmployee = {
       name: '',
+      apellido: '',
       email: '',
       password: '',
       role: 'cajero',
@@ -76,11 +77,24 @@ export class UsuariosListComponent implements OnInit {
       return;
     }
 
+    let cleanName = this.newEmployee.name.trim();
+    const cleanApellido = (this.newEmployee.apellido || '').trim();
+    if (cleanApellido && cleanName.toLowerCase().endsWith(cleanApellido.toLowerCase()) && cleanName.length > cleanApellido.length) {
+      cleanName = cleanName.slice(0, -cleanApellido.length).trim();
+    }
+
+    const payload = {
+      ...this.newEmployee,
+      name: cleanName,
+      apellido: cleanApellido || undefined,
+      email: this.newEmployee.email.trim(),
+    };
+
     this.isSubmitting.set(true);
     this.modalError.set('');
     this.modalSuccess.set('');
 
-    this.authService.createEmployee(this.newEmployee).subscribe({
+    this.authService.createEmployee(payload).subscribe({
       next: (created) => {
         this.isSubmitting.set(false);
         this.modalSuccess.set(`Empleado ${created.name} registrado con éxito.`);

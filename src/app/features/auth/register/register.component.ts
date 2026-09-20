@@ -110,11 +110,16 @@ export class RegisterComponent {
     this.successMessage.set(null);
 
     const val = this.registerForm.value;
+    let name = val.name!.trim();
+    let apellido = val.apellido!.trim();
+    if (apellido && name.toLowerCase().endsWith(apellido.toLowerCase()) && name.length > apellido.length) {
+      name = name.slice(0, -apellido.length).trim();
+    }
 
     this.authService
       .register({
-        name: val.name!.trim(),
-        apellido: val.apellido!.trim(),
+        name,
+        apellido,
         ci: val.ci!.trim(),
         telefono: val.telefono!.trim(),
         direccion: val.direccion!.trim(),
