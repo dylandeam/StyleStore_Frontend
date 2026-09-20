@@ -17,17 +17,17 @@ export class UploadService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/uploads`;
 
-  uploadImage(file: File, folder: 'productos' | 'empleados' = 'productos'): Observable<UploadResponse> {
+  uploadImage(file: File, folder: 'productos' | 'empleados' | 'clientes' = 'productos'): Observable<UploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<UploadResponse>(`${this.apiUrl}?folder=${folder}`, formData);
   }
 
-  getFileUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
+  getFileUrl(url?: string | null, folder: 'productos' | 'empleados' | 'clientes' = 'productos'): string {
     return this.getImageUrl(url, folder);
   }
 
-  getImageUrl(url?: string | null, folder: 'productos' | 'empleados' = 'productos'): string {
+  getImageUrl(url?: string | null, folder: 'productos' | 'empleados' | 'clientes' = 'productos'): string {
     if (!url || !url.trim()) return '';
     let trimmed = url.trim();
 

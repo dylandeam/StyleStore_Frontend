@@ -26,6 +26,9 @@
           <a routerLink="/cuenta/mis-compras" class="btn-hero-action outline" *ngIf="isCliente">
             <span>📦 Mis Compras & Garantías</span>
           </a>
+          <a routerLink="/cuenta/mis-reservas" class="btn-hero-action outline" *ngIf="isCliente">
+            <span>🔖 Mis Reservas & Tickets</span>
+          </a>
           <a routerLink="/admin/caja" class="btn-hero-action" *ngIf="isStaff">
             <span>💵 Punto de Venta POS</span>
           </a>
@@ -229,8 +232,8 @@
           </div>
         </a>
 
-        <!-- Inventario Module -->
-        <a routerLink="/admin/inventario" class="dash-module-card">
+        <!-- Inventario Module (Staff) -->
+        <a routerLink="/admin/inventario" class="dash-module-card" *ngIf="isStaff">
           <div class="mod-icon">
             <span>📦</span>
           </div>
@@ -241,8 +244,8 @@
           </div>
         </a>
 
-        <!-- Ventas Module -->
-        <a routerLink="/admin/ventas" class="dash-module-card">
+        <!-- Ventas Module (Staff) -->
+        <a routerLink="/admin/ventas" class="dash-module-card" *ngIf="isStaff">
           <div class="mod-icon">
             <span>💼</span>
           </div>
@@ -253,15 +256,15 @@
           </div>
         </a>
 
-        <!-- Reservas Module -->
-        <a routerLink="/admin/reservas" class="dash-module-card">
+        <!-- Reservas Module (Cliente a Mis Reservas / Staff a Monitoreo Reservas) -->
+        <a [routerLink]="isCliente ? '/cuenta/mis-reservas' : '/admin/reservas'" class="dash-module-card">
           <div class="mod-icon">
             <span>🔖</span>
           </div>
           <div class="mod-info">
-            <h3>Reservas y Tickets</h3>
-            <p>Control de apartado de prendas por 48 horas (CU13).</p>
-            <span class="mod-link">Ir al módulo &rarr;</span>
+            <h3>{{ isCliente ? 'Mis Reservas y Tickets' : 'Monitoreo de Reservas' }}</h3>
+            <p>{{ isCliente ? 'Consulta tus apartados, comprobantes de retiro y tickets oficiales.' : 'Visualización de reservas por sucursal y entrega en mostrador.' }}</p>
+            <span class="mod-link">{{ isCliente ? 'Ver mis reservas &rarr;' : 'Gestionar reservas &rarr;' }}</span>
           </div>
         </a>
 
@@ -302,15 +305,15 @@
         </a>
 
         @if (isStaff) {
-          <!-- Caja POS Module -->
+          <!-- Gestionar Pagos Module -->
           <a routerLink="/admin/caja" class="dash-module-card">
             <div class="mod-icon">
-              <span>💵</span>
+              <span>💳</span>
             </div>
             <div class="mod-info">
-              <h3>Caja / Cobros POS</h3>
-              <p>Punto de venta presencial con cálculo de vuelto y tickets.</p>
-              <span class="mod-link">Ir a caja &rarr;</span>
+              <h3>Gestionar Pagos</h3>
+              <p>Cobro de compras online, emisión de tickets y venta física en mostrador.</p>
+              <span class="mod-link">Ir a gestionar pagos &rarr;</span>
             </div>
           </a>
 
@@ -365,17 +368,19 @@
           </a>
         }
 
-        <!-- Bitacora Module (Visible para todos, protegida con Llave Maestra) -->
-        <a routerLink="/admin/bitacora" class="dash-module-card">
-          <div class="mod-icon">
-            <span>📒</span>
-          </div>
-          <div class="mod-info">
-            <h3>Bitácora de Auditoría</h3>
-            <p>Historial inmutable protegido con llave maestra / clave admin.</p>
-            <span class="mod-link">Acceso protegido &rarr;</span>
-          </div>
-        </a>
+        <!-- Bitacora Module (Solo Staff / Admin) -->
+        @if (!isCliente) {
+          <a routerLink="/admin/bitacora" class="dash-module-card">
+            <div class="mod-icon">
+              <span>📒</span>
+            </div>
+            <div class="mod-info">
+              <h3>Bitácora de Auditoría</h3>
+              <p>Historial inmutable protegido con llave maestra / clave admin.</p>
+              <span class="mod-link">Acceso protegido &rarr;</span>
+            </div>
+          </a>
+        }
 
         <!-- Perfil Module (Everyone) -->
         <a routerLink="/cuenta/perfil" class="dash-module-card">

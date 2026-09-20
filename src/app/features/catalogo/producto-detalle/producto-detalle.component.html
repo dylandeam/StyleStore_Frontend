@@ -62,7 +62,24 @@
           {{ producto.descripcion }}
         </p>
 
-        <hr class="divider" />
+        <!-- Selector de Sucursal para consultar existencias locales (Punto 3) -->
+        <div class="selector-grupo sucursal-selector-box" *ngIf="sucursalesList().length > 0">
+          <label class="grupo-label">
+            📍 Filtrar existencias por Sucursal:
+          </label>
+          <div class="sucursal-select-container">
+            <select
+              class="form-select sucursal-dropdown"
+              [ngModel]="sucursalFiltroId()"
+              (ngModelChange)="onSucursalFiltroChange($event)"
+            >
+              <option [ngValue]="null">🌐 Todas las Sucursales</option>
+              <option *ngFor="let s of sucursalesList()" [ngValue]="s.id">
+                🏬 {{ s.nombre }} — {{ s.ciudad }}
+              </option>
+            </select>
+          </div>
+        </div>
 
         <!-- 1. Selector de Color -->
         <div class="selector-grupo" *ngIf="producto.variantes && producto.variantes.length > 0">
@@ -105,7 +122,9 @@
               (click)="seleccionarTalla(ex)"
             >
               {{ ex.talla_nombre || 'U' }}
-              <span class="sucursal-tag" *ngIf="ex.sucursal_ciudad">({{ ex.sucursal_ciudad }})</span>
+              <span class="sucursal-tag" *ngIf="ex.sucursal_nombre || ex.sucursal_ciudad">
+                ({{ ex.sucursal_nombre ? ex.sucursal_nombre + ' — ' + (ex.sucursal_ciudad || '') : ex.sucursal_ciudad }})
+              </span>
             </button>
           </div>
         </div>

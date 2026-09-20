@@ -49,6 +49,7 @@ export interface CatalogoItem {
       talla_id: number;
       talla_nombre?: string;
       sucursal_id: number;
+      sucursal_nombre?: string;
       sucursal_ciudad?: string;
       cantidad: number;
     }>;
@@ -113,8 +114,10 @@ export class CarritoService {
     return this.http.get<CatalogoItem[]>(this.catalogoUrl, { params });
   }
 
-  getProductoDetalle(codigo: string): Observable<CatalogoItem> {
-    return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`);
+  getProductoDetalle(codigo: string, sucursalId?: number): Observable<CatalogoItem> {
+    let params = new HttpParams();
+    if (sucursalId) params = params.set('sucursal_id', sucursalId);
+    return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`, { params });
   }
 
   getRecomendadosIA(codigo: string, limit: number = 4): Observable<any[]> {

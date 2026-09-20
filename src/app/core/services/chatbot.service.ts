@@ -13,6 +13,17 @@ export interface ChatbotChip {
 export interface ChatbotResponse {
   respuesta: string;
   chips: ChatbotChip[];
+  accion_ejecutable?: {
+    tipo: string;
+    producto_codigo: string;
+    producto_nombre: string;
+    precio: number;
+    color_id?: number;
+    color_nombre?: string;
+    talla_id?: number;
+    talla_nombre?: string;
+    cantidad: number;
+  };
 }
 
 @Injectable({

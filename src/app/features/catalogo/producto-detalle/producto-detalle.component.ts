@@ -39,6 +39,9 @@ export class ProductoDetalleComponent implements OnInit {
   isLoadingRecomendaciones = signal<boolean>(true);
   errorMessage = signal<string | null>(null);
 
+  // Filtro de sucursal para consultar existencias reales
+  sucursalFiltroId = signal<number | null>(null);
+
   // Regla de Elegibilidad para Reservas (Punto 3)
   puedeReservar = signal<boolean>(false);
   comprasPrevias = signal<number>(0);
@@ -62,6 +65,19 @@ export class ProductoDetalleComponent implements OnInit {
   sucursalReservaId = signal<number>(0);
   sucursalesList = signal<Sucursal[]>([]);
   reservaExitosa = signal<any>(null);
+
+  getNombreSucursalSeleccionada(): string {
+    const id = this.sucursalFiltroId();
+    if (!id) return 'Todas las sucursales';
+    const s = this.sucursalesList().find((suc) => suc.id === id);
+    return s ? `${s.nombre} (${s.ciudad})` : 'Sucursal seleccionada';
+  }
+
+  onSucursalFiltroChange(sucId: any): void {
+    const parsedId = sucId ? Number(sucId) : null;
+    this.sucursalFiltroId.set(parsedId);
+    this.cargarProducto(this.codigoState(), parsedId);
+  }
 
   // Getters para enlace transparente con la plantilla HTML
   get codigo(): string { return this.codigoState(); }
@@ -151,13 +167,15 @@ export class ProductoDetalleComponent implements OnInit {
     });
   }
 
-  cargarProducto(codigo: string): void {
+  cargarProducto(codigo: string, sucursalId?: number | null): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
     this.productoData.set(null);
     this.cdr.markForCheck();
 
-    this.carritoService.getProductoDetalle(codigo).subscribe({
+    const targetSuc = sucursalId !== undefined ? sucursalId : this.sucursalFiltroId();
+
+    this.carritoService.getProductoDetalle(codigo, targetSuc || undefined).subscribe({
       next: (data) => {
         this.procesarProductoCargado(data, codigo);
       },
@@ -419,6 +437,7 @@ export class ProductoDetalleComponent implements OnInit {
 
   irAMisReservas(): void {
     this.cerrarModalReserva();
-    this.router.navigate(['/admin/reservas']);
+    this.router.navigate(['/cuenta/mis-reservas']);
   }
 }
+

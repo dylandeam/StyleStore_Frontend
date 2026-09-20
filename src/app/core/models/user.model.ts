@@ -9,6 +9,7 @@ export interface User {
   direccion?: string;
   foto?: string;
   role_id?: number;
+  sucursal_id?: number;
   role: string;
   is_active: boolean;
   created_at: string;

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -18,6 +18,7 @@ export class MisComprasComponent implements OnInit {
   private router = inject(Router);
   private ventaService = inject(VentaService);
   private cambiosService = inject(CambiosService);
+  private cdr = inject(ChangeDetectorRef);
 
   loading = true;
   compras: OrdenVenta[] = [];
@@ -43,15 +44,17 @@ export class MisComprasComponent implements OnInit {
     color_solicitado: '',
   };
 
+  fechaProgramada = '';
+  coloresDisponibles: any[] = [];
+  tallasDisponibles: any[] = [];
+  cargandoOpciones = false;
+
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      if (params['tab'] === 'cambios') {
-        this.tabActiva = 'cambios';
-      } else {
-        this.tabActiva = 'todas';
-      }
+      this.tabActiva = params['tab'] === 'cambios' ? 'cambios' : 'todas';
+      this.cargarCompras();
+      this.cdr.markForCheck();
     });
-    this.cargarCompras();
   }
 
   cambiarTab(tab: 'todas' | 'cambios'): void {
@@ -61,6 +64,7 @@ export class MisComprasComponent implements OnInit {
       queryParams: { tab: tab === 'cambios' ? 'cambios' : null },
       queryParamsHandling: 'merge',
     });
+    this.cdr.markForCheck();
   }
 
   get comprasSemana(): OrdenVenta[] {
@@ -69,16 +73,22 @@ export class MisComprasComponent implements OnInit {
 
   cargarCompras(): void {
     this.loading = true;
+    this.cdr.markForCheck();
+
     this.ventaService.getMyPurchases().subscribe({
       next: (res) => {
         const todas = [...(res.compras_carrito || []), ...(res.compras_presenciales || [])];
         todas.sort((a, b) => new Date(b.created_at || b.fecha).getTime() - new Date(a.created_at || a.fecha).getTime());
         this.compras = todas;
         this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar compras:', err);
         this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -86,11 +96,13 @@ export class MisComprasComponent implements OnInit {
   verDetalle(orden: OrdenVenta): void {
     this.selectedOrden = orden;
     this.showDetailModal = true;
+    this.cdr.markForCheck();
   }
 
   cerrarDetalle(): void {
     this.showDetailModal = false;
     this.selectedOrden = null;
+    this.cdr.markForCheck();
   }
 
   // Verifica si está dentro de los 7 días de gracia para cambios/devoluciones
@@ -112,8 +124,6 @@ export class MisComprasComponent implements OnInit {
     return restantes;
   }
 
-  fechaProgramada = '';
-
   abrirModalCambio(orden: OrdenVenta): void {
     this.selectedOrden = orden;
     this.cambioSuccessMessage = '';
@@ -134,17 +144,57 @@ export class MisComprasComponent implements OnInit {
       color_solicitado: '',
     };
     this.showCambioModal = true;
+    this.cdr.markForCheck();
+
+    if (firstDetalleId) {
+      this.cargarOpcionesParaDetalle(firstDetalleId);
+    }
+  }
+
+  cargarOpcionesParaDetalle(detalleId: any): void {
+    const dId = Number(detalleId);
+    this.solicitud.producto_detalle_id = dId;
+    this.solicitud.talla_solicitada = '';
+    this.solicitud.color_solicitado = '';
+    this.coloresDisponibles = [];
+    this.tallasDisponibles = [];
+
+    const detalle = this.selectedOrden?.detalles?.find((d) => d.id === dId);
+    if (!detalle) return;
+
+    const prodCod = detalle.producto_codigo || detalle.producto_nombre;
+    const sucId = this.selectedOrden?.sucursal_id || 1;
+
+    this.cargandoOpciones = true;
+    this.cdr.markForCheck();
+
+    this.cambiosService.getOpcionesDisponibles(prodCod, sucId).subscribe({
+      next: (res) => {
+        this.cargandoOpciones = false;
+        this.coloresDisponibles = res.colores || [];
+        this.tallasDisponibles = res.tallas || [];
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cargandoOpciones = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   cerrarModalCambio(): void {
     this.showCambioModal = false;
     this.cambioSubmitting = false;
+    this.cdr.markForCheck();
   }
 
   enviarSolicitudCambio(): void {
     const desc = (this.solicitud.descripcion || '').trim();
     if (!desc) {
       this.cambioErrorMessage = 'Por favor ingresa una descripción o motivo para la solicitud.';
+      this.cdr.markForCheck();
       return;
     }
 
@@ -154,6 +204,7 @@ export class MisComprasComponent implements OnInit {
     this.cambioSubmitting = true;
     this.cambioErrorMessage = '';
     this.cambioSuccessMessage = '';
+    this.cdr.markForCheck();
 
     this.cambiosService.solicitarCambio({
       orden_venta_id: this.solicitud.orden_venta_id,
@@ -167,13 +218,20 @@ export class MisComprasComponent implements OnInit {
       next: () => {
         this.cambioSubmitting = false;
         this.cambioSuccessMessage = 'Tu solicitud ha sido registrada con éxito. Un encargado de StyleStore la revisará en breve.';
+        this.cargarCompras();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
         setTimeout(() => {
           this.cerrarModalCambio();
-        }, 2500);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 2200);
       },
       error: (err) => {
         this.cambioSubmitting = false;
         this.cambioErrorMessage = err.error?.detail || 'No se pudo enviar la solicitud. Verifica el plazo de 7 días.';
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }

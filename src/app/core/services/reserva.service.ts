@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Reserva, ReservaCreate } from '../models/reserva.model';
@@ -11,8 +11,15 @@ export class ReservaService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/reservas`;
 
-  getReservas(): Observable<Reserva[]> {
-    return this.http.get<Reserva[]>(this.apiUrl);
+  getReservas(filters?: { sucursal_id?: number | null; estado?: string | null }): Observable<Reserva[]> {
+    let params = new HttpParams();
+    if (filters?.sucursal_id) {
+      params = params.set('sucursal_id', filters.sucursal_id.toString());
+    }
+    if (filters?.estado) {
+      params = params.set('estado', filters.estado);
+    }
+    return this.http.get<Reserva[]>(this.apiUrl, { params });
   }
 
   getMyReservas(): Observable<Reserva[]> {
@@ -21,6 +28,10 @@ export class ReservaService {
 
   createReserva(data: ReservaCreate): Observable<Reserva> {
     return this.http.post<Reserva>(this.apiUrl, data);
+  }
+
+  cancelarReserva(reservaId: number): Observable<Reserva> {
+    return this.http.post<Reserva>(`${this.apiUrl}/${reservaId}/cancelar`, {});
   }
 
   updateEstado(reservaId: number, estado: string): Observable<Reserva> {
@@ -37,3 +48,4 @@ export class ReservaService {
     );
   }
 }
+

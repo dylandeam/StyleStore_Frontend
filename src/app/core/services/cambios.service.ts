@@ -91,4 +91,11 @@ export class CambiosService {
       nuevo_stock_inventario_id: nuevoStockId,
     });
   }
+
+  getOpcionesDisponibles(productoCodigo: string, sucursalId: number): Observable<{ colores: any[]; tallas: any[] }> {
+    const params = new HttpParams()
+      .set('producto_codigo', productoCodigo)
+      .set('sucursal_id', sucursalId.toString());
+    return this.http.get<{ colores: any[]; tallas: any[] }>(`${this.apiUrl}/opciones-disponibles`, { params });
+  }
 }

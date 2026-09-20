@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -20,9 +20,10 @@ export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private reportesService = inject(ReportesService);
   private sucursalService = inject(SucursalService);
+  private cdr = inject(ChangeDetectorRef);
 
-  user = signal<User | null>(null);
-  isLoading = signal<boolean>(true);
+  user = signal<User | null>(this.authService.currentUser());
+  isLoading = signal<boolean>(!this.authService.currentUser());
   errorMessage = signal<string | null>(null);
 
   // Sucursales y Filtro
@@ -34,64 +35,80 @@ export class DashboardComponent implements OnInit {
   loadingStats: boolean = false;
 
   ngOnInit(): void {
+    if (this.user() && this.isStaff) {
+      this.loadDashboardStats();
+    }
     this.loadProfile();
     this.loadSucursales();
   }
 
   loadProfile(): void {
-    this.isLoading.set(true);
     this.authService.getProfile().subscribe({
       next: (profile) => {
         this.user.set(profile);
         this.isLoading.set(false);
-        this.loadDashboardStats();
+        this.cdr.markForCheck();
+        if (this.isStaff) {
+          this.loadDashboardStats();
+        }
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'No se pudo cargar el perfil.');
+        if (!this.user()) {
+          this.errorMessage.set(err.error?.detail || 'No se pudo cargar el perfil.');
+        }
         this.isLoading.set(false);
+        this.cdr.markForCheck();
       },
     });
   }
 
   loadSucursales(): void {
     this.sucursalService.getSucursales().subscribe({
-      next: (data) => (this.sucursales = data || []),
+      next: (data) => {
+        this.sucursales = data || [];
+        this.cdr.markForCheck();
+      },
       error: (err) => console.error('Error cargando sucursales en dashboard:', err),
     });
   }
 
   loadDashboardStats(): void {
+    if (!this.isStaff) return;
     this.loadingStats = true;
+    this.cdr.markForCheck();
+
     this.reportesService.getDashboardStats(this.selectedSucursalId || undefined).subscribe({
       next: (data) => {
         this.stats = data;
         this.loadingStats = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error cargando estadísticas del dashboard:', err);
         this.loadingStats = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
   onSucursalChange(): void {
-    this.loadDashboardStats();
+    if (this.isStaff) {
+      this.loadDashboardStats();
+    }
   }
 
   get isAdmin(): boolean {
-    return this.user()?.role === 'administrador';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role.includes('admin');
   }
 
   get isStaff(): boolean {
-    const role = this.user()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role.includes('admin') || role.includes('encargado') || role.includes('cajero') || role.includes('repartidor');
   }
 
   get isCliente(): boolean {
-    return this.user()?.role === 'cliente';
-  }
-
-  onLogout(): void {
-    this.authService.logout();
+    const role = (this.user()?.role || '').toLowerCase();
+    return role === 'cliente' || (!this.isStaff && !!this.user());
   }
 }

@@ -1,0 +1,237 @@
+<div class="outfits-container">
+  <!-- Cabecera -->
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Probador de Outfits & Combinaciones</h1>
+      <p class="page-subtitle">Combina prendas libremente, visualiza tu look completo y agrégalo al carrito con un solo clic.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="irAlCarrito()">
+        🛒 Ver Carrito
+      </button>
+    </div>
+  </header>
+
+  <!-- Notificación Toast -->
+  <div *ngIf="message()" class="alert" [ngClass]="'alert-' + message()?.type">
+    <span>{{ message()?.text }}</span>
+    <button class="alert-close" (click)="message.set(null)">✕</button>
+  </div>
+
+  <!-- Pestañas de Navegación -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'probador'"
+      (click)="activeTab.set('probador')">
+      ✨ Probador Interactivo
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab() === 'mis-outfits'"
+      (click)="activeTab.set('mis-outfits')">
+      👗 Mis Outfits Guardados
+      <span class="badge" *ngIf="misOutfits().length > 0">{{ misOutfits().length }}</span>
+    </button>
+  </div>
+
+  <!-- PESTAÑA 1: PROBADOR INTERACTIVO -->
+  <div *ngIf="activeTab() === 'probador'" class="probador-view">
+    <div class="probador-layout">
+      <!-- Slots Visuales del Look -->
+      <div class="mannequin-board">
+        <div class="board-header">
+          <h2>Look en Construcción</h2>
+          <button class="btn btn-text" (click)="limpiarProbador()" *ngIf="cantidadPrendasSeleccionadas > 0">
+            Reiniciar Look
+          </button>
+        </div>
+
+        <div class="slots-grid">
+          <!-- Iterar Slots fuertemente tipados -->
+          <div *ngFor="let slot of slotsList" class="slot-card" [class.filled]="slot.prenda">
+            <div class="slot-badge">
+              <span class="slot-icon">{{ slot.icon }}</span>
+              <span class="slot-label">{{ slot.label }}</span>
+            </div>
+
+            <!-- Si tiene prenda seleccionada -->
+            <div *ngIf="slot.prenda as prenda" class="slot-content">
+              <div class="prenda-thumb">
+                <img [src]="getImage(prenda.foto)" [alt]="prenda.nombre" />
+              </div>
+              <div class="prenda-meta">
+                <div class="prenda-title">{{ prenda.nombre }}</div>
+                <div class="prenda-category">{{ prenda.categoria_nombre || 'Prenda' }}</div>
+                <div class="prenda-price">Bs {{ prenda.precio | number:'1.2-2' }}</div>
+              </div>
+              <div class="slot-actions">
+                <button class="btn-icon change" title="Cambiar prenda" (click)="abrirSelector(slot)">🔄</button>
+                <button class="btn-icon remove" title="Quitar prenda" (click)="quitarPrendaDeSlot(slot)">✕</button>
+              </div>
+            </div>
+
+            <!-- Si está vacío -->
+            <div *ngIf="!slot.prenda" class="slot-empty" (click)="abrirSelector(slot)">
+              <div class="empty-icon">+</div>
+              <div class="empty-hint">Elegir {{ slot.label }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel de Resumen y Guardado -->
+      <div class="summary-panel card">
+        <h3>Resumen del Outfit</h3>
+
+        <div class="summary-items-list">
+          <div *ngIf="cantidadPrendasSeleccionadas === 0" class="empty-summary">
+            Agrega prendas usando el panel interactivo para armar tu combinación ideal.
+          </div>
+
+          <ng-container *ngFor="let slot of slotsList">
+            <div class="summary-row" *ngIf="slot.prenda">
+              <span class="item-name">{{ slot.icon }} {{ slot.prenda.nombre }}</span>
+              <span class="item-price">Bs {{ slot.prenda.precio | number:'1.2-2' }}</span>
+            </div>
+          </ng-container>
+        </div>
+
+        <div class="summary-total-box">
+          <span>Total Outfit</span>
+          <span class="total-amount">Bs {{ totalProbador | number:'1.2-2' }}</span>
+        </div>
+
+        <!-- Formulario para Guardar -->
+        <div class="save-form">
+          <div class="form-group">
+            <label for="outfitName">Nombre del Outfit *</label>
+            <input 
+              id="outfitName" 
+              type="text" 
+              class="form-control" 
+              placeholder="Ej: Look Casual Viernes, Noche de Gala"
+              [(ngModel)]="nombreNuevoOutfit" />
+          </div>
+
+          <div class="form-group">
+            <label for="outfitDesc">Ocasión / Notas (opcional)</label>
+            <textarea 
+              id="outfitDesc" 
+              rows="2" 
+              class="form-control" 
+              placeholder="Ideal para reuniones o cenas informales..."
+              [(ngModel)]="descripcionNuevoOutfit"></textarea>
+          </div>
+
+          <button 
+            class="btn btn-primary btn-block" 
+            [disabled]="isSaving() || cantidadPrendasSeleccionadas === 0"
+            (click)="guardarOutfit()">
+            <span *ngIf="isSaving()">Guardando...</span>
+            <span *ngIf="!isSaving()">💾 Guardar este Outfit</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑA 2: MIS OUTFITS GUARDADOS -->
+  <div *ngIf="activeTab() === 'mis-outfits'" class="mis-outfits-view">
+    <div *ngIf="isLoading()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando tus outfits guardados...</p>
+    </div>
+
+    <div *ngIf="!isLoading() && misOutfits().length === 0" class="empty-state card">
+      <div class="empty-icon-lg">👗</div>
+      <h2>Aún no tienes outfits guardados</h2>
+      <p>¡Usa nuestro Probador Interactivo para combinar prendas y crear tu propio estilo!</p>
+      <button class="btn btn-primary" (click)="activeTab.set('probador')">
+        ✨ Ir al Probador
+      </button>
+    </div>
+
+    <!-- Grid de Outfits -->
+    <div *ngIf="!isLoading() && misOutfits().length > 0" class="outfits-grid">
+      <div *ngFor="let outfit of misOutfits()" class="outfit-card card">
+        <div class="outfit-card-header">
+          <div>
+            <h3 class="outfit-title">{{ outfit.nombre }}</h3>
+            <span class="outfit-date">{{ outfit.created_at | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <button class="btn-icon delete" title="Eliminar Outfit" (click)="eliminarOutfit(outfit)">
+            🗑️
+          </button>
+        </div>
+
+        <p class="outfit-desc" *ngIf="outfit.descripcion">{{ outfit.descripcion }}</p>
+
+        <!-- Prendas que componen el look -->
+        <div class="outfit-items-strip">
+          <div *ngFor="let it of outfit.items" class="strip-item" [title]="it.producto_nombre || it.producto_codigo">
+            <img [src]="getImage(it.producto_foto)" [alt]="it.producto_nombre || 'Prenda'" />
+            <span class="strip-item-tipo">{{ it.tipo_prenda }}</span>
+          </div>
+        </div>
+
+        <!-- Pie de Tarjeta con Total y Botón de Compra -->
+        <div class="outfit-card-footer">
+          <div class="outfit-total">
+            <span class="label">Total del Look:</span>
+            <span class="price">Bs {{ outfit.total | number:'1.2-2' }}</span>
+          </div>
+
+          <button 
+            class="btn btn-success btn-buy" 
+            [disabled]="isBuying()"
+            (click)="comprarOutfitDirecto(outfit)">
+            🛍️ Comprar Todo el Outfit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SELECTOR DE PRENDAS PARA UN SLOT -->
+  <div class="modal-overlay" *ngIf="slotModalActivo() as activeSlot" (click)="cerrarSelector()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Elegir {{ activeSlot.label }}</h3>
+        <button class="btn-close" (click)="cerrarSelector()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="search-bar">
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Buscar por nombre o categoría..." 
+            [(ngModel)]="filtroBusquedaModal" />
+        </div>
+
+        <div class="catalog-picker-grid">
+          <div 
+            *ngFor="let prenda of prendasFiltradasParaModal" 
+            class="picker-item" 
+            (click)="seleccionarPrendaParaSlot(prenda)">
+            <img [src]="getImage(prenda.foto)" [alt]="prenda.nombre" />
+            <div class="picker-info">
+              <div class="picker-name">{{ prenda.nombre }}</div>
+              <div class="picker-cat">{{ prenda.categoria_nombre }}</div>
+              <div class="picker-price">Bs {{ prenda.precio | number:'1.2-2' }}</div>
+            </div>
+          </div>
+
+          <div *ngIf="prendasFiltradasParaModal.length === 0" class="no-items">
+            No se encontraron prendas con ese filtro.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarSelector()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>

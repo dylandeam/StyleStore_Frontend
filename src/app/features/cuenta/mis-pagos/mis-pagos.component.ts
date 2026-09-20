@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { PagosService } from '../../../core/services/pagos.service';
@@ -12,6 +12,7 @@ import { PagosService } from '../../../core/services/pagos.service';
 })
 export class MisPagosComponent implements OnInit {
   private pagosService = inject(PagosService);
+  private cdr = inject(ChangeDetectorRef);
 
   loading = true;
   pagos: any[] = [];
@@ -25,14 +26,20 @@ export class MisPagosComponent implements OnInit {
 
   cargarPagos(): void {
     this.loading = true;
+    this.cdr.markForCheck();
+
     this.pagosService.getMisPagos().subscribe({
       next: (data) => {
         this.pagos = data || [];
         this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar pagos:', err);
         this.loading = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -40,14 +47,20 @@ export class MisPagosComponent implements OnInit {
   verRecibo(pagoId: number): void {
     this.loadingRecibo = true;
     this.showReciboModal = true;
+    this.cdr.markForCheck();
+
     this.pagosService.getRecibo(pagoId).subscribe({
       next: (recibo) => {
         this.selectedRecibo = recibo;
         this.loadingRecibo = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar recibo:', err);
         this.loadingRecibo = false;
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
       },
     });
   }
@@ -55,6 +68,7 @@ export class MisPagosComponent implements OnInit {
   cerrarRecibo(): void {
     this.showReciboModal = false;
     this.selectedRecibo = null;
+    this.cdr.markForCheck();
   }
 
   imprimirRecibo(): void {

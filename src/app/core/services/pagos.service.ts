@@ -56,4 +56,17 @@ export class PagosService {
   getMisPagos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/mios`);
   }
+
+  getAllPagos(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
+  }
+
+  confirmarOrdenOnline(ordenVentaId: number): Observable<CobroCajaResponse> {
+    return this.http.post<CobroCajaResponse>(`${this.apiUrl}/confirmar-online/${ordenVentaId}`, {});
+  }
+
+  eliminarPago(pagoId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${pagoId}`);
+  }
 }
+

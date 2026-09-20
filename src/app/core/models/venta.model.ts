@@ -2,6 +2,8 @@ import { Envio } from './envio.model';
 
 export interface DetalleVenta {
   id: number;
+  stock_inventario_id?: number;
+  producto_codigo?: string;
   producto_nombre: string;
   color_nombre?: string;
   talla_nombre?: string;

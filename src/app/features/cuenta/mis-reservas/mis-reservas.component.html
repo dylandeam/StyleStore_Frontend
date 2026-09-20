@@ -1,0 +1,262 @@
+<div class="reservas-container">
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">🔖 Mis Reservas</h1>
+      <p class="page-subtitle">
+        Gestiona tus apartados de prendas en tienda física. Recuerda retirar tus prendas en la sucursal seleccionada antes de la fecha límite.
+      </p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/catalogo" class="btn btn-primary">
+        <span>✨ Explorar Catálogo</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MENSAJES -->
+  @if (successMessage) {
+    <div class="alert alert-success">
+      <span class="alert-icon">✅</span>
+      <span>{{ successMessage }}</span>
+    </div>
+  }
+  @if (errorMessage) {
+    <div class="alert alert-error">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+  <!-- TABS DE FILTRO -->
+  <div class="tabs-bar">
+    <button
+      class="tab-btn"
+      [class.active]="filtroEstado === 'todas'"
+      (click)="setFiltro('todas')">
+      Todas las Reservas ({{ reservas.length }})
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="filtroEstado === 'pendiente'"
+      (click)="setFiltro('pendiente')">
+      Pendientes de Retiro
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="filtroEstado === 'completada'"
+      (click)="setFiltro('completada')">
+      Retiradas
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="filtroEstado === 'cancelada'"
+      (click)="setFiltro('cancelada')">
+      Canceladas
+    </button>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando tus reservas...</p>
+    </div>
+  } @else if (reservasFiltradas.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🏷️</div>
+      <h3>No tienes reservas en este estado</h3>
+      <p>
+        @if (filtroEstado === 'todas') {
+          Aún no has realizado ninguna reserva. Puedes reservar prendas exclusivas desde el catálogo para retirarlas y probártelas en cualquiera de nuestras sucursales.
+        } @else {
+          No se encontraron reservas con el filtro seleccionado.
+        }
+      </p>
+      <a routerLink="/catalogo" class="btn btn-gold mt-4">
+        <span>Explorar Catálogo</span>
+      </a>
+    </div>
+  } @else {
+    <div class="reservas-grid">
+      @for (r of reservasFiltradas; track r.id) {
+        <div class="reserva-card" [class.is-cancelled]="r.estado === 'cancelada'">
+          <!-- CARD HEADER -->
+          <div class="card-header">
+            <div class="reserva-id-badge">
+              <span class="id-label">RESERVA</span>
+              <span class="id-number">#{{ r.id }}</span>
+            </div>
+            <div class="reserva-status">
+              <span class="status-badge" [ngClass]="getEstadoClass(r.estado)">
+                {{ getEstadoTexto(r.estado) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- SUCURSAL INFO BANNER -->
+          <div class="sucursal-banner">
+            <div class="sucursal-icon">🏬</div>
+            <div class="sucursal-details">
+              <span class="sucursal-title">Sucursal de Retiro</span>
+              <span class="sucursal-nombre">{{ r.sucursal_ciudad || 'Sucursal StyleStore' }}</span>
+              <span class="sucursal-dir">{{ r.sucursal_direccion || 'Dirección de la tienda' }}</span>
+            </div>
+          </div>
+
+          <!-- DETALLES DE FECHA -->
+          <div class="dates-meta">
+            <div class="date-item">
+              <span class="meta-label">Fecha Límite de Retiro:</span>
+              <span class="meta-value font-bold text-navy">📅 {{ r.fecha }}</span>
+            </div>
+            <div class="date-item">
+              <span class="meta-label">Hora:</span>
+              <span class="meta-value">🕒 {{ r.hora }}</span>
+            </div>
+          </div>
+
+          <!-- LISTA DE PRENDAS -->
+          <div class="items-section">
+            <div class="items-header">
+              <span>Prendas Reservadas ({{ calcularTotalItems(r) }})</span>
+            </div>
+            <div class="items-list">
+              @for (item of r.detalles; track item.id) {
+                <div class="item-row">
+                  <div class="item-thumb">
+                    @if (item.foto) {
+                      <img [src]="item.foto" [alt]="item.producto_nombre || 'Prenda'" />
+                    } @else {
+                      <div class="item-placeholder">👗</div>
+                    }
+                  </div>
+                  <div class="item-info">
+                    <span class="item-nombre">{{ item.producto_nombre || 'Prenda StyleStore' }}</span>
+                    <div class="item-tags">
+                      @if (item.producto_codigo) {
+                        <span class="tag-code">Cód: {{ item.producto_codigo }}</span>
+                      }
+                      @if (item.color_nombre) {
+                        <span class="tag-color">{{ item.color_nombre }}</span>
+                      }
+                      @if (item.talla_nombre) {
+                        <span class="tag-size">Talla: {{ item.talla_nombre }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="item-cant">
+                    <span class="cant-badge">{{ item.cantidad }} ud{{ item.cantidad > 1 ? 's' : '' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- CARD FOOTER / ACCIONES -->
+          <div class="card-footer">
+            <button class="btn btn-outline" (click)="abrirTicket(r)">
+              <span>🎟️ Ver Ticket</span>
+            </button>
+
+            @if (r.estado === 'pendiente') {
+              <button
+                class="btn btn-danger-outline"
+                [disabled]="cancelingId === r.id"
+                (click)="cancelarReserva(r.id)">
+                @if (cancelingId === r.id) {
+                  <span class="btn-spinner"></span> Cancelando...
+                } @else {
+                  <span>❌ Cancelar Reserva</span>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- MODAL TICKET IMPRIMIBLE -->
+  @if (showTicketModal && selectedReserva) {
+    <div class="modal-backdrop" (click)="cerrarTicket()">
+      <div class="modal-card ticket-card" (click)="$event.stopPropagation()">
+        <div class="modal-top no-print">
+          <span class="modal-title">Comprobante de Reserva</span>
+          <button class="btn-close" (click)="cerrarTicket()">✕</button>
+        </div>
+
+        <div class="ticket-receipt print-area">
+          <div class="receipt-header">
+            <h2 class="receipt-brand">STYLESTORE</h2>
+            <p class="receipt-type">TICKET OFICIAL DE RESERVA</p>
+            <p class="receipt-id">Nº {{ selectedReserva.id }}</p>
+          </div>
+
+          <div class="receipt-divider"></div>
+
+          <div class="receipt-row">
+            <span class="r-label">Sucursal de Retiro:</span>
+            <span class="r-value font-bold">{{ selectedReserva.sucursal_ciudad || 'Sucursal Principal' }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="r-label">Dirección:</span>
+            <span class="r-value">{{ selectedReserva.sucursal_direccion || 'Tienda física' }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="r-label">Fecha Límite:</span>
+            <span class="r-value font-bold">{{ selectedReserva.fecha }} ({{ selectedReserva.hora }})</span>
+          </div>
+          <div class="receipt-row">
+            <span class="r-label">Código Cliente:</span>
+            <span class="r-value">{{ selectedReserva.codigo_cliente }}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="r-label">Estado:</span>
+            <span class="r-value text-uppercase font-bold">{{ selectedReserva.estado }}</span>
+          </div>
+
+          <div class="receipt-divider"></div>
+
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th style="text-align: left;">Prenda</th>
+                <th>Talla</th>
+                <th>Color</th>
+                <th style="text-align: right;">Cant</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of selectedReserva.detalles; track d.id) {
+                <tr>
+                  <td style="text-align: left;">{{ d.producto_nombre || 'Prenda' }}</td>
+                  <td>{{ d.talla_nombre || '-' }}</td>
+                  <td>{{ d.color_nombre || '-' }}</td>
+                  <td style="text-align: right;">{{ d.cantidad }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="receipt-divider"></div>
+
+          <div class="receipt-notice">
+            <p><strong>Instrucciones de Retiro:</strong></p>
+            <p>Presenta este ticket digital o impreso al encargado de la sucursal para abonar o retirar tus prendas.</p>
+            <p>Si no puedes asistir, puedes cancelar la reserva desde tu cuenta para liberar el stock.</p>
+          </div>
+
+          <div class="receipt-footer">
+            <p>StyleStore © 2026 - Moda y Estilo Exclusivo</p>
+          </div>
+        </div>
+
+        <div class="modal-actions no-print">
+          <button class="btn btn-secondary" (click)="cerrarTicket()">Cerrar</button>
+          <button class="btn btn-primary" (click)="imprimirTicket()">🖨️ Imprimir / Guardar PDF</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

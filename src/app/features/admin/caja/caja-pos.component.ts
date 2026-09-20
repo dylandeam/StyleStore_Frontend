@@ -5,9 +5,10 @@ import { VentaService } from '../../../core/services/venta.service';
 import { PagosService, CobroCajaResponse } from '../../../core/services/pagos.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { InventarioService } from '../../../core/services/inventario.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 import { InventarioItem } from '../../../core/models/inventario.model';
-import { VentaPresencialCreate, VentaItemCreate } from '../../../core/models/venta.model';
+import { VentaPresencialCreate } from '../../../core/models/venta.model';
 
 @Component({
   selector: 'app-caja-pos',
@@ -21,11 +22,12 @@ export class CajaPosComponent implements OnInit {
   private pagosService = inject(PagosService);
   private sucursalService = inject(SucursalService);
   private inventarioService = inject(InventarioService);
+  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
-  // Tabs: 'ordenes' | 'venta_directa'
-  activeTab: 'ordenes' | 'venta_directa' = 'ordenes';
+  // Tabs: 'ordenes' | 'venta_directa' | 'historial'
+  activeTab: 'ordenes' | 'venta_directa' | 'historial' = 'ordenes';
 
   // Cobro de órdenes pendientes
   ordenesPendientes: any[] = [];
@@ -50,33 +52,37 @@ export class CajaPosComponent implements OnInit {
   efectivoRecibidoDirecto: number = 0;
   cartDirecto: { item: InventarioItem; cantidad: number; subtotal: number }[] = [];
 
+  // Historial de Pagos
+  historialPagos: any[] = [];
+  loadingHistorial: boolean = false;
+  reciboVisualizado: any = null;
+  showModalRecibo: boolean = false;
+  eliminandoPagoId: number | null = null;
+
   ngOnInit(): void {
     this.cargarOrdenesPendientes();
+    this.cargarSucursales();
   }
 
   cargarOrdenesPendientes(): void {
     this.loading = true;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
 
     this.ventaService.getVentas().subscribe({
       next: (ventas) => {
         this.ngZone.run(() => {
-          // Filtrar órdenes pendientes de cobro (compatible con 'pendiente_pago' y 'pendiente')
           this.ordenesPendientes = (ventas || []).filter((v: any) => {
             const est = (v.estado || '').toLowerCase();
             return est === 'pendiente_pago' || est === 'pendiente' || est.includes('pendiente');
           });
           this.loading = false;
           this.cdr.markForCheck();
-          this.cdr.detectChanges();
         });
       },
       error: () => {
         this.ngZone.run(() => {
           this.loading = false;
           this.cdr.markForCheck();
-          this.cdr.detectChanges();
         });
       },
     });
@@ -88,19 +94,16 @@ export class CajaPosComponent implements OnInit {
     this.ticketEmitido = null;
     this.error = null;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
   }
 
   setBilletes(monto: number): void {
     this.efectivoRecibido = monto;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
   }
 
   addBilletes(monto: number): void {
     this.efectivoRecibido = (this.efectivoRecibido || 0) + monto;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
   }
 
   get cambio(): number {
@@ -123,7 +126,6 @@ export class CajaPosComponent implements OnInit {
     this.procesando = true;
     this.error = null;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
 
     this.pagosService.cobrarEnCaja(this.ordenSeleccionada.id, this.efectivoRecibido).subscribe({
       next: (res) => {
@@ -133,7 +135,6 @@ export class CajaPosComponent implements OnInit {
           this.mostrarToast(`¡Cobro exitoso! Ticket ${res.ticket_numero}`);
           this.cargarOrdenesPendientes();
           this.cdr.markForCheck();
-          this.cdr.detectChanges();
         });
       },
       error: (err) => {
@@ -141,168 +142,59 @@ export class CajaPosComponent implements OnInit {
           this.procesando = false;
           this.error = err.error?.detail || 'Error al procesar cobro en caja.';
           this.cdr.markForCheck();
-          this.cdr.detectChanges();
         });
       },
     });
   }
 
-  imprimirTicket(): void {
-    const printEl = document.getElementById('ticket-pos-print');
-    if (!printEl) {
-      window.print();
-      return;
-    }
+  // Cobro directo para órdenes en línea (sin cálculo de vuelto)
+  confirmarCobroOnline(orden: any): void {
+    if (!orden) return;
+    this.procesando = true;
+    this.error = null;
+    this.cdr.markForCheck();
 
-    // Usar un iframe aislado exclusivo para imprimir el ticket térmico
-    let printIframe = document.getElementById('pos-print-ticket-iframe') as HTMLIFrameElement;
-    if (printIframe) {
-      printIframe.remove();
-    }
-
-    printIframe = document.createElement('iframe');
-    printIframe.id = 'pos-print-ticket-iframe';
-    printIframe.style.position = 'fixed';
-    printIframe.style.right = '0';
-    printIframe.style.bottom = '0';
-    printIframe.style.width = '0';
-    printIframe.style.height = '0';
-    printIframe.style.border = '0';
-    document.body.appendChild(printIframe);
-
-    const doc = printIframe.contentWindow?.document || printIframe.contentDocument;
-    if (!doc) {
-      window.print();
-      return;
-    }
-
-    doc.open();
-    doc.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <title>Ticket de Caja - StyleStore</title>
-        <style>
-          @page {
-            size: 80mm auto;
-            margin: 0;
-          }
-          * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-          }
-          html, body {
-            width: 76mm;
-            margin: 0 auto;
-            padding: 10px 4px;
-            background: #fff;
-            color: #000;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            line-height: 1.35;
-          }
-          .receipt-header {
-            text-align: center;
-            margin-bottom: 8px;
-          }
-          .receipt-brand {
-            font-size: 20px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            margin: 0 0 2px;
-          }
-          .receipt-address {
-            font-size: 10px;
-            margin: 0 0 6px;
-            color: #333;
-          }
-          .receipt-divider {
-            overflow: hidden;
-            margin: 6px 0;
-            font-size: 11px;
-            text-align: center;
-            letter-spacing: -1px;
-          }
-          .receipt-line {
-            font-size: 11px;
-            margin-bottom: 2px;
-            text-align: left;
-          }
-          .receipt-items {
-            margin: 6px 0;
-          }
-          .receipt-item-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-            margin-bottom: 3px;
-          }
-          .it-desc {
-            flex: 1;
-            padding-right: 6px;
-          }
-          .it-price {
-            white-space: nowrap;
-            font-weight: bold;
-          }
-          .receipt-body {
-            margin: 6px 0;
-          }
-          .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin: 4px 0;
-          }
-          .cambio-row {
-            font-size: 13px;
-            font-weight: bold;
-          }
-          .receipt-footer {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 10px;
-            color: #444;
-          }
-          .receipt-footer p {
-            margin: 2px 0;
-          }
-        </style>
-      </head>
-      <body>
-        ${printEl.innerHTML}
-      </body>
-      </html>
-    `);
-    doc.close();
-
-    setTimeout(() => {
-      printIframe.contentWindow?.focus();
-      printIframe.contentWindow?.print();
-    }, 250);
+    this.pagosService.confirmarOrdenOnline(orden.id).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.procesando = false;
+          this.ticketEmitido = res;
+          this.mostrarToast(`¡Orden en línea confirmada! Ticket ${res.ticket_numero}`);
+          this.cargarOrdenesPendientes();
+          this.cdr.markForCheck();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.procesando = false;
+          this.error = err.error?.detail || 'Error al confirmar cobro en línea.';
+          this.cdr.markForCheck();
+        });
+      },
+    });
   }
 
   mostrarToast(msg: string): void {
     this.mensajeToast = msg;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
     setTimeout(() => {
       this.mensajeToast = null;
       this.cdr.markForCheck();
-      this.cdr.detectChanges();
     }, 3500);
   }
 
   // ==========================================
-  // MÉTODOS DE VENTA DIRECTA EN MOSTRADOR
+  // PESTAÑAS Y CAMBIO DE VISTA
   // ==========================================
 
-  switchTab(tab: 'ordenes' | 'venta_directa'): void {
+  switchTab(tab: 'ordenes' | 'venta_directa' | 'historial'): void {
     this.activeTab = tab;
     if (tab === 'venta_directa' && this.sucursales.length === 0) {
       this.cargarSucursales();
+    } else if (tab === 'venta_directa' && this.inventarioItems.length === 0) {
+      this.cargarInventarioSucursal();
+    } else if (tab === 'historial') {
+      this.cargarHistorialPagos();
     }
   }
 
@@ -310,7 +202,10 @@ export class CajaPosComponent implements OnInit {
     this.sucursalService.getSucursales().subscribe({
       next: (res) => {
         this.sucursales = res || [];
-        if (this.sucursales.length > 0 && !this.selectedSucursalId) {
+        const user = this.authService.currentUser();
+        if (user && user.sucursal_id) {
+          this.selectedSucursalId = user.sucursal_id;
+        } else if (this.sucursales.length > 0 && !this.selectedSucursalId) {
           this.selectedSucursalId = this.sucursales[0].id;
         }
         this.cargarInventarioSucursal();
@@ -343,7 +238,8 @@ export class CajaPosComponent implements OnInit {
       (it) =>
         it.producto_nombre.toLowerCase().includes(q) ||
         (it.color_nombre && it.color_nombre.toLowerCase().includes(q)) ||
-        (it.talla_nombre && it.talla_nombre.toLowerCase().includes(q))
+        (it.talla_nombre && it.talla_nombre.toLowerCase().includes(q)) ||
+        (it.producto_codigo && it.producto_codigo.toLowerCase().includes(q))
     );
   }
 
@@ -407,7 +303,7 @@ export class CajaPosComponent implements OnInit {
     if (this.metodoPagoDirecto === 'efectivo') {
       return (this.efectivoRecibidoDirecto || 0) >= this.totalVentaDirecta;
     }
-    return true; // Si es QR se puede confirmar
+    return true; // Si es QR se puede confirmar directamente sin vuelto
   }
 
   setBilletesDirecto(monto: number): void {
@@ -469,6 +365,146 @@ export class CajaPosComponent implements OnInit {
     this.cartDirecto = [];
     this.efectivoRecibidoDirecto = 0;
     this.cdr.markForCheck();
-    this.cdr.detectChanges();
+  }
+
+  // ==========================================
+  // HISTORIAL DE PAGOS
+  // ==========================================
+
+  cargarHistorialPagos(): void {
+    this.loadingHistorial = true;
+    this.cdr.markForCheck();
+    this.pagosService.getAllPagos().subscribe({
+      next: (pagos) => {
+        this.ngZone.run(() => {
+          this.historialPagos = pagos || [];
+          this.loadingHistorial = false;
+          this.cdr.markForCheck();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          console.error('Error cargando historial de pagos:', err);
+          this.loadingHistorial = false;
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  verRecibo(pagoId: number): void {
+    this.pagosService.getRecibo(pagoId).subscribe({
+      next: (recibo) => {
+        this.reciboVisualizado = recibo;
+        this.showModalRecibo = true;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        alert(err.error?.detail || 'No se pudo cargar el recibo del pago.');
+      },
+    });
+  }
+
+  cerrarModalRecibo(): void {
+    this.showModalRecibo = false;
+    this.reciboVisualizado = null;
+    this.cdr.markForCheck();
+  }
+
+  eliminarPago(pago: any): void {
+    if (!confirm(`¿Estás seguro de anular/eliminar el Pago #${pago.id} asociado a la Orden #${pago.orden_venta_id}?`)) {
+      return;
+    }
+
+    this.eliminandoPagoId = pago.id;
+    this.pagosService.eliminarPago(pago.id).subscribe({
+      next: () => {
+        this.eliminandoPagoId = null;
+        this.mostrarToast(`Pago #${pago.id} anulado correctamente.`);
+        this.cargarHistorialPagos();
+        this.cargarOrdenesPendientes();
+      },
+      error: (err) => {
+        this.eliminandoPagoId = null;
+        alert(err.error?.detail || 'No se pudo anular el pago.');
+      },
+    });
+  }
+
+  imprimirTicket(): void {
+    const printEl = document.getElementById('ticket-pos-print') || document.getElementById('modal-ticket-print');
+    if (!printEl) {
+      window.print();
+      return;
+    }
+
+    let printIframe = document.getElementById('pos-print-ticket-iframe') as HTMLIFrameElement;
+    if (printIframe) {
+      printIframe.remove();
+    }
+
+    printIframe = document.createElement('iframe');
+    printIframe.id = 'pos-print-ticket-iframe';
+    printIframe.style.position = 'fixed';
+    printIframe.style.right = '0';
+    printIframe.style.bottom = '0';
+    printIframe.style.width = '0';
+    printIframe.style.height = '0';
+    printIframe.style.border = '0';
+    document.body.appendChild(printIframe);
+
+    const doc = printIframe.contentWindow?.document || printIframe.contentDocument;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Ticket de Caja - StyleStore</title>
+        <style>
+          @page { size: 80mm auto; margin: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          html, body {
+            width: 76mm;
+            margin: 0 auto;
+            padding: 10px 4px;
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.35;
+          }
+          .receipt-header { text-align: center; margin-bottom: 8px; }
+          .receipt-brand { font-size: 20px; font-weight: 900; letter-spacing: 2px; margin: 0 0 2px; }
+          .receipt-address { font-size: 10px; margin: 0 0 6px; color: #333; }
+          .receipt-divider { overflow: hidden; margin: 6px 0; font-size: 11px; text-align: center; letter-spacing: -1px; }
+          .receipt-line { font-size: 11px; margin-bottom: 2px; text-align: left; }
+          .receipt-items { margin: 6px 0; }
+          .receipt-item-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+          .it-desc { flex: 1; padding-right: 6px; }
+          .it-price { white-space: nowrap; font-weight: bold; }
+          .receipt-body { margin: 6px 0; }
+          .receipt-row { display: flex; justify-content: space-between; font-size: 12px; margin: 4px 0; }
+          .cambio-row { font-size: 13px; font-weight: bold; }
+          .receipt-footer { text-align: center; margin-top: 10px; font-size: 10px; color: #444; }
+          .receipt-footer p { margin: 2px 0; }
+        </style>
+      </head>
+      <body>
+        ${printEl.innerHTML}
+      </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      printIframe.contentWindow?.focus();
+      printIframe.contentWindow?.print();
+    }, 250);
   }
 }

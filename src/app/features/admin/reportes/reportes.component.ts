@@ -38,15 +38,15 @@ export class ReportesComponent implements OnInit {
   invSucursalId: number | '' = '';
   invSoloBajoStock: boolean = false;
 
-  // Catálogo de los 8 Reportes Dinámicos v6
+  // Catálogo de los 8 Reportes Dinámicos v7
   reportesEspecializados = [
     { id: 'compras', nombre: 'Compras a Proveedores', icon: 'bi-truck', desc: 'Historial de órdenes de compra, costos e inventario recibido' },
     { id: 'financiero', nombre: 'Flujo de Caja y Pagos', icon: 'bi-cash-coin', desc: 'Ingresos por PayPal, Efectivo en mostrador y QR Simple' },
     { id: 'rotacion', nombre: 'Rotación de Inventario', icon: 'bi-arrow-repeat', desc: 'Prendas más vendidas vs menor rotación por sucursal' },
     { id: 'caducidad', nombre: 'Obsolescencia y Temporadas', icon: 'bi-calendar-x', desc: 'Prendas de temporadas pasadas y sugerencias de liquidación' },
-    { id: 'vendedores', nombre: 'Rendimiento de Vendedores', icon: 'bi-person-badge', desc: 'Ventas generadas por empleado y sucursales activas' },
+    { id: 'empleados', nombre: 'Rendimiento de Vendedores', icon: 'bi-person-badge', desc: 'Ventas generadas por empleado y sucursales activas' },
     { id: 'auditoria', nombre: 'Bitácora y Auditoría', icon: 'bi-shield-check', desc: 'Trazabilidad de modificaciones de stock, cobros y operaciones' },
-    { id: 'garantias', nombre: 'Garantías y Devoluciones', icon: 'bi-arrow-left-right', desc: 'Historial de cambios de talla, defectos y canjes en caja' },
+    { id: 'devoluciones', nombre: 'Garantías y Devoluciones', icon: 'bi-arrow-left-right', desc: 'Historial de cambios de talla, defectos y canjes en caja' },
     { id: 'clientes', nombre: 'Clientes Frecuentes', icon: 'bi-stars', desc: 'Fidelización, volumen de compra y clientes habilitados para reserva' },
   ];
 
@@ -297,7 +297,7 @@ export class ReportesComponent implements OnInit {
     this.reportesService.getReportPreview(this.selectedReporteTipo, sucId).subscribe({
       next: (res) => {
         this.ngZone.run(() => {
-          this.datosReporteDinamico = res;
+          this.datosReporteDinamico = this.formatearDatosReporte(this.selectedReporteTipo, res);
           this.cargandoReporteDinamico = false;
           this.cdr.markForCheck();
         });
@@ -310,6 +310,78 @@ export class ReportesComponent implements OnInit {
         });
       },
     });
+  }
+
+  private formatearDatosReporte(tipo: string, res: any): { title: string; columns: string[]; data: any[][] } {
+    if (res && Array.isArray(res.columns) && Array.isArray(res.data)) {
+      return res;
+    }
+    const nombre = this.getNombreReporteSeleccionado();
+    const items = res?.items || (Array.isArray(res) ? res : []);
+
+    if (tipo === 'rotacion' && res?.mas_vendidas) {
+      const columns = ['Tipo', 'Prenda', 'Unidades Vendidas', 'Total Recaudado (Bs.)'];
+      const data: any[][] = [];
+      for (const m of res.mas_vendidas || []) {
+        data.push(['TOP VENTA', m.producto, m.unidades_vendidas, `Bs. ${Number(m.total_recaudado).toFixed(2)}`]);
+      }
+      for (const me of res.menos_vendidas || []) {
+        data.push(['BAJA VENTA', me.producto, me.unidades_vendidas, `Bs. ${Number(me.total_recaudado).toFixed(2)}`]);
+      }
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'compras') {
+      const columns = ['ID Compra', 'Fecha', 'Proveedor', 'Sucursal', 'Total (Bs.)'];
+      const data = items.map((i: any) => [i.id, i.fecha, i.proveedor, i.sucursal, `Bs. ${Number(i.total).toFixed(2)}`]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'financiero') {
+      const columns = ['Método de Pago', 'Transacciones Registradas', 'Total Recaudado (Bs.)'];
+      const data = items.map((i: any) => [i.metodo, i.cantidad_transacciones, `Bs. ${Number(i.total_recaudado).toFixed(2)}`]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'caducidad') {
+      const columns = ['Código', 'Prenda', 'Temporada', 'Sucursal', 'Talla', 'Stock', 'Precio (Bs.)', 'Sugerencia'];
+      const data = items.map((i: any) => [i.codigo, i.producto, i.temporada, i.sucursal, i.talla, i.unidades_stock, `Bs. ${Number(i.precio_actual).toFixed(2)}`, i.descuento_sugerido]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'vendedores' || tipo === 'empleados') {
+      const columns = ['Código', 'Nombre Empleado', 'Correo', 'Sucursal', 'Teléfono', 'Sueldo (Bs.)'];
+      const data = items.map((i: any) => [i.codigo, i.nombre, i.email, i.sucursal, i.telefono, `Bs. ${Number(i.sueldo).toFixed(2)}`]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'auditoria') {
+      const columns = ['ID', 'Usuario', 'Módulo', 'Acción', 'IP', 'Fecha y Hora'];
+      const data = items.map((i: any) => [i.id, i.usuario, i.modulo, i.accion, i.ip, i.fecha]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'garantias' || tipo === 'devoluciones') {
+      const columns = ['ID', 'Ticket Venta', 'Tipo', 'Motivo', 'Prenda', 'Sucursal', 'Estado', 'Fecha Programada'];
+      const data = items.map((i: any) => [i.id, i.ticket, i.tipo, i.motivo, i.producto, i.sucursal, i.estado, i.fecha_programada]);
+      return { title: nombre, columns, data };
+    }
+
+    if (tipo === 'clientes') {
+      const columns = ['Código', 'Nombre', 'Correo', 'Teléfono', 'Total Compras', 'Total Gastado (Bs.)'];
+      const data = items.map((i: any) => [i.codigo, i.nombre, i.email, i.telefono, i.total_compras, `Bs. ${Number(i.monto_gastado).toFixed(2)}`]);
+      return { title: nombre, columns, data };
+    }
+
+    if (items.length > 0) {
+      const sample = items[0];
+      const keys = Object.keys(sample);
+      const columns = keys.map((k) => k.replace(/_/g, ' ').toUpperCase());
+      const data = items.map((row: any) => keys.map((k) => row[k]));
+      return { title: nombre, columns, data };
+    }
+
+    return { title: nombre, columns: ['Mensaje'], data: [['No se encontraron datos registrados para este reporte.']] };
   }
 
   descargarReporteDinamicoExcel(): void {

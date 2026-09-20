@@ -35,7 +35,10 @@ import { ReportesComponent } from './features/admin/reportes/reportes.component'
 import { CatalogoListComponent } from './features/catalogo/catalogo-list/catalogo-list.component';
 import { MisComprasComponent } from './features/cuenta/mis-compras/mis-compras.component';
 import { MisPagosComponent } from './features/cuenta/mis-pagos/mis-pagos.component';
+import { MisReservasComponent } from './features/cuenta/mis-reservas/mis-reservas.component';
 import { CambiosListComponent } from './features/admin/cambios/cambios-list.component';
+import { ComprasListComponent } from './features/admin/compras/compras-list/compras-list.component';
+import { OutfitsComponent } from './features/outfits/outfits.component';
 
 export const routes: Routes = [
   {
@@ -67,6 +70,19 @@ export const routes: Routes = [
         component: CatalogoListComponent,
       },
       {
+        path: 'outfits',
+        component: OutfitsComponent,
+      },
+      {
+        path: 'cuenta/mis-outfits',
+        component: OutfitsComponent,
+      },
+      {
+        path: 'admin/outfits',
+        redirectTo: 'outfits',
+        pathMatch: 'full',
+      },
+      {
         path: 'catalogo/:codigo',
         redirectTo: 'catalogo/producto/:codigo',
         pathMatch: 'full',
@@ -85,6 +101,16 @@ export const routes: Routes = [
         path: 'cuenta/mis-pagos',
         component: MisPagosComponent,
         canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'cuenta/mis-reservas',
+        component: MisReservasComponent,
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'reservas',
+        redirectTo: 'cuenta/mis-reservas',
+        pathMatch: 'full',
       },
       {
         path: 'sucursales',
@@ -141,7 +167,7 @@ export const routes: Routes = [
       {
         path: 'admin/reservas',
         component: ReservasComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/envios',
@@ -173,6 +199,11 @@ export const routes: Routes = [
       {
         path: 'admin/proveedores',
         component: ProveedoresListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/compras',
+        component: ComprasListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {

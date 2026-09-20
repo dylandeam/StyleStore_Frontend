@@ -7,6 +7,11 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  apellido: string;
+  ci: string;
+  telefono: string;
+  direccion: string;
+  foto?: string | null;
 }
 
 export interface TokenResponse {

@@ -84,11 +84,21 @@
                 </td>
                 <td>{{ e.fecha }}</td>
                 <td class="cell-actions">
+                  <button class="btn-action-map" (click)="abrirMapaTracking(e)" title="Ver trazado y distancia en Mapa Leaflet">
+                    🗺️ Mapa
+                  </button>
                   <button class="btn-action-yango" (click)="openYangoModal(e)" title="Asignar o editar código de Yango Delivery">
                     🛵 Yango
                   </button>
                   <button class="btn-icon btn-edit" (click)="openEdit(e)" title="Editar">✏️</button>
                   <button class="btn-icon btn-delete" (click)="deleteEnvio(e)" title="Eliminar">🗑️</button>
+
+                  <!-- Acciones de Repartidor -->
+                  <div class="repartidor-quick-actions" *ngIf="isRepartidor || e.estado === 'en camino'">
+                    <button class="btn-quick-gps" (click)="simularGpsRepartidor(e)" title="Enviar mi GPS actual">📍 GPS</button>
+                    <button class="btn-quick-camino" *ngIf="e.estado === 'pendiente'" (click)="cambiarEstadoDespacho(e, 'en camino')" title="Marcar en camino">🛵 Iniciar</button>
+                    <button class="btn-quick-entregado" *ngIf="e.estado === 'en camino'" (click)="cambiarEstadoDespacho(e, 'entregado')" title="Marcar entregado">✅ Entregado</button>
+                  </div>
                 </td>
               </tr>
             }
@@ -276,4 +286,49 @@
       </div>
     </div>
   }
+
+  <!-- MODAL: MAPA INTERACTIVO LEAFLET + OSM (v7 Punto 7) -->
+  <div class="modal-backdrop" *ngIf="isMapModalOpen" (click)="cerrarMapaModal()">
+    <div class="modal-card modal-map-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>🗺️ Seguimiento de Despacho en Vivo (Leaflet + OSM)</h3>
+          <p class="subtitle text-xs" *ngIf="trackingData">
+            Distancia Real Haversine: <strong>{{ trackingData.distancia_km }} km</strong> • Tiempo Estimado: <strong>~{{ trackingData.minutos_estimados }} min</strong>
+          </p>
+        </div>
+        <button type="button" class="btn-close" (click)="cerrarMapaModal()">✕</button>
+      </div>
+
+      <div class="modal-body map-modal-body">
+        <!-- Barra de métricas de ruta -->
+        <div class="map-metrics-bar" *ngIf="trackingData">
+          <div class="metric-item">
+            <span class="m-label">Origen:</span>
+            <strong>{{ trackingData.origen.nombre }} ({{ trackingData.origen.ciudad }})</strong>
+          </div>
+          <div class="metric-item">
+            <span class="m-label">Destino:</span>
+            <strong>{{ trackingData.destino.direccion }}</strong>
+          </div>
+          <div class="metric-item" *ngIf="trackingData.repartidor">
+            <span class="m-label">Repartidor:</span>
+            <span class="badge-rep">🛵 {{ trackingData.repartidor.nombre }}</span>
+          </div>
+          <div class="metric-item">
+            <span class="m-label">Estado:</span>
+            <span class="badge-estado">{{ trackingData.estado | uppercase }}</span>
+          </div>
+        </div>
+
+        <!-- Contenedor del Mapa Leaflet -->
+        <div id="leaflet-map-element" class="leaflet-map-view"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarMapaModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
+

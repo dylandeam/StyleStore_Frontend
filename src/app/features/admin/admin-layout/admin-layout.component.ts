@@ -87,6 +87,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/cuenta/mis-pagos')) {
       this.currentTitle.set('Historial de Pagos');
       this.currentSubtitle.set('Comprobantes de pago, transacciones PayPal y notas de venta');
+    } else if (url.includes('/cuenta/mis-reservas')) {
+      this.currentTitle.set('Mis Reservas');
+      this.currentSubtitle.set('Consulta tus prendas apartadas, fechas de retiro, tickets y cancelaciones');
     } else if (url.includes('/admin/cambios')) {
       this.currentTitle.set('Cambios y Devoluciones');
       this.currentSubtitle.set('Revisión de solicitudes (plazo 7 días) y canje en caja POS con stock');
@@ -169,21 +172,23 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   get isAdmin(): boolean {
-    return this.user()?.role === 'administrador';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role.includes('admin');
   }
 
   get isStaff(): boolean {
-    const role = this.user()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role.includes('admin') || role.includes('encargado') || role.includes('cajero');
   }
 
   get isCliente(): boolean {
-    return this.user()?.role === 'cliente';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role === 'cliente' || (!this.isStaff && !!this.user());
   }
 
   get canManageStore(): boolean {
-    const role = this.user()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal';
+    const role = (this.user()?.role || '').toLowerCase();
+    return role.includes('admin') || role.includes('encargado');
   }
 
   toggleSidebar(): void {

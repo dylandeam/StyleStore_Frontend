@@ -45,6 +45,9 @@
           <a routerLink="/catalogo" routerLinkActive="active" class="nav-item icon-only" title="Catálogo de Prendas">
             <span class="nav-icon">✨</span>
           </a>
+          <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item icon-only" title="Próximamente">
+            <span class="nav-icon">⏳</span>
+          </a>
           <a routerLink="/cuenta/mis-compras" routerLinkActive="active" class="nav-item icon-only" title="Mis Compras">
             <span class="nav-icon">🛍️</span>
           </a>
@@ -57,6 +60,12 @@
           <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item icon-only" title="Mis Pagos y Recibos">
             <span class="nav-icon">💳</span>
           </a>
+          <a routerLink="/cuenta/mis-reservas" routerLinkActive="active" class="nav-item icon-only" title="Mis Reservas de Prendas">
+            <span class="nav-icon">🔖</span>
+          </a>
+          <a routerLink="/outfits" routerLinkActive="active" class="nav-item icon-only" title="Probador de Outfits">
+            <span class="nav-icon">👗</span>
+          </a>
           <a routerLink="/carrito" routerLinkActive="active" class="nav-item icon-only" title="Bolsa de Compras">
             <span class="nav-icon">🛒</span>
           </a>
@@ -65,10 +74,13 @@
           <a routerLink="/catalogo" routerLinkActive="active" class="nav-item icon-only" title="Vista Catálogo">
             <span class="nav-icon">✨</span>
           </a>
+          <a routerLink="/outfits" routerLinkActive="active" class="nav-item icon-only" title="Probador de Outfits">
+            <span class="nav-icon">👗</span>
+          </a>
           <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item icon-only" title="Productos">
             <span class="nav-icon">👕</span>
           </a>
-          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Caja POS">
+          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Gestionar Pagos">
             <span class="nav-icon">💵</span>
           </a>
           <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item icon-only" title="Cambios y Devoluciones">
@@ -99,7 +111,7 @@
           <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item icon-only" title="Temporadas">
             <span class="nav-icon">🗓️</span>
           </a>
-          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Caja POS">
+          <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item icon-only" title="Gestionar Pagos">
             <span class="nav-icon">💵</span>
           </a>
           <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item icon-only" title="Reportes">
@@ -107,16 +119,18 @@
           </a>
         }
 
-        <!-- Ventas, Reservas y Envíos (Visible para todos) -->
-        <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas y Pedidos">
-          <span class="nav-icon">💼</span>
-        </a>
-        <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item icon-only" title="Reservas">
-          <span class="nav-icon">🔖</span>
-        </a>
-        <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item icon-only" title="Envíos & Yango">
-          <span class="nav-icon">🚚</span>
-        </a>
+        <!-- Ventas, Reservas y Envíos (Solo Staff) -->
+        @if (isStaff) {
+          <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas y Pedidos">
+            <span class="nav-icon">💼</span>
+          </a>
+          <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item icon-only" title="Reservas">
+            <span class="nav-icon">🔖</span>
+          </a>
+          <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item icon-only" title="Envíos & Yango">
+            <span class="nav-icon">🚚</span>
+          </a>
+        }
 
         <!-- Sucursales (Visible para todos) -->
         <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
@@ -134,6 +148,9 @@
           <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item icon-only" title="Proveedores">
             <span class="nav-icon">🏭</span>
           </a>
+          <a routerLink="/admin/compras" routerLinkActive="active" class="nav-item icon-only" title="Compras a Proveedores">
+            <span class="nav-icon">📥</span>
+          </a>
         }
 
         @if (isAdmin) {
@@ -148,10 +165,12 @@
           </a>
         }
 
-        <!-- Bitácora de Auditoría (Protegida con Llave Maestra) -->
-        <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría (Protegida)">
-          <span class="nav-icon">📒</span>
-        </a>
+        <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
+        @if (!isCliente) {
+          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría (Protegida)">
+            <span class="nav-icon">📒</span>
+          </a>
+        }
 
         <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item icon-only" title="Mi Perfil">
           <span class="nav-icon">👤</span>
@@ -179,6 +198,16 @@
             <span class="nav-label">Catálogo de Prendas</span>
           </a>
 
+          <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👗</span>
+            <span class="nav-label">Probador de Outfits</span>
+          </a>
+
+          <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">⏳</span>
+            <span class="nav-label">Próximamente</span>
+          </a>
+
           <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'todas' }" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">🛍️</span>
             <span class="nav-label">Mis Compras Realizadas</span>
@@ -199,6 +228,11 @@
             <span class="nav-label">Mis Pagos y Recibos</span>
           </a>
 
+          <a routerLink="/cuenta/mis-reservas" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">🔖</span>
+            <span class="nav-label">Mis Reservas</span>
+          </a>
+
           <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">🛒</span>
             <span class="nav-label">Bolsa de Compras</span>
@@ -211,6 +245,11 @@
           <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">✨</span>
             <span class="nav-label">Vista Catálogo Tienda</span>
+          </a>
+
+          <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">👗</span>
+            <span class="nav-label">Probador de Outfits</span>
           </a>
 
           <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
@@ -260,7 +299,7 @@
 
           <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item">
             <span class="nav-icon">💵</span>
-            <span class="nav-label">Caja POS Mostrador</span>
+            <span class="nav-label">Gestionar Pagos</span>
           </a>
 
           <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item">
@@ -312,6 +351,11 @@
             <span class="nav-icon">🏭</span>
             <span class="nav-label">Proveedores</span>
           </a>
+
+          <a routerLink="/admin/compras" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📥</span>
+            <span class="nav-label">Compras a Proveedores</span>
+          </a>
         }
 
         @if (isAdmin) {
@@ -334,11 +378,13 @@
         <!-- Sección: SISTEMA -->
         <div class="nav-group-title mt-group">SISTEMA</div>
 
-        <!-- Bitácora de Auditoría (Protegida con Llave Maestra) -->
-        <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
-          <span class="nav-icon">📒</span>
-          <span class="nav-label">Bitácora de Auditoría</span>
-        </a>
+        <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
+        @if (!isCliente) {
+          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
+            <span class="nav-icon">📒</span>
+            <span class="nav-label">Bitácora de Auditoría</span>
+          </a>
+        }
 
         <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">👤</span>

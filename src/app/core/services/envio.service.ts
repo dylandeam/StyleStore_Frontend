@@ -45,4 +45,28 @@ export class EnvioService {
   deleteEnvio(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
+
+  cotizarPorDistancia(data: { sucursal_id?: number; lat?: number; lon?: number; direccion?: string; ciudad?: string }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cotizar-distancia`, data);
+  }
+
+  getEnviosAsignados(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/asignados`);
+  }
+
+  asignarRepartidor(envioId: number, repartidorId?: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${envioId}/asignar`, { repartidor_id: repartidorId });
+  }
+
+  actualizarPosicion(envioId: number, lat: number, lon: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${envioId}/posicion`, { lat, lon });
+  }
+
+  actualizarEstado(envioId: number, estado: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${envioId}/estado`, { estado });
+  }
+
+  getTrackingMap(envioId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${envioId}/tracking`);
+  }
 }

@@ -1,8 +1,8 @@
 <div class="page-container">
   <div class="page-header">
     <div class="header-titles">
-      <h2>🔖 Gestión de Reservas</h2>
-      <p class="subtitle">Monitoreo de prendas reservadas por clientes y emisión de tickets (Sección 16)</p>
+      <h2>🔖 Monitoreo de Reservas de Tienda</h2>
+      <p class="subtitle">Visualización de reservas de prendas por sucursal y comprobantes oficiales (Sección 16)</p>
     </div>
   </div>
 
@@ -13,12 +13,43 @@
     <div class="alert alert-error">{{ errorMessage() }}</div>
   }
 
+  <!-- BARRA DE FILTROS PARA EL ENCARGADO / ADMIN -->
+  <div class="filter-card">
+    <div class="filter-group">
+      <label for="filtro-sucursal" class="filter-label">🏬 Filtrar por Sucursal:</label>
+      <select
+        id="filtro-sucursal"
+        class="filter-select"
+        [ngModel]="selectedSucursalId()"
+        (ngModelChange)="selectedSucursalId.set($event); onFilterChange()">
+        <option [ngValue]="null">-- Todas las Sucursales --</option>
+        @for (s of sucursales(); track s.id) {
+          <option [ngValue]="s.id">{{ s.nombre }} ({{ s.ciudad }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="filtro-estado" class="filter-label">🏷️ Estado de Reserva:</label>
+      <select
+        id="filtro-estado"
+        class="filter-select"
+        [ngModel]="selectedEstado()"
+        (ngModelChange)="selectedEstado.set($event); onFilterChange()">
+        <option [ngValue]="null">-- Todos los Estados --</option>
+        <option value="pendiente">Pendiente de Retiro</option>
+        <option value="completada">Completada / Entregada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+    </div>
+  </div>
+
   <div class="table-card">
     @if (isLoading()) {
       <div class="loading-state">Cargando reservas...</div>
     } @else if (reservas().length === 0) {
       <div class="empty-state">
-        <p>No hay reservas registradas en el sistema.</p>
+        <p>No se encontraron reservas registradas para los filtros seleccionados.</p>
       </div>
     } @else {
       <div class="table-responsive">
@@ -26,11 +57,11 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Fecha</th>
-              <th>Hora</th>
+              <th>Sucursal Asignada</th>
+              <th>Cliente</th>
+              <th>Fecha Límite</th>
+              <th>Prendas</th>
               <th>Estado</th>
-              <th>Código Cliente</th>
-              <th>Sucursal</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -38,8 +69,29 @@
             @for (r of reservas(); track r.id) {
               <tr>
                 <td class="cell-id">#{{ r.id }}</td>
-                <td>{{ r.fecha }}</td>
-                <td>{{ r.hora }}</td>
+                <td>
+                  <div class="sucursal-cell">
+                    <span class="sucursal-badge">📍 {{ r.sucursal_ciudad || 'Sucursal #' + r.sucursal_id }}</span>
+                    @if (r.sucursal_direccion) {
+                      <span class="sucursal-sub">{{ r.sucursal_direccion }}</span>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <div class="cliente-cell">
+                    <span class="cliente-nombre">{{ r.cliente_nombre || 'Cliente' }}</span>
+                    <span class="cliente-code">Cod: {{ r.codigo_cliente }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="date-cell">
+                    <strong>{{ r.fecha }}</strong>
+                    <span class="time-sub">{{ r.hora }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge badge-info">{{ r.detalles.length }} ítem(s)</span>
+                </td>
                 <td>
                   <span class="badge"
                     [class.badge-pending]="r.estado === 'pendiente'"
@@ -48,11 +100,12 @@
                     {{ r.estado | uppercase }}
                   </span>
                 </td>
-                <td class="font-semibold text-navy">{{ r.codigo_cliente }}</td>
-                <td>{{ r.sucursal_ciudad || 'Sucursal #' + r.sucursal_id }}</td>
                 <td class="cell-actions">
-                  <button class="btn-icon" (click)="openDetail(r)" title="Ver Detalle">👁️</button>
+                  <button class="btn-icon" (click)="openDetail(r)" title="Ver Detalle de Reserva">👁️</button>
                   <button class="btn-icon btn-print" (click)="openTicket(r)" title="Imprimir Ticket">🎟️ Ticket</button>
+                  @if (r.estado === 'pendiente') {
+                    <button class="btn-icon btn-cancel" (click)="cancelarReserva(r.id)" title="Cancelar y devolver stock">❌</button>
+                  }
                 </td>
               </tr>
             }
@@ -72,10 +125,10 @@
         </div>
         <div class="modal-body">
           <div class="reserva-meta-grid">
-            <div><strong>Cliente:</strong> {{ selectedReserva()!.cliente_nombre || selectedReserva()!.codigo_cliente }}</div>
-            <div><strong>Sucursal:</strong> {{ selectedReserva()!.sucursal_ciudad }} - {{ selectedReserva()!.sucursal_direccion }}</div>
-            <div><strong>Fecha/Hora:</strong> {{ selectedReserva()!.fecha }} {{ selectedReserva()!.hora }}</div>
-            <div><strong>Estado:</strong>
+            <div><strong>Cliente:</strong> {{ selectedReserva()!.cliente_nombre || selectedReserva()!.codigo_cliente }} (Cod: {{ selectedReserva()!.codigo_cliente }})</div>
+            <div><strong>Sucursal Destino:</strong> {{ selectedReserva()!.sucursal_ciudad }} - {{ selectedReserva()!.sucursal_direccion }}</div>
+            <div><strong>Fecha Límite:</strong> {{ selectedReserva()!.fecha }} ({{ selectedReserva()!.hora }})</div>
+            <div><strong>Estado Actual:</strong>
               <span class="badge"
                 [class.badge-pending]="selectedReserva()!.estado === 'pendiente'"
                 [class.badge-completed]="selectedReserva()!.estado === 'completada'"
@@ -91,7 +144,7 @@
               <div class="item-row">
                 <div class="item-info">
                   <strong>{{ d.producto_nombre || 'Prenda' }}</strong> (Cod: {{ d.producto_codigo }})
-                  <div class="text-xs text-muted">Color: {{ d.color_nombre }} | Talla: {{ d.talla_nombre }}</div>
+                  <div class="text-xs text-muted">Color: {{ d.color_nombre || 'N/A' }} | Talla: {{ d.talla_nombre || 'N/A' }}</div>
                 </div>
                 <div class="item-cant badge badge-info">{{ d.cantidad }} ud(s)</div>
               </div>
@@ -99,32 +152,32 @@
           </div>
 
           <div class="status-change-box mt-4">
-            <label><strong>Cambiar Estado:</strong></label>
+            <label><strong>Acciones de Mostrador:</strong></label>
             <div class="status-actions">
               <button
                 class="btn btn-sm btn-success"
                 [disabled]="selectedReserva()!.estado === 'completada'"
                 (click)="updateEstado(selectedReserva()!.id, 'completada')">
-                Marcar Completada
+                Entregar Prendas (Completar)
               </button>
               <button
                 class="btn btn-sm btn-danger"
                 [disabled]="selectedReserva()!.estado === 'cancelada'"
-                (click)="updateEstado(selectedReserva()!.id, 'cancelada')">
-                Cancelar Reserva
+                (click)="cancelarReserva(selectedReserva()!.id)">
+                Cancelar Reserva (Liberar Stock)
               </button>
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="closeDetail()">Cerrar</button>
-          <button class="btn btn-primary" (click)="openTicket(selectedReserva()!)">Ver Ticket</button>
+          <button class="btn btn-primary" (click)="openTicket(selectedReserva()!)">🎟️ Ver Ticket</button>
         </div>
       </div>
     </div>
   }
 
-  <!-- MODAL TICKET IMPRIMIBLE (v5 sección 15 y 16) -->
+  <!-- MODAL TICKET IMPRIMIBLE -->
   @if (isTicketModalOpen() && selectedReserva()) {
     <div class="modal-backdrop" (click)="closeTicket()">
       <div class="modal-card ticket-card" (click)="$event.stopPropagation()">
@@ -137,9 +190,9 @@
 
         <div class="ticket-body print-area">
           <div class="ticket-field"><strong>Nº Reserva:</strong> #{{ selectedReserva()!.id }}</div>
-          <div class="ticket-field"><strong>Fecha:</strong> {{ selectedReserva()!.fecha }}</div>
-          <div class="ticket-field"><strong>Hora:</strong> {{ selectedReserva()!.hora }}</div>
-          <div class="ticket-field"><strong>Sucursal:</strong> {{ selectedReserva()!.sucursal_ciudad }}</div>
+          <div class="ticket-field"><strong>Sucursal:</strong> {{ selectedReserva()!.sucursal_ciudad }} ({{ selectedReserva()!.sucursal_direccion }})</div>
+          <div class="ticket-field"><strong>Fecha Límite:</strong> {{ selectedReserva()!.fecha }}</div>
+          <div class="ticket-field"><strong>Hora Registro:</strong> {{ selectedReserva()!.hora }}</div>
           <div class="ticket-field"><strong>Cliente:</strong> {{ selectedReserva()!.cliente_nombre || selectedReserva()!.codigo_cliente }}</div>
           <div class="ticket-field"><strong>Estado:</strong> {{ selectedReserva()!.estado | uppercase }}</div>
 
@@ -156,14 +209,14 @@
               @for (d of selectedReserva()!.detalles; track d.id) {
                 <tr>
                   <td>{{ d.producto_nombre }}</td>
-                  <td>{{ d.talla_nombre }}</td>
+                  <td>{{ d.talla_nombre || '-' }}</td>
                   <td>{{ d.cantidad }}</td>
                 </tr>
               }
             </tbody>
           </table>
           <div class="ticket-divider"></div>
-          <p class="ticket-footer-text">Presente este ticket en mostrador para retirar sus prendas. ¡Gracias por su preferencia!</p>
+          <p class="ticket-footer-text">Comprobante de reserva. Presentar en mostrador de la sucursal indicada.</p>
         </div>
 
         <div class="modal-footer no-print">

@@ -18,8 +18,27 @@ export class AuthService {
 
   private readonly API_URL = environment.apiUrl;
 
+  private getStoredUser(): User | null {
+    try {
+      const u = localStorage.getItem('stylestore_user');
+      return u ? JSON.parse(u) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveStoredUser(user: User | null): void {
+    try {
+      if (user) {
+        localStorage.setItem('stylestore_user', JSON.stringify(user));
+      } else {
+        localStorage.removeItem('stylestore_user');
+      }
+    } catch {}
+  }
+
   // Reactive state
-  currentUser = signal<User | null>(null);
+  currentUser = signal<User | null>(this.getStoredUser());
   isAuthenticated = signal<boolean>(this.tokenService.hasToken());
   isLoading = signal<boolean>(false);
 
@@ -51,7 +70,10 @@ export class AuthService {
 
   getProfile(): Observable<User> {
     return this.http.get<User>(`${this.API_URL}/users/me`).pipe(
-      tap((user) => this.currentUser.set(user)),
+      tap((user) => {
+        this.currentUser.set(user);
+        this.saveStoredUser(user);
+      }),
       catchError((error) => {
         if (error.status === 401) {
           this.logout();
@@ -98,6 +120,7 @@ export class AuthService {
     }
 
     this.tokenService.clearTokens();
+    this.saveStoredUser(null);
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
     this.router.navigate(['/auth/login']);

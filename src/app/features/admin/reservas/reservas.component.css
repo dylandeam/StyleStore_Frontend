@@ -19,6 +19,47 @@
   margin: 0;
 }
 
+.filter-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E2D9CC;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(20, 38, 61, 0.04);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #14263D;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #14263D;
+  background: #f8fafc;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus {
+  border-color: #14263D;
+  background: #ffffff;
+}
+
 .table-card {
   background: #FFFFFF;
   border-radius: 12px;
@@ -80,6 +121,61 @@
 .badge-info {
   background: #E0E7FF;
   color: #3730A3;
+}
+
+.sucursal-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sucursal-badge {
+  font-weight: 700;
+  color: #14263D;
+  font-size: 0.85rem;
+}
+
+.sucursal-sub {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.cliente-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.cliente-nombre {
+  font-weight: 700;
+  color: #1E293B;
+  font-size: 0.85rem;
+}
+
+.cliente-code {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-family: monospace;
+}
+
+.date-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-sub {
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+.btn-cancel {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #FCA5A5;
+}
+
+.btn-cancel:hover {
+  background: #DC2626;
+  color: #FFFFFF;
 }
 
 .cell-actions {

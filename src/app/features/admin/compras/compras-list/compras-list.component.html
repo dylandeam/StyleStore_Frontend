@@ -1,0 +1,301 @@
+<div class="compras-container">
+  <!-- Toast -->
+  <div class="toast-notification" *ngIf="toastMsg">
+    <span>{{ toastMsg }}</span>
+  </div>
+
+  <div class="page-header">
+    <div>
+      <div class="breadcrumb">Administración / <span>Compras</span></div>
+      <h1>Compras a Proveedores</h1>
+      <p class="subtitle">Abastecimiento de inventario por sucursal, registro de facturas y control de existencias.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="abrirModalNueva()">
+      + Nueva Compra
+    </button>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="filters-card card">
+    <div class="filter-col">
+      <label>Sucursal Destino:</label>
+      <select [(ngModel)]="filtroSucursalId" (change)="cargarCompras()" class="form-select">
+        <option [ngValue]="null">Todas las sucursales</option>
+        <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
+      </select>
+    </div>
+
+    <div class="filter-col">
+      <label>Proveedor:</label>
+      <select [(ngModel)]="filtroProveedorCodigo" (change)="cargarCompras()" class="form-select">
+        <option value="">Todos los proveedores</option>
+        <option *ngFor="let p of proveedores" [value]="p.codigo">{{ p.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="filter-col">
+      <label>Estado:</label>
+      <select [(ngModel)]="filtroEstado" (change)="cargarCompras()" class="form-select">
+        <option value="">Todos los estados</option>
+        <option value="registrada">Registrada</option>
+        <option value="anulada">Anulada</option>
+      </select>
+    </div>
+
+    <div class="filter-col action-col">
+      <button type="button" class="btn-refresh" (click)="cargarCompras()" [disabled]="loading">
+        <span [class.spinning]="loading">🔄</span> Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Compras -->
+  <div class="card table-card">
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Cargando compras registradas...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && compras.length === 0">
+      <p>No se encontraron compras con los filtros seleccionados.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loading && compras.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Proveedor</th>
+            <th>Sucursal Destino</th>
+            <th>Factura / N°</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of compras">
+            <td><strong>#{{ c.id }}</strong></td>
+            <td>{{ c.fecha }}</td>
+            <td><strong>{{ c.proveedor_nombre || 'N/A' }}</strong></td>
+            <td>{{ c.sucursal_nombre || 'N/A' }}</td>
+            <td>{{ c.nro_factura || '-' }}</td>
+            <td><strong>Bs. {{ c.total | number:'1.2-2' }}</strong></td>
+            <td>
+              <span class="badge" [class.badge-success]="c.estado === 'registrada'" [class.badge-danger]="c.estado === 'anulada'">
+                {{ c.estado | uppercase }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button type="button" class="btn-view" (click)="verDetalle(c)">
+                👁️ Detalle
+              </button>
+              <button 
+                type="button" 
+                class="btn-danger-outline" 
+                *ngIf="c.estado === 'registrada'" 
+                (click)="anularCompra(c)"
+                title="Anular compra y revertir stock"
+              >
+                ✕ Anular
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVA COMPRA (ABASTECER INVENTARIO) -->
+  <div class="modal-backdrop" *ngIf="showModalNueva" (click)="cerrarModalNueva()">
+    <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Registrar Compra y Abastecer Inventario</h2>
+        <button type="button" class="btn-close" (click)="cerrarModalNueva()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert-error" *ngIf="errorMsg">
+          {{ errorMsg }}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Proveedor (*):</label>
+            <select [(ngModel)]="nuevaCompra.proveedor_codigo" class="form-control">
+              <option *ngFor="let p of proveedores" [value]="p.codigo">{{ p.nombre }} (CI: {{ p.ci || 'Sin CI' }})</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Sucursal de Destino (*):</label>
+            <select [(ngModel)]="nuevaCompra.sucursal_id" class="form-control">
+              <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>N° Factura / Comprobante:</label>
+            <input type="text" [(ngModel)]="nuevaCompra.nro_factura" placeholder="Ej. FAC-98214" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label>Observaciones:</label>
+            <input type="text" [(ngModel)]="nuevaCompra.observaciones" placeholder="Opcional: notas sobre la entrega" class="form-control" />
+          </div>
+        </div>
+
+        <!-- Sección de Agregar Prendas -->
+        <div class="items-builder-box">
+          <h3>Prendas a Abastecer</h3>
+          <div class="item-builder-grid">
+            <div class="builder-col">
+              <label>Prenda / Producto:</label>
+              <select [(ngModel)]="tempItem.producto_codigo" class="form-control">
+                <option *ngFor="let p of productos" [value]="p.codigo">{{ p.codigo }} — {{ p.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="builder-col">
+              <label>Color:</label>
+              <select [(ngModel)]="tempItem.color_id" class="form-control">
+                <option *ngFor="let c of colores" [value]="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="builder-col">
+              <label>Talla:</label>
+              <select [(ngModel)]="tempItem.talla_id" class="form-control">
+                <option *ngFor="let t of tallas" [value]="t.id">{{ t.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="builder-col small">
+              <label>Cantidad:</label>
+              <input type="number" min="1" [(ngModel)]="tempItem.cantidad" class="form-control" />
+            </div>
+
+            <div class="builder-col small">
+              <label>Costo U. (Bs.):</label>
+              <input type="number" min="0.5" step="0.5" [(ngModel)]="tempItem.costo_unitario" class="form-control" />
+            </div>
+
+            <div class="builder-col btn-col">
+              <button type="button" class="btn-add-item" (click)="agregarItemACompra()">
+                + Agregar
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabla de Items Agregados -->
+          <div class="items-table-wrap" *ngIf="nuevaCompra.items.length > 0">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Prenda</th>
+                  <th>Color</th>
+                  <th>Talla</th>
+                  <th>Cant.</th>
+                  <th>Costo U.</th>
+                  <th>Subtotal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let it of nuevaCompra.items; let i = index">
+                  <td>{{ getNombreProducto(it.producto_codigo) }}</td>
+                  <td>{{ getNombreColor(it.color_id) }}</td>
+                  <td>{{ getNombreTalla(it.talla_id) }}</td>
+                  <td><strong>{{ it.cantidad }}</strong></td>
+                  <td>Bs. {{ it.costo_unitario | number:'1.2-2' }}</td>
+                  <td><strong>Bs. {{ (it.cantidad * it.costo_unitario) | number:'1.2-2' }}</strong></td>
+                  <td>
+                    <button type="button" class="btn-remove-item" (click)="eliminarItem(i)">✕</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="total-bar">
+              <span>TOTAL DE LA COMPRA:</span>
+              <strong>Bs. {{ totalNuevaCompra | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="cerrarModalNueva()">Cancelar</button>
+        <button 
+          type="button" 
+          class="btn-primary" 
+          [disabled]="guardando || nuevaCompra.items.length === 0"
+          (click)="guardarCompra()"
+        >
+          {{ guardando ? 'Abasteciendo inventario...' : '✓ Guardar y Abastecer Inventario' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VER DETALLE DE COMPRA -->
+  <div class="modal-backdrop" *ngIf="showModalDetalle" (click)="cerrarModalDetalle()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalle de Compra #{{ compraSeleccionada?.id }}</h2>
+        <button type="button" class="btn-close" (click)="cerrarModalDetalle()">✕</button>
+      </div>
+
+      <div class="modal-body" *ngIf="compraSeleccionada">
+        <div class="detail-header-info">
+          <div><strong>Proveedor:</strong> {{ compraSeleccionada.proveedor_nombre }}</div>
+          <div><strong>Sucursal Destino:</strong> {{ compraSeleccionada.sucursal_nombre }}</div>
+          <div><strong>Fecha:</strong> {{ compraSeleccionada.fecha }}</div>
+          <div><strong>Factura N°:</strong> {{ compraSeleccionada.nro_factura || '-' }}</div>
+          <div><strong>Estado:</strong> 
+            <span class="badge" [class.badge-success]="compraSeleccionada.estado === 'registrada'" [class.badge-danger]="compraSeleccionada.estado === 'anulada'">
+              {{ compraSeleccionada.estado | uppercase }}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-items-table-wrap">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Prenda</th>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Cant.</th>
+                <th>Costo U.</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let it of compraSeleccionada.detalles">
+                <td>{{ it.producto_nombre || it.producto_codigo }}</td>
+                <td>{{ it.color_nombre || it.color_id }}</td>
+                <td>{{ it.talla_nombre || it.talla_id }}</td>
+                <td><strong>{{ it.cantidad }}</strong></td>
+                <td>Bs. {{ it.costo_unitario | number:'1.2-2' }}</td>
+                <td><strong>Bs. {{ it.subtotal | number:'1.2-2' }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="total-bar">
+          <span>TOTAL COMPRA:</span>
+          <strong>Bs. {{ compraSeleccionada.total | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="cerrarModalDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

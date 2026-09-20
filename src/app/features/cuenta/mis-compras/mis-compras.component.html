@@ -265,9 +265,14 @@
           <!-- Producto de la orden -->
           <div class="form-group mb-3" *ngIf="selectedOrden.detalles && selectedOrden.detalles.length > 0">
             <label class="form-label">Selecciona el artículo involucrado:</label>
-            <select class="form-select" [(ngModel)]="solicitud.producto_detalle_id" name="detalleId">
+            <select
+              class="form-select"
+              [ngModel]="solicitud.producto_detalle_id"
+              (ngModelChange)="cargarOpcionesParaDetalle($event)"
+              name="detalleId"
+            >
               <option *ngFor="let det of selectedOrden.detalles" [value]="det.id">
-                {{ det.producto_nombre }} ({{ det.talla_nombre }} - {{ det.color_nombre }}) - ${{ det.subtotal | number:'1.2-2' }}
+                {{ det.producto_nombre }} ({{ det.talla_nombre }} - {{ det.color_nombre }}) - Bs. {{ det.subtotal | number:'1.2-2' }}
               </option>
             </select>
           </div>
@@ -289,15 +294,31 @@
             <input type="date" class="form-input" [(ngModel)]="fechaProgramada" name="fechaProg" required>
           </div>
 
-          <!-- Talla o Color Solicitado (si es cambio) -->
+          <!-- Talla o Color Solicitado (si es cambio) - Selects dinámicos Punto 5 -->
           <div class="form-row mb-3" *ngIf="solicitud.tipo === 'cambio'">
             <div class="form-group col">
-              <label class="form-label">Talla deseada:</label>
-              <input type="text" class="form-input" [(ngModel)]="solicitud.talla_solicitada" name="tallaSol" placeholder="Ej: M, L, XL, 32">
+              <label class="form-label">Talla deseada (con stock en esta sucursal):</label>
+              <select class="form-select" [(ngModel)]="solicitud.talla_solicitada" name="tallaSol" [disabled]="cargandoOpciones">
+                <option value="" disabled selected>-- Selecciona una talla con stock --</option>
+                <option *ngFor="let t of tallasDisponibles" [value]="t.nombre">
+                  📏 {{ t.nombre }} ({{ t.cantidad }} disponibles)
+                </option>
+                <option *ngIf="tallasDisponibles.length === 0 && !cargandoOpciones" value="" disabled>
+                  ⚠️ Sin stock disponible en esta sucursal
+                </option>
+              </select>
             </div>
             <div class="form-group col">
-              <label class="form-label">Color deseado:</label>
-              <input type="text" class="form-input" [(ngModel)]="solicitud.color_solicitado" name="colorSol" placeholder="Ej: Azul Marino, Beige">
+              <label class="form-label">Color deseado (variantes de la prenda):</label>
+              <select class="form-select" [(ngModel)]="solicitud.color_solicitado" name="colorSol" [disabled]="cargandoOpciones">
+                <option value="" disabled selected>-- Selecciona un color --</option>
+                <option *ngFor="let c of coloresDisponibles" [value]="c.nombre">
+                  🎨 {{ c.nombre }}
+                </option>
+                <option *ngIf="coloresDisponibles.length === 0 && !cargandoOpciones" value="" disabled>
+                  ⚠️ Sin otros colores disponibles
+                </option>
+              </select>
             </div>
           </div>
 

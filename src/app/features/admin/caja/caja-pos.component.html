@@ -6,13 +6,13 @@
 
   <div class="pos-header">
     <div>
-      <div class="breadcrumb">Administración / <span>Punto de Venta</span></div>
-      <h1>Caja y Cobros POS</h1>
-      <p class="subtitle">Cobro de órdenes pendientes y venta directa en mostrador con Efectivo (con vuelto) o QR Simple.</p>
+      <div class="breadcrumb">Administración / <span>Pagos & Caja</span></div>
+      <h1>Gestionar Pagos</h1>
+      <p class="subtitle">Cobro de compras online, emisión de tickets térmicos, ventas en mostrador (Efectivo / QR) e historial de pagos.</p>
     </div>
   </div>
 
-  <!-- Pestañas Superiores de Caja POS -->
+  <!-- Pestañas Superiores de Gestionar Pagos -->
   <div class="pos-tabs-nav">
     <button 
       type="button" 
@@ -30,14 +30,24 @@
     >
       🛍️ Nueva Venta Directa en Mostrador
     </button>
+    <button 
+      type="button" 
+      class="tab-btn" 
+      [class.active]="activeTab === 'historial'" 
+      (click)="switchTab('historial')"
+    >
+      📜 Historial de Pagos
+    </button>
   </div>
 
-  <!-- TAB 1: ÓRDENES PENDIENTES DE PAGO -->
+  <!-- ========================================================= -->
+  <!-- TAB 1: ÓRDENES PENDIENTES DE PAGO (COBRO ONLINE / CAJA) -->
+  <!-- ========================================================= -->
   <div class="pos-grid" *ngIf="activeTab === 'ordenes'">
     <!-- Columna Izquierda: Órdenes Pendientes de Cobro -->
     <div class="pos-orders-list">
       <div class="card header-card pos-header-card">
-        <h3>Órdenes Pendientes de Pago ({{ ordenesPendientes.length }})</h3>
+        <h3>Órdenes Pendientes ({{ ordenesPendientes.length }})</h3>
         <button type="button" class="btn-refresh-pos" (click)="cargarOrdenesPendientes()" [disabled]="loading" title="Recargar órdenes">
           <span [class.spinning]="loading">🔄</span>
         </button>
@@ -72,7 +82,7 @@
           <div class="order-items-preview" *ngIf="o.detalles && o.detalles.length > 0">
             <span class="items-count">{{ o.detalles.length }} artículo(s)</span>
             <span class="badge-metodo" [class.badge-efectivo]="(o.metodo_pago || '').toLowerCase() === 'efectivo'">
-              {{ o.metodo_pago || 'EFECTIVO' }}
+              {{ o.metodo_pago || (o.tipo_venta === 'en linea' ? 'EN LÍNEA' : 'EFECTIVO') }}
             </span>
           </div>
 
@@ -90,7 +100,7 @@
       <div class="card empty-selection-card" *ngIf="!ordenSeleccionada && !ticketEmitido">
         <div class="pos-icon">💵</div>
         <h3>Selecciona una orden</h3>
-        <p>Haz clic en una orden pendiente de la lista izquierda para iniciar el cobro en efectivo.</p>
+        <p>Haz clic en una orden pendiente para emitir su ticket de pago.</p>
       </div>
 
       <!-- Formulario de Cobro Activo -->
@@ -102,6 +112,8 @@
 
         <div class="client-bar">
           <span>Cliente: <strong>{{ ordenSeleccionada.cliente_nombre || ordenSeleccionada.codigo_cliente }}</strong></span>
+          <span class="badge-channel" *ngIf="ordenSeleccionada.tipo_venta === 'en linea'">🌐 Compra Online</span>
+          <span class="badge-channel" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea'">🏬 Venta Física</span>
         </div>
 
         <!-- Total a Pagar -->
@@ -115,44 +127,60 @@
           {{ error }}
         </div>
 
-        <!-- Input de Efectivo Recibido -->
-        <div class="cash-input-group">
-          <label>Efectivo Recibido (Bs.)</label>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            class="cash-input"
-            [(ngModel)]="efectivoRecibido"
-          />
-
-          <!-- Botones de Billetes Rápidos -->
-          <div class="quick-cash-buttons">
-            <button type="button" class="btn-cash" (click)="addBilletes(10)">+Bs. 10</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(20)">+Bs. 20</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(50)">+Bs. 50</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(100)">+Bs. 100</button>
-            <button type="button" class="btn-cash" (click)="addBilletes(200)">+Bs. 200</button>
-            <button type="button" class="btn-cash exact" (click)="setBilletes(ordenSeleccionada.total)">Exacto</button>
+        <!-- ACCIÓN 1: Botón directo para Órdenes en Línea (Sin cálculo de vuelto) -->
+        <div class="online-confirm-section" *ngIf="ordenSeleccionada.tipo_venta === 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() !== 'efectivo'">
+          <div class="online-hint">
+            <span>ℹ️ Esta orden proviene de una <strong>compra en línea</strong>. No requiere cálculo de vuelto.</span>
           </div>
+          <button
+            type="button"
+            class="btn-emitir-ticket btn-online-direct"
+            [disabled]="procesando"
+            (click)="confirmarCobroOnline(ordenSeleccionada)"
+          >
+            <span *ngIf="!procesando">✓ Confirmar y Emitir Ticket</span>
+            <span *ngIf="procesando">Emitiendo ticket...</span>
+          </button>
         </div>
 
-        <!-- Indicador de Vuelto / Cambio -->
-        <div class="cambio-display" [class.valid]="puedeCobrar">
-          <div class="cambio-label">CAMBIO A DEVOLVER:</div>
-          <div class="cambio-value">Bs. {{ cambio | number:'1.2-2' }}</div>
-        </div>
+        <!-- ACCIÓN 2: Cobro en Efectivo con Vuelto (Presencial o si desea registrar efectivo) -->
+        <div class="cash-checkout-box" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'efectivo'">
+          <h4 class="section-title">O cobrar en efectivo con cálculo de vuelto:</h4>
+          <div class="cash-input-group">
+            <label>Efectivo Recibido (Bs.)</label>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              class="cash-input"
+              [(ngModel)]="efectivoRecibido"
+            />
 
-        <!-- Botón Procesar Cobro -->
-        <button
-          type="button"
-          class="btn-emitir-ticket"
-          [disabled]="!puedeCobrar || procesando"
-          (click)="procesarCobro()"
-        >
-          <span *ngIf="!procesando">✓ Cobrar y Emitir Ticket</span>
-          <span *ngIf="procesando">Registrando cobro...</span>
-        </button>
+            <div class="quick-cash-buttons">
+              <button type="button" class="btn-cash" (click)="addBilletes(10)">+Bs. 10</button>
+              <button type="button" class="btn-cash" (click)="addBilletes(20)">+Bs. 20</button>
+              <button type="button" class="btn-cash" (click)="addBilletes(50)">+Bs. 50</button>
+              <button type="button" class="btn-cash" (click)="addBilletes(100)">+Bs. 100</button>
+              <button type="button" class="btn-cash" (click)="addBilletes(200)">+Bs. 200</button>
+              <button type="button" class="btn-cash exact" (click)="setBilletes(ordenSeleccionada.total)">Exacto</button>
+            </div>
+          </div>
+
+          <div class="cambio-display" [class.valid]="puedeCobrar">
+            <div class="cambio-label">CAMBIO A DEVOLVER:</div>
+            <div class="cambio-value">Bs. {{ cambio | number:'1.2-2' }}</div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-emitir-ticket"
+            [disabled]="!puedeCobrar || procesando"
+            (click)="procesarCobro()"
+          >
+            <span *ngIf="!procesando">✓ Cobrar en Efectivo y Emitir Ticket</span>
+            <span *ngIf="procesando">Registrando cobro...</span>
+          </button>
+        </div>
       </div>
 
       <!-- Ticket Emitido / Imprimible -->
@@ -162,7 +190,7 @@
             <h2 class="receipt-brand">STYLESTORE</h2>
             <p class="receipt-address">Moda & Alta Calidad</p>
             <div class="receipt-divider">================================</div>
-            <div class="receipt-line"><strong>TICKET DE CAJA</strong></div>
+            <div class="receipt-line"><strong>TICKET DE PAGO</strong></div>
             <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
             <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
             <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
@@ -172,7 +200,6 @@
             <div class="receipt-divider">--------------------------------</div>
           </div>
 
-          <!-- Artículos comprados -->
           <div class="receipt-items" *ngIf="ordenSeleccionada?.detalles && ordenSeleccionada.detalles.length > 0">
             <div class="receipt-item-row" *ngFor="let it of ordenSeleccionada.detalles">
               <span class="it-desc">{{ it.cantidad }}x {{ it.producto_nombre }} ({{ it.talla_nombre || 'U' }}{{ it.color_nombre ? ' - ' + it.color_nombre : '' }})</span>
@@ -198,245 +225,316 @@
           </div>
 
           <div class="receipt-footer">
-            <p>¡Gracias por su compra en StyleStore!</p>
-            <p class="receipt-small">Este comprobante certifica su pago en efectivo.</p>
+            <p>¡Gracias por tu preferencia!</p>
+            <p>StyleStore Bolivia - Garantía 7 días</p>
+            <p>Conserva este ticket para cambios o devoluciones</p>
           </div>
         </div>
 
-        <div class="ticket-actions no-print">
-          <button type="button" class="btn btn-print" (click)="imprimirTicket()">
-            🖨️ Imprimir Ticket
+        <div class="ticket-actions">
+          <button type="button" class="btn-ticket-print" (click)="imprimirTicket()">
+            🖨️ Imprimir Ticket Térmico
           </button>
-          <button type="button" class="btn btn-new-sale" (click)="nuevaVenta()">
-            + Nuevo Cobro
+          <button type="button" class="btn-ticket-done" (click)="nuevaVenta()">
+            Siguiente Cobro ➔
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- TAB 2: VENTA DIRECTA EN MOSTRADOR (POS) -->
-  <div class="pos-grid direct-sale-grid" *ngIf="activeTab === 'venta_directa'">
-    <!-- Columna Izquierda: Catálogo / Inventario disponible en la sucursal -->
-    <div class="pos-orders-list">
-      <div class="card header-card pos-header-card">
-        <h3>Prendas Disponibles en Tienda</h3>
-        <div class="sucursal-selector-wrap">
-          <select class="select-sucursal-sm" [(ngModel)]="selectedSucursalId" (change)="cargarInventarioSucursal()">
-            <option *ngFor="let s of sucursales" [ngValue]="s.id">{{ s.nombre }} ({{ s.ciudad }})</option>
+  <!-- ========================================================= -->
+  <!-- TAB 2: VENTA DIRECTA EN MOSTRADOR (PRESENCIAL) -->
+  <!-- ========================================================= -->
+  <div class="pos-directa-grid" *ngIf="activeTab === 'venta_directa'">
+    <!-- Columna Izquierda: Catálogo de Inventario en Sucursal -->
+    <div class="pos-catalog-panel card">
+      <div class="catalog-filters">
+        <!-- Sucursal fijada automáticamente con selector disponible -->
+        <div class="filter-group">
+          <label>Sucursal de Atención:</label>
+          <select [(ngModel)]="selectedSucursalId" (change)="cargarInventarioSucursal()" class="pos-select">
+            <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
           </select>
+        </div>
+
+        <!-- Buscador por código o nombre -->
+        <div class="filter-group">
+          <label>Buscar Prenda o Código:</label>
+          <input 
+            type="text" 
+            [(ngModel)]="searchItem" 
+            placeholder="Nombre, color, talla, código..." 
+            class="pos-input"
+          />
         </div>
       </div>
 
-      <!-- Buscador rápido de prenda -->
-      <div class="pos-search-box">
-        <input 
-          type="text" 
-          class="form-control-search" 
-          placeholder="Buscar prenda, color, talla..." 
-          [(ngModel)]="searchItem"
-        />
-      </div>
-
-      <div class="orders-scroll-area">
+      <!-- Grid de Prendas Disponibles -->
+      <div class="catalog-items-area">
         <div class="loading-notice" *ngIf="loadingInventario">
           <div class="spinner-sm"></div>
-          <p>Cargando stock de sucursal...</p>
+          <p>Cargando existencias en tienda...</p>
         </div>
 
         <div class="empty-notice" *ngIf="!loadingInventario && filteredInventario.length === 0">
-          <p>No hay prendas con stock disponible en esta sucursal.</p>
+          <p>No se encontraron prendas con stock disponible en esta sucursal.</p>
         </div>
 
-        <div 
-          class="order-card-item product-pick-item" 
-          *ngFor="let item of filteredInventario"
-          (click)="agregarAlCarritoDirecto(item)"
-        >
-          <div class="order-top">
-            <span class="order-number">{{ item.producto_nombre }}</span>
-            <span class="badge-stock-pill">{{ item.cantidad_disponible }} en stock</span>
+        <div class="pos-product-card" *ngFor="let item of filteredInventario" (click)="agregarAlCarritoDirecto(item)">
+          <div class="p-thumb" *ngIf="item.foto">
+            <img [src]="item.foto" [alt]="item.producto_nombre" />
           </div>
-          <div class="product-pick-meta">
-            <span>Talla: <strong>{{ item.talla_nombre || 'N/A' }}</strong></span>
-            <span>Color: <strong>{{ item.color_nombre || 'N/A' }}</strong></span>
+          <div class="p-info">
+            <div class="p-name">{{ item.producto_nombre }}</div>
+            <div class="p-meta">
+              <span class="p-badge">{{ item.talla_nombre || 'Talla Única' }}</span>
+              <span class="p-badge color" *ngIf="item.color_nombre">{{ item.color_nombre }}</span>
+            </div>
+            <div class="p-price-row">
+              <span class="p-price">Bs. {{ item.precio_unitario || item.precio | number:'1.2-2' }}</span>
+              <span class="p-stock">Stock: {{ item.cantidad_disponible }}</span>
+            </div>
           </div>
-          <div class="order-total-row">
-            <span class="total-label">Precio:</span>
-            <span class="total-val">Bs. {{ item.precio_unitario | number:'1.2-2' }}</span>
-          </div>
+          <button type="button" class="btn-add-p">+</button>
         </div>
       </div>
     </div>
 
-    <!-- Columna Derecha: Canasta de Mostrador y Checkout (Efectivo/QR) -->
-    <div class="pos-checkout-panel">
-      <!-- Si ya se emitió ticket tras la venta directa -->
-      <div class="card ticket-card" *ngIf="ticketEmitido">
-        <div class="ticket-thermal-receipt" id="ticket-pos-print">
+    <!-- Columna Derecha: Canasta y Cobro de Venta Directa -->
+    <div class="pos-cart-panel card">
+      <h3>Canasta de Mostrador</h3>
+
+      <!-- Selector de Método de Pago Presencial: Efectivo vs QR Simple -->
+      <div class="metodo-pago-selector">
+        <label>Método de Pago:</label>
+        <div class="metodo-buttons">
+          <button 
+            type="button" 
+            class="btn-metodo" 
+            [class.active]="metodoPagoDirecto === 'efectivo'"
+            (click)="metodoPagoDirecto = 'efectivo'"
+          >
+            💵 Efectivo (con Vuelto)
+          </button>
+          <button 
+            type="button" 
+            class="btn-metodo" 
+            [class.active]="metodoPagoDirecto === 'qr'"
+            (click)="metodoPagoDirecto = 'qr'"
+          >
+            📱 QR Simple / Transferencia
+          </button>
+        </div>
+      </div>
+
+      <!-- Items en Carrito Directo -->
+      <div class="cart-items-list">
+        <div class="empty-cart-notice" *ngIf="cartDirecto.length === 0">
+          <p>Selecciona prendas del inventario para añadirlas a la venta.</p>
+        </div>
+
+        <div class="cart-item-row" *ngFor="let ci of cartDirecto; let i = index">
+          <div class="ci-info">
+            <div class="ci-name">{{ ci.item.producto_nombre }}</div>
+            <div class="ci-variant">{{ ci.item.talla_nombre || 'U' }} • {{ ci.item.color_nombre || 'Estándar' }}</div>
+            <div class="ci-unit-price">Bs. {{ ci.item.precio_unitario || ci.item.precio | number:'1.2-2' }} c/u</div>
+          </div>
+          <div class="ci-qty-controls">
+            <button type="button" (click)="actualizarCantidadDirecto(i, -1)">-</button>
+            <span>{{ ci.cantidad }}</span>
+            <button type="button" (click)="actualizarCantidadDirecto(i, 1)">+</button>
+          </div>
+          <div class="ci-subtotal">Bs. {{ ci.subtotal | number:'1.2-2' }}</div>
+          <button type="button" class="ci-btn-remove" (click)="eliminarDelCarritoDirecto(i)">✕</button>
+        </div>
+      </div>
+
+      <!-- Resumen y Total -->
+      <div class="cart-summary">
+        <div class="summary-line total">
+          <span>TOTAL:</span>
+          <strong>Bs. {{ totalVentaDirecta | number:'1.2-2' }}</strong>
+        </div>
+
+        <!-- Si el método es EFECTIVO: mostrar billetes y cálculo de vuelto -->
+        <div class="direct-cash-controls" *ngIf="metodoPagoDirecto === 'efectivo' && cartDirecto.length > 0">
+          <label>Efectivo Recibido (Bs.):</label>
+          <input type="number" [(ngModel)]="efectivoRecibidoDirecto" class="cash-input" />
+          <div class="quick-cash-buttons">
+            <button type="button" class="btn-cash" (click)="addBilletesDirecto(20)">+20</button>
+            <button type="button" class="btn-cash" (click)="addBilletesDirecto(50)">+50</button>
+            <button type="button" class="btn-cash" (click)="addBilletesDirecto(100)">+100</button>
+            <button type="button" class="btn-cash exact" (click)="setBilletesDirecto(totalVentaDirecta)">Exacto</button>
+          </div>
+          <div class="cambio-display valid" *ngIf="puedeCobrarDirecto">
+            <div class="cambio-label">CAMBIO:</div>
+            <div class="cambio-value">Bs. {{ cambioDirecto | number:'1.2-2' }}</div>
+          </div>
+        </div>
+
+        <!-- Si el método es QR: mostrar aviso sin vuelto -->
+        <div class="qr-notice-box" *ngIf="metodoPagoDirecto === 'qr' && cartDirecto.length > 0">
+          <span>📲 Cobro mediante QR Simple. El cliente escanea y abona el monto exacto (Bs. {{ totalVentaDirecta | number:'1.2-2' }}). No requiere vuelto.</span>
+        </div>
+
+        <!-- Botón Procesar Venta Directa -->
+        <button 
+          type="button" 
+          class="btn-emitir-ticket" 
+          [disabled]="!puedeCobrarDirecto || procesando"
+          (click)="procesarVentaDirecta()"
+        >
+          <span *ngIf="!procesando && metodoPagoDirecto === 'efectivo'">✓ Cobrar Efectivo y Emitir Ticket</span>
+          <span *ngIf="!procesando && metodoPagoDirecto === 'qr'">✓ Registrar Pago QR y Emitir Ticket</span>
+          <span *ngIf="procesando">Registrando venta...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TAB 3: HISTORIAL DE PAGOS REGISTRADOS -->
+  <!-- ========================================================= -->
+  <div class="historial-container card" *ngIf="activeTab === 'historial'">
+    <div class="historial-header">
+      <div>
+        <h3>Historial Completo de Pagos</h3>
+        <p class="subtitle">Auditoría y consulta de cobros online, presenciales en efectivo y QR Simple.</p>
+      </div>
+      <button type="button" class="btn-refresh-pos" (click)="cargarHistorialPagos()" [disabled]="loadingHistorial">
+        <span [class.spinning]="loadingHistorial">🔄</span> Actualizar
+      </button>
+    </div>
+
+    <div class="loading-notice" *ngIf="loadingHistorial">
+      <div class="spinner-sm"></div>
+      <p>Cargando historial de pagos...</p>
+    </div>
+
+    <div class="empty-notice" *ngIf="!loadingHistorial && historialPagos.length === 0">
+      <p>Aún no hay registros de pagos en el sistema.</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!loadingHistorial && historialPagos.length > 0">
+      <table class="pos-table">
+        <thead>
+          <tr>
+            <th>ID Pago</th>
+            <th>Fecha</th>
+            <th>Ticket N°</th>
+            <th>Orden #</th>
+            <th>Cliente</th>
+            <th>Tipo de Pago</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of historialPagos">
+            <td><strong>#{{ p.id }}</strong></td>
+            <td>{{ p.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <span class="badge-ticket" *ngIf="p.ticket_numero">{{ p.ticket_numero }}</span>
+              <span class="text-muted" *ngIf="!p.ticket_numero">-</span>
+            </td>
+            <td><a class="order-link">#{{ p.orden_venta_id }}</a></td>
+            <td>{{ p.cliente_codigo || 'Público General' }}</td>
+            <td>
+              <span class="badge-tipo" [class.badge-qr]="p.tipo_pago === 'qr'" [class.badge-efectivo]="p.tipo_pago === 'en caja' || p.tipo_pago === 'efectivo'">
+                {{ p.tipo_pago | uppercase }}
+              </span>
+            </td>
+            <td><strong>Bs. {{ p.monto | number:'1.2-2' }}</strong></td>
+            <td>
+              <span class="badge-status-pago" [class.aprobado]="p.estado === 'aprobado' || p.estado === 'pagado'">
+                {{ p.estado }}
+              </span>
+            </td>
+            <td class="actions-cell">
+              <button type="button" class="btn-action-view" (click)="verRecibo(p.id)" title="Ver Ticket">
+                👁️ Ver Ticket
+              </button>
+              <button 
+                type="button" 
+                class="btn-action-delete" 
+                (click)="eliminarPago(p)" 
+                [disabled]="eliminandoPagoId === p.id"
+                title="Eliminar / Anular Pago"
+              >
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL: VER TICKET DESDE HISTORIAL -->
+  <div class="modal-backdrop" *ngIf="showModalRecibo" (click)="cerrarModalRecibo()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalle de Ticket de Pago</h3>
+        <button type="button" class="btn-close" (click)="cerrarModalRecibo()">✕</button>
+      </div>
+
+      <div class="modal-body" *ngIf="reciboVisualizado">
+        <div class="ticket-thermal-receipt" id="modal-ticket-print">
           <div class="receipt-header">
             <h2 class="receipt-brand">STYLESTORE</h2>
-            <p class="receipt-address">Venta Directa de Mostrador</p>
+            <p class="receipt-address">Moda & Alta Calidad</p>
             <div class="receipt-divider">================================</div>
-            <div class="receipt-line"><strong>TICKET DE CAJA POS</strong></div>
-            <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
-            <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
-            <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
-            <div class="receipt-line">Método: <strong>{{ metodoPagoDirecto | uppercase }}</strong></div>
+            <div class="receipt-line"><strong>TICKET DE PAGO</strong></div>
+            <div class="receipt-line">N°: <strong>{{ reciboVisualizado.ticket_numero || ('TKT-' + reciboVisualizado.pago_id) }}</strong></div>
+            <div class="receipt-line">Fecha: {{ reciboVisualizado.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
+            <div class="receipt-line">Orden: #{{ reciboVisualizado.orden_venta_id }}</div>
+            <div class="receipt-line">Cliente: {{ reciboVisualizado.cliente_codigo || 'General' }}</div>
+            <div class="receipt-divider">--------------------------------</div>
+          </div>
+
+          <div class="receipt-items" *ngIf="reciboVisualizado.items && reciboVisualizado.items.length > 0">
+            <div class="receipt-item-row" *ngFor="let it of reciboVisualizado.items">
+              <span class="it-desc">{{ it.cantidad }}x {{ it.producto }} ({{ it.talla }}{{ it.color ? ' - ' + it.color : '' }})</span>
+              <span class="it-price">Bs. {{ it.subtotal | number:'1.2-2' }}</span>
+            </div>
             <div class="receipt-divider">--------------------------------</div>
           </div>
 
           <div class="receipt-body">
             <div class="receipt-row">
-              <span>TOTAL PAGADO:</span>
-              <strong>Bs. {{ ticketEmitido.total | number:'1.2-2' }}</strong>
+              <span>TOTAL:</span>
+              <strong>Bs. {{ reciboVisualizado.total | number:'1.2-2' }}</strong>
             </div>
-            <div class="receipt-row" *ngIf="metodoPagoDirecto === 'efectivo'">
+            <div class="receipt-row">
+              <span>MÉTODO:</span>
+              <span>{{ reciboVisualizado.tipo_pago | uppercase }}</span>
+            </div>
+            <div class="receipt-row" *ngIf="reciboVisualizado.efectivo_recibido">
               <span>EFECTIVO RECIBIDO:</span>
-              <span>Bs. {{ ticketEmitido.efectivo_recibido | number:'1.2-2' }}</span>
+              <span>Bs. {{ reciboVisualizado.efectivo_recibido | number:'1.2-2' }}</span>
             </div>
-            <div class="receipt-row cambio-row" *ngIf="metodoPagoDirecto === 'efectivo'">
+            <div class="receipt-row cambio-row" *ngIf="reciboVisualizado.cambio_devuelto">
               <span>CAMBIO / VUELTO:</span>
-              <strong>Bs. {{ ticketEmitido.cambio_devuelto | number:'1.2-2' }}</strong>
+              <strong>Bs. {{ reciboVisualizado.cambio_devuelto | number:'1.2-2' }}</strong>
             </div>
             <div class="receipt-divider">================================</div>
           </div>
 
           <div class="receipt-footer">
-            <p>¡Gracias por su compra en StyleStore!</p>
-            <p class="receipt-small">Garantía de cambio físico dentro de los 7 días posteriores con este ticket.</p>
+            <p>¡Gracias por tu preferencia!</p>
+            <p>StyleStore Bolivia</p>
           </div>
-        </div>
-
-        <div class="ticket-actions no-print">
-          <button type="button" class="btn btn-print" (click)="imprimirTicket()">
-            🖨️ Imprimir Ticket
-          </button>
-          <button type="button" class="btn btn-new-sale" (click)="nuevaVenta()">
-            + Nueva Venta Directa
-          </button>
         </div>
       </div>
 
-      <!-- Carrito de mostrador activo -->
-      <div class="card checkout-card" *ngIf="!ticketEmitido">
-        <div class="checkout-header">
-          <h2>Mostrador: Carrito POS ({{ cartDirecto.length }})</h2>
-        </div>
-
-        <!-- Alerta de Error -->
-        <div class="alert-box error" *ngIf="error">
-          {{ error }}
-        </div>
-
-        <!-- Lista de artículos añadidos -->
-        <div class="direct-cart-items" *ngIf="cartDirecto.length > 0">
-          <div class="direct-cart-row" *ngFor="let ci of cartDirecto; let idx = index">
-            <div class="ci-details">
-              <strong>{{ ci.item.producto_nombre }}</strong>
-              <div class="small text-muted">{{ ci.item.talla_nombre }} / {{ ci.item.color_nombre }} - Bs. {{ ci.item.precio_unitario | number:'1.2-2' }}</div>
-            </div>
-            <div class="ci-qty-ctrl">
-              <button class="btn-ctrl-sm" (click)="actualizarCantidadDirecto(idx, -1)">-</button>
-              <span class="qty-label">{{ ci.cantidad }}</span>
-              <button class="btn-ctrl-sm" (click)="actualizarCantidadDirecto(idx, 1)">+</button>
-            </div>
-            <div class="ci-subtotal">
-              Bs. {{ ci.subtotal | number:'1.2-2' }}
-            </div>
-            <button class="btn-del-ci" (click)="eliminarDelCarritoDirecto(idx)">✕</button>
-          </div>
-        </div>
-
-        <div class="empty-cart-direct-notice" *ngIf="cartDirecto.length === 0">
-          <p>👈 Selecciona prendas de la lista para agregarlas al mostrador.</p>
-        </div>
-
-        <!-- Total Directo -->
-        <div class="amount-to-pay-display mt-3">
-          <span class="label">TOTAL A COBRAR</span>
-          <span class="value">Bs. {{ totalVentaDirecta | number:'1.2-2' }}</span>
-        </div>
-
-        <!-- Método de Pago Presencial: Efectivo o QR Simple -->
-        <div class="payment-method-selector-pos">
-          <label class="label-heading">Método de Cobro en Mostrador:</label>
-          <div class="toggle-buttons-pos">
-            <button 
-              type="button" 
-              class="method-btn" 
-              [class.active]="metodoPagoDirecto === 'efectivo'"
-              (click)="metodoPagoDirecto = 'efectivo'"
-            >
-              💵 Efectivo (con Vuelto)
-            </button>
-            <button 
-              type="button" 
-              class="method-btn" 
-              [class.active]="metodoPagoDirecto === 'qr'"
-              (click)="metodoPagoDirecto = 'qr'"
-            >
-              📱 QR Simple
-            </button>
-          </div>
-        </div>
-
-        <!-- Si es Efectivo -->
-        <div *ngIf="metodoPagoDirecto === 'efectivo'" class="cash-section-pos">
-          <div class="cash-input-group">
-            <label>Efectivo Recibido (Bs.)</label>
-            <input
-              type="number"
-              step="1"
-              min="0"
-              class="cash-input"
-              [(ngModel)]="efectivoRecibidoDirecto"
-            />
-
-            <!-- Billetes Rápidos -->
-            <div class="quick-cash-buttons">
-              <button type="button" class="btn-cash" (click)="addBilletesDirecto(10)">+Bs. 10</button>
-              <button type="button" class="btn-cash" (click)="addBilletesDirecto(20)">+Bs. 20</button>
-              <button type="button" class="btn-cash" (click)="addBilletesDirecto(50)">+Bs. 50</button>
-              <button type="button" class="btn-cash" (click)="addBilletesDirecto(100)">+Bs. 100</button>
-              <button type="button" class="btn-cash" (click)="addBilletesDirecto(200)">+Bs. 200</button>
-              <button type="button" class="btn-cash exact" (click)="setBilletesDirecto(totalVentaDirecta)">Exacto</button>
-            </div>
-          </div>
-
-          <!-- Cambio / Vuelto -->
-          <div class="cambio-display" [class.valid]="puedeCobrarDirecto">
-            <div class="cambio-label">CAMBIO A DEVOLVER:</div>
-            <div class="cambio-value">Bs. {{ cambioDirecto | number:'1.2-2' }}</div>
-          </div>
-        </div>
-
-        <!-- Si es QR Simple -->
-        <div *ngIf="metodoPagoDirecto === 'qr'" class="qr-section-pos">
-          <div class="qr-card-display">
-            <div class="qr-mock-image">
-              <i class="bi bi-qr-code-scan"></i>
-              <div class="qr-simulated-box">
-                <span class="qr-icon-center">📲</span>
-              </div>
-            </div>
-            <div class="qr-instructions">
-              <strong>Cobro por QR Simple</strong>
-              <p>Muestra la pantalla o el código QR al cliente para transferir <strong>Bs. {{ totalVentaDirecta | number:'1.2-2' }}</strong>.</p>
-              <span class="badge-verificado">✓ Verificación inmediata</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón Procesar Venta Directa -->
-        <button
-          type="button"
-          class="btn-emitir-ticket mt-4"
-          [disabled]="!puedeCobrarDirecto || procesando"
-          (click)="procesarVentaDirecta()"
-        >
-          <span *ngIf="!procesando">✓ Cobrar Venta y Emitir Ticket POS</span>
-          <span *ngIf="procesando">Registrando venta y descontando stock...</span>
+      <div class="modal-footer">
+        <button type="button" class="btn-ticket-print" (click)="imprimirTicket()">
+          🖨️ Imprimir Ticket
+        </button>
+        <button type="button" class="btn-cancel" (click)="cerrarModalRecibo()">
+          Cerrar
         </button>
       </div>
     </div>
