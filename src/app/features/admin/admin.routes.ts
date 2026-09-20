@@ -47,7 +47,7 @@ export const ADMIN_ROUTES: Routes = [
       {
         path: 'proximamente',
         component: ProximamenteComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
       },
       {
         path: 'inventario',

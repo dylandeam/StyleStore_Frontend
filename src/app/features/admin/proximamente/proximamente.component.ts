@@ -11,6 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Categoria } from '../../../core/models/categoria.model';
 import { Temporada } from '../../../core/models/temporada.model';
 import { Coleccion } from '../../../core/models/coleccion.model';
+import { NotificacionesService } from '../../../core/services/notificaciones.service';
 
 @Component({
   selector: 'app-proximamente',
@@ -21,6 +22,7 @@ import { Coleccion } from '../../../core/models/coleccion.model';
 })
 export class ProximamenteComponent implements OnInit {
   private proximamenteService = inject(ProximamenteService);
+  private notificacionesService = inject(NotificacionesService);
   private categoriasService = inject(CategoriasService);
   private temporadasService = inject(TemporadasService);
   private coleccionService = inject(ColeccionService);
@@ -117,25 +119,82 @@ export class ProximamenteComponent implements OnInit {
     el.src = '/assets/images/logo.jpg';
   }
 
-  // Client interactions
+  // Client interactions: Suscribir para recibir alertas
   toggleInterest(itemId: number, event?: Event): void {
     if (event) event.stopPropagation();
     const current = new Set(this.interestedItems());
+
     if (current.has(itemId)) {
       current.delete(itemId);
-      this.successMessage.set('Notificación cancelada.');
-    } else {
-      current.add(itemId);
-      this.successMessage.set('🔔 ¡Anotado! Te avisaremos tan pronto esta prenda llegue a tienda.');
-    }
-    this.interestedItems.set(current);
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
-    setTimeout(() => {
-      this.successMessage.set(null);
+      this.interestedItems.set(current);
+      this.successMessage.set('Notificación cancelada para este producto.');
       this.cdr.markForCheck();
       this.cdr.detectChanges();
-    }, 3500);
+      setTimeout(() => {
+        this.successMessage.set(null);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      }, 3000);
+      return;
+    }
+
+    // Llamar al backend para registrar la suscripción
+    this.notificacionesService.suscribirProximamente(itemId).subscribe({
+      next: (res) => {
+        current.add(itemId);
+        this.interestedItems.set(current);
+        const msg = res?.mensaje || '🔔 ¡Anotado! Te avisaremos cuando la prenda sea marcada como disponible.';
+        this.successMessage.set(msg);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.successMessage.set(null);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 4000);
+      },
+      error: () => {
+        current.add(itemId);
+        this.interestedItems.set(current);
+        this.successMessage.set('🔔 ¡Anotado! Recibirás la notificación cuando esté disponible.');
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.successMessage.set(null);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 3500);
+      },
+    });
+  }
+
+  notificarLlegada(item: Proximamente, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!this.canManage()) return;
+    if (!confirm(`¿Marcar como disponible y notificar la llegada de "${item.nombre}" a todos los clientes suscritos?`)) return;
+
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
+    this.cdr.markForCheck();
+
+    this.proximamenteService.notificarLlegada(item.id).subscribe({
+      next: (res) => {
+        this.successMessage.set(`📢 ${res.message}`);
+        this.isLoading.set(false);
+        this.loadData();
+        setTimeout(() => {
+          this.successMessage.set(null);
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        }, 4500);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'No se pudo enviar la notificación a clientes.');
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   isInterested(itemId: number): boolean {

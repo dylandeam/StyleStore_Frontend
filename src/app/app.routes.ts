@@ -117,6 +117,11 @@ export const routes: Routes = [
         redirectTo: 'admin/sucursales',
         pathMatch: 'full',
       },
+      {
+        path: 'proximamente',
+        redirectTo: 'admin/proximamente',
+        pathMatch: 'full',
+      },
       // Catálogo y Colecciones para Administración y Staff
       {
         path: 'admin/productos',
@@ -131,7 +136,7 @@ export const routes: Routes = [
       {
         path: 'admin/proximamente',
         component: ProximamenteComponent,
-        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+        canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
       },
       {
         path: 'admin/inventario',

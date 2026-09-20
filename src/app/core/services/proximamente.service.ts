@@ -30,4 +30,11 @@ export class ProximamenteService {
   deleteProximamente(id: number): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
+
+  notificarLlegada(id: number): Observable<{ message: string; total_notificados: number; item: Proximamente }> {
+    return this.http.post<{ message: string; total_notificados: number; item: Proximamente }>(
+      `${this.apiUrl}/${id}/notificar`,
+      {}
+    );
+  }
 }

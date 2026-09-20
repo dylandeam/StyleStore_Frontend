@@ -35,87 +35,144 @@
         }
       </div>
     } @else {
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Foto</th>
-              <th>Nombre y Descripción</th>
-              <th>Llegada Estimada</th>
-              <th>Categoría / Colección</th>
-              <th>Estado</th>
-              @if (canManage()) {
+      @if (canManage()) {
+        <!-- VISTA TABLA PARA ADMINISTRADORES / ENCARGADOS -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Nombre y Descripción</th>
+                <th>Llegada Estimada</th>
+                <th>Categoría / Colección</th>
+                <th>Estado</th>
                 <th>Acciones</th>
-              } @else {
-                <th>Interacción</th>
-              }
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of items(); track item.id) {
-              <tr class="table-row-item" (click)="openDetailModal(item)">
-                <td class="cell-foto">
-                  @if (item.foto) {
-                    <img
-                      [src]="getImagenUrl(item.foto)"
-                      alt="{{ item.nombre }}"
-                      class="thumb-img"
-                      (error)="onImgError($event)"
-                    />
-                  } @else {
-                    <div class="no-img-box">👗</div>
-                  }
-                </td>
-                <td>
-                  <div class="font-semibold text-navy">{{ item.nombre }}</div>
-                  <div class="text-xs text-muted">{{ item.descripcion || 'Sin descripción' }}</div>
-                </td>
-                <td>
-                  <span class="badge badge-date">
-                    📅 {{ item.fecha_estimada_llegada ? item.fecha_estimada_llegada : 'Próximamente' }}
-                  </span>
-                </td>
-                <td>
-                  <div class="meta-tag">{{ item.categoria_nombre || 'Sin categoría' }}</div>
-                  <div class="text-xs text-gold font-semibold">🧵 {{ item.coleccion_nombre || 'Sin colección' }}</div>
-                </td>
-                <td>
-                  <span class="badge" [class.badge-active]="item.active" [class.badge-inactive]="!item.active">
-                    {{ item.active ? 'Anunciado' : 'Pausado' }}
-                  </span>
-                </td>
-
-                @if (canManage()) {
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of items(); track item.id) {
+                <tr class="table-row-item" (click)="openDetailModal(item)">
+                  <td class="cell-foto">
+                    @if (item.foto) {
+                      <img
+                        [src]="getImagenUrl(item.foto)"
+                        alt="{{ item.nombre }}"
+                        class="thumb-img"
+                        (error)="onImgError($event)"
+                      />
+                    } @else {
+                      <div class="no-img-box">👗</div>
+                    }
+                  </td>
+                  <td>
+                    <div class="font-semibold text-navy">{{ item.nombre }}</div>
+                    <div class="text-xs text-muted">{{ item.descripcion || 'Sin descripción' }}</div>
+                  </td>
+                  <td>
+                    <span class="badge badge-date">
+                      📅 {{ item.fecha_estimada_llegada ? item.fecha_estimada_llegada : 'Próximamente' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="meta-tag">{{ item.categoria_nombre || 'Sin categoría' }}</div>
+                    <div class="text-xs text-gold font-semibold">🧵 {{ item.coleccion_nombre || 'Sin colección' }}</div>
+                  </td>
+                  <td>
+                    <span class="badge" [class.badge-active]="item.active" [class.badge-inactive]="!item.active">
+                      {{ item.active ? 'Activo / Anunciado' : 'Pausado' }}
+                    </span>
+                  </td>
                   <td class="cell-actions" (click)="$event.stopPropagation()">
+                    <button
+                      class="btn-icon btn-notify"
+                      (click)="notificarLlegada(item, $event)"
+                      title="Marcar como disponible y notificar a clientes suscritos"
+                    >
+                      📢
+                    </button>
                     <button class="btn-icon btn-edit" (click)="openEditModal(item, $event)" title="Editar">✏️</button>
                     <button class="btn-icon btn-delete" (click)="deleteItem(item, $event)" title="Eliminar">🗑️</button>
                   </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <!-- VISTA CATÁLOGO EN TARJETAS PARA CLIENTES (OPTIMIZADA PARA MÓVIL Y DESKTOP) -->
+        <div class="client-intro-bar">
+          <div class="intro-icon">✨</div>
+          <div class="intro-text">
+            <strong>Sé el primero en lucir lo nuevo:</strong> Suscríbete pulsando en <em>"Avisarme cuando esté disponible"</em> y te llegará una alerta emergente y correo en cuanto el producto llegue a tienda.
+          </div>
+        </div>
+
+        <div class="proximamente-client-grid">
+          @for (item of items(); track item.id) {
+            <div class="proximamente-card" (click)="openDetailModal(item)">
+              <div class="card-media">
+                @if (item.foto) {
+                  <img
+                    [src]="getImagenUrl(item.foto)"
+                    [alt]="item.nombre"
+                    class="card-img"
+                    (error)="onImgError($event)"
+                  />
                 } @else {
-                  <td class="cell-actions" (click)="$event.stopPropagation()">
-                    <button
-                      type="button"
-                      class="btn btn-sm"
-                      [class.btn-interested]="isInterested(item.id)"
-                      [class.btn-secondary]="!isInterested(item.id)"
-                      (click)="toggleInterest(item.id, $event)"
-                    >
-                      {{ isInterested(item.id) ? '🔔 Anotado' : '🔔 Avisarme' }}
-                    </button>
-                    <button
-                      type="button"
-                      class="btn btn-sm btn-outline"
-                      (click)="openDetailModal(item)"
-                      title="Ver Detalle"
-                    >
-                      👁️
-                    </button>
-                  </td>
+                  <div class="card-no-img">👗</div>
                 }
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+                <span class="card-badge">✨ PRÓXIMO LANZAMIENTO</span>
+                @if (item.fecha_estimada_llegada) {
+                  <span class="card-date-badge">📅 Llegada: {{ item.fecha_estimada_llegada }}</span>
+                }
+              </div>
+
+              <div class="card-content">
+                <div class="card-tags">
+                  @if (item.categoria_nombre) {
+                    <span class="tag-cat">{{ item.categoria_nombre }}</span>
+                  }
+                  @if (item.coleccion_nombre) {
+                    <span class="tag-col">🧵 {{ item.coleccion_nombre }}</span>
+                  }
+                  @if (item.temporada_nombre) {
+                    <span class="tag-temp">🍂 {{ item.temporada_nombre }}</span>
+                  }
+                </div>
+
+                <h3 class="card-title">{{ item.nombre }}</h3>
+                <p class="card-desc">
+                  {{ item.descripcion || 'Lanzamiento exclusivo de nueva temporada. Estará disponible en tienda muy pronto.' }}
+                </p>
+
+                <div class="card-actions" (click)="$event.stopPropagation()">
+                  <button
+                    type="button"
+                    class="btn btn-notify-client"
+                    [class.btn-subscribed]="isInterested(item.id)"
+                    [class.btn-primary-gradient]="!isInterested(item.id)"
+                    (click)="toggleInterest(item.id, $event)"
+                  >
+                    @if (isInterested(item.id)) {
+                      <span>✓ ¡Notificación Activada! (Cancelar)</span>
+                    } @else {
+                      <span>🔔 Avisarme cuando esté disponible</span>
+                    }
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-view-detail"
+                    (click)="openDetailModal(item)"
+                  >
+                    👁️ Ver detalles
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 

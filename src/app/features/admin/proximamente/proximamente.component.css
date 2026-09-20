@@ -543,3 +543,280 @@
   color: #64748B;
   font-weight: 600;
 }
+
+/* ==========================================
+   ESTILOS SHOWCASE EN TARJETAS PARA CLIENTES
+   ========================================== */
+.client-intro-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #FAF6EE 0%, #F3ECE0 100%);
+  border: 1px solid #E2D9CC;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  color: #14263D;
+  font-size: 0.9375rem;
+}
+
+.intro-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.intro-text strong {
+  color: #c9a96e;
+}
+
+.proximamente-client-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 24px;
+  padding: 8px 0;
+}
+
+.proximamente-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E8E1D5;
+  box-shadow: 0 4px 16px rgba(20, 38, 61, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  cursor: pointer;
+}
+
+.proximamente-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(20, 38, 61, 0.12);
+  border-color: #c9a96e;
+}
+
+.card-media {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background: #F4EFE6;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.proximamente-card:hover .card-img {
+  transform: scale(1.04);
+}
+
+.card-no-img {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  background: linear-gradient(135deg, #F4EFE6 0%, #E9DFCFA8 100%);
+}
+
+.card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(20, 38, 61, 0.85);
+  backdrop-filter: blur(6px);
+  color: #c9a96e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(201, 169, 110, 0.4);
+}
+
+.card-date-badge {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  color: #14263D;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid #E2D9CC;
+}
+
+.card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tag-cat, .tag-col, .tag-temp {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.tag-cat {
+  background: #F4EFE6;
+  color: #14263D;
+}
+
+.tag-col {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.tag-temp {
+  background: #E0E7FF;
+  color: #3730A3;
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #14263D;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.card-desc {
+  font-size: 0.84rem;
+  color: #64748B;
+  line-height: 1.45;
+  margin: 0 0 18px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.btn-notify-client {
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+  border: none;
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(135deg, #14263D 0%, #1e3a5f 100%);
+  color: #FFFFFF;
+  border: 1px solid #14263D;
+}
+
+.btn-primary-gradient:hover {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2a4d7d 100%);
+  box-shadow: 0 4px 12px rgba(20, 38, 61, 0.2);
+}
+
+.btn-subscribed {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1.5px solid #10B981;
+}
+
+.btn-subscribed:hover {
+  background: #D1FAE5;
+  color: #047857;
+}
+
+.btn-view-detail {
+  width: 100%;
+  background: transparent;
+  color: #64748B;
+  border: 1px solid #E2D9CC;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view-detail:hover {
+  background: #F8F5EE;
+  color: #14263D;
+}
+
+.btn-notify {
+  background: #F59E0B;
+  color: white;
+  border: none;
+}
+
+.btn-notify:hover {
+  background: #D97706;
+}
+
+/* ==========================================
+   ADAPTACIONES MÓVILES RESPONSIVAS
+   ========================================== */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 14px 10px;
+  }
+
+  .header-titles h2 {
+    font-size: 1.35rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .client-intro-bar {
+    padding: 12px;
+    font-size: 0.85rem;
+    gap: 10px;
+  }
+
+  .proximamente-client-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card-media {
+    height: 200px;
+  }
+
+  .btn-notify-client {
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+
+  .btn-view-detail {
+    min-height: 40px;
+  }
+}
