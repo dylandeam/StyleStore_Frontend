@@ -7,6 +7,8 @@ export interface InventarioItem {
   precio?: number;
   precio_unitario?: number;
   categoria?: string;
+  categoria_nombre?: string;
+  categoria_id?: number;
   temporada?: string;
   coleccion?: string;
   producto_color_id?: number;

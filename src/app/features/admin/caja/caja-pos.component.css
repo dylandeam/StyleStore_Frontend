@@ -1053,9 +1053,100 @@
 }
 
 .pos-select:focus,
+.pos-select:focus,
 .pos-input:focus {
   border-color: #14263D;
   box-shadow: 0 0 0 3px rgba(20, 38, 61, 0.12);
+}
+
+/* ========================================================= */
+/* BARRA DE FILTROS RÁPIDOS (CATEGORÍA, TALLA, ETC.)        */
+/* ========================================================= */
+.quick-filters-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.quick-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.qf-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #14263D;
+  text-transform: uppercase;
+  min-width: 95px;
+}
+
+.qf-pills-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.qf-pill {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qf-pill:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.qf-pill.active {
+  background: #14263D;
+  color: #ffffff;
+  border-color: #14263D;
+  box-shadow: 0 2px 6px rgba(20, 38, 61, 0.2);
+}
+
+.btn-reset-filters {
+  align-self: flex-start;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-reset-filters:hover {
+  background: #fee2e2;
+}
+
+.btn-clear-empty {
+  margin-top: 10px;
+  background: #14263D;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
 }
 
 .catalog-items-area {
@@ -1098,17 +1189,37 @@
 
 .p-thumb {
   width: 100%;
-  height: 120px;
+  height: 125px;
   border-radius: 8px;
   overflow: hidden;
   background: #f1f5f9;
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .p-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+
+.p-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  font-size: 2.4rem;
+  user-select: none;
+}
+
+.p-badge.cat {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .p-name {

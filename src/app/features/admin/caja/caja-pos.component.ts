@@ -5,6 +5,7 @@ import { VentaService } from '../../../core/services/venta.service';
 import { PagosService, CobroCajaResponse } from '../../../core/services/pagos.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { InventarioService } from '../../../core/services/inventario.service';
+import { UploadService } from '../../../core/services/upload.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 import { InventarioItem } from '../../../core/models/inventario.model';
@@ -22,6 +23,7 @@ export class CajaPosComponent implements OnInit {
   private pagosService = inject(PagosService);
   private sucursalService = inject(SucursalService);
   private inventarioService = inject(InventarioService);
+  private uploadService = inject(UploadService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
@@ -47,6 +49,9 @@ export class CajaPosComponent implements OnInit {
   inventarioItems: InventarioItem[] = [];
   loadingInventario: boolean = false;
   searchItem: string = '';
+  filtroCategoria: string = 'todas';
+  filtroTalla: string = 'todas';
+  filtroColor: string = 'todos';
   clienteCodigoVentaDirecta: string = 'GENERICO';
   metodoPagoDirecto: 'efectivo' | 'qr' = 'efectivo';
   efectivoRecibidoDirecto: number = 0;
@@ -247,6 +252,8 @@ export class CajaPosComponent implements OnInit {
               talla: it.talla_nombre || it.talla || 'Talla Única',
               color_nombre: it.color_nombre || it.color || '',
               color: it.color_nombre || it.color || '',
+              categoria_nombre: it.categoria_nombre || it.categoria || '',
+              categoria: it.categoria_nombre || it.categoria || '',
               foto: it.foto || null,
             };
           })
@@ -262,16 +269,92 @@ export class CajaPosComponent implements OnInit {
     });
   }
 
+  // Getters para filtros rápidos dinámicos
+  get categoriasDisponibles(): string[] {
+    const set = new Set<string>();
+    for (const item of this.inventarioItems) {
+      const cat = (item.categoria_nombre || item.categoria || '').trim();
+      if (cat) set.add(cat);
+    }
+    return Array.from(set).sort();
+  }
+
+  get tallasDisponibles(): string[] {
+    const set = new Set<string>();
+    for (const item of this.inventarioItems) {
+      const t = (item.talla_nombre || item.talla || '').trim();
+      if (t) set.add(t);
+    }
+    return Array.from(set).sort();
+  }
+
+  get coloresDisponibles(): string[] {
+    const set = new Set<string>();
+    for (const item of this.inventarioItems) {
+      const c = (item.color_nombre || item.color || '').trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort();
+  }
+
+  limpiarFiltrosDirecto(): void {
+    this.searchItem = '';
+    this.filtroCategoria = 'todas';
+    this.filtroTalla = 'todas';
+    this.filtroColor = 'todos';
+    this.cdr.markForCheck();
+  }
+
+  getImageUrl(fotoPath?: string | null): string {
+    if (!fotoPath) return '';
+    return this.uploadService.getFileUrl(fotoPath);
+  }
+
+  onImgError(event: any): void {
+    event.target.style.display = 'none';
+    const parent = event.target.parentElement;
+    if (parent && !parent.querySelector('.p-placeholder')) {
+      const ph = document.createElement('div');
+      ph.className = 'p-placeholder';
+      ph.innerHTML = '<span>👕</span>';
+      parent.appendChild(ph);
+    }
+  }
+
   get filteredInventario(): InventarioItem[] {
-    if (!this.searchItem.trim()) return this.inventarioItems;
-    const q = this.searchItem.toLowerCase();
-    return this.inventarioItems.filter(
-      (it) =>
-        it.producto_nombre.toLowerCase().includes(q) ||
-        (it.color_nombre && it.color_nombre.toLowerCase().includes(q)) ||
-        (it.talla_nombre && it.talla_nombre.toLowerCase().includes(q)) ||
-        (it.producto_codigo && it.producto_codigo.toLowerCase().includes(q))
-    );
+    return this.inventarioItems.filter((it) => {
+      // Filtro Categoría
+      if (this.filtroCategoria !== 'todas') {
+        const cat = (it.categoria_nombre || it.categoria || '').toLowerCase();
+        if (cat !== this.filtroCategoria.toLowerCase()) return false;
+      }
+
+      // Filtro Talla
+      if (this.filtroTalla !== 'todas') {
+        const t = (it.talla_nombre || it.talla || '').toLowerCase();
+        if (t !== this.filtroTalla.toLowerCase()) return false;
+      }
+
+      // Filtro Color
+      if (this.filtroColor !== 'todos') {
+        const c = (it.color_nombre || it.color || '').toLowerCase();
+        if (c !== this.filtroColor.toLowerCase()) return false;
+      }
+
+      // Filtro Búsqueda
+      if (this.searchItem.trim()) {
+        const q = this.searchItem.toLowerCase().trim();
+        const coincide =
+          it.producto_nombre.toLowerCase().includes(q) ||
+          (it.color_nombre && it.color_nombre.toLowerCase().includes(q)) ||
+          (it.talla_nombre && it.talla_nombre.toLowerCase().includes(q)) ||
+          (it.producto_codigo && it.producto_codigo.toLowerCase().includes(q)) ||
+          (it.categoria_nombre && it.categoria_nombre.toLowerCase().includes(q));
+        if (!coincide) return false;
+      }
+
+      return true;
+    });
   }
 
   agregarAlCarritoDirecto(item: InventarioItem): void {
