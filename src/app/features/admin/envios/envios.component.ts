@@ -326,22 +326,21 @@ export class EnviosComponent implements OnInit {
   }
 
   simularGpsRepartidor(envio: Envio): void {
+    const defaultLat = (envio as any).latitud_destino ? Number((envio as any).latitud_destino) - 0.005 : -17.7833;
+    const defaultLon = (envio as any).longitud_destino ? Number((envio as any).longitud_destino) - 0.005 : -63.1821;
+
     if (navigator?.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           this.enviarPosicionGps(envio.id, pos.coords.latitude, pos.coords.longitude);
         },
         () => {
-          // Fallback a posición de prueba cercana
-          const lat = (envio as any).latitud_destino ? Number((envio as any).latitud_destino) - 0.005 : -16.505;
-          const lon = (envio as any).longitud_destino ? Number((envio as any).longitud_destino) - 0.005 : -68.145;
-          this.enviarPosicionGps(envio.id, lat, lon);
-        }
+          this.enviarPosicionGps(envio.id, defaultLat, defaultLon);
+        },
+        { timeout: 5000, enableHighAccuracy: false }
       );
     } else {
-      const lat = -16.505;
-      const lon = -68.145;
-      this.enviarPosicionGps(envio.id, lat, lon);
+      this.enviarPosicionGps(envio.id, defaultLat, defaultLon);
     }
   }
 

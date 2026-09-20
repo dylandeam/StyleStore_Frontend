@@ -109,6 +109,21 @@
           <span>Elegible para cambio: Te quedan <strong>{{ diasRestantesCambio(orden) }} día(s)</strong></span>
         </div>
 
+        <!-- Resumen de Delivery StyleStore si tiene envío -->
+        <div class="envio-resumen-card" *ngIf="orden.envio">
+          <div class="envio-resumen-header">
+            <span>🛵 <strong>Delivery StyleStore</strong></span>
+            <span class="badge-envio-tag" [class.en-camino]="orden.envio.estado === 'en camino'">
+              {{ orden.envio.estado | uppercase }}
+            </span>
+            <span class="badge-live-pulse" *ngIf="orden.envio.repartidor_lat">● EN VIVO</span>
+          </div>
+          <div class="envio-resumen-info">
+            <div>📍 <strong>Destino:</strong> {{ orden.envio.direccion }} ({{ orden.envio.ciudad }})</div>
+            <div *ngIf="orden.envio.delivery_conductor">🛵 <strong>Repartidor:</strong> {{ orden.envio.delivery_conductor }}</div>
+          </div>
+        </div>
+
         <!-- Resumen de items -->
         <div class="items-summary" *ngIf="orden.detalles && orden.detalles.length > 0">
           <p class="summary-label">Artículos ({{ orden.detalles.length }}):</p>
@@ -122,6 +137,18 @@
       </div>
 
       <div class="compra-actions">
+        <!-- Botón de Rastreo de Delivery para el cliente -->
+        <a 
+          *ngIf="orden.envio?.token_seguimiento" 
+          [routerLink]="['/delivery/rastreo', orden.envio?.token_seguimiento]"
+          target="_blank"
+          class="btn-rastreo-delivery"
+          [class.live-active]="orden.envio?.repartidor_lat"
+        >
+          <span class="dot-pulse-mini" *ngIf="orden.envio?.repartidor_lat"></span>
+          🛵 {{ orden.envio?.repartidor_lat ? 'Rastrear Delivery en Vivo' : 'Seguimiento de Entrega' }}
+        </a>
+
         <button class="btn-secondary-action" (click)="verDetalle(orden)">
           <i class="bi bi-eye"></i> Ver Detalle
         </button>
@@ -173,13 +200,32 @@
 
         <!-- Información de Envío si aplica -->
         <div class="envio-box-modal" *ngIf="selectedOrden.envio">
-          <h5><i class="bi bi-truck"></i> Información de Entrega</h5>
+          <div class="envio-modal-title-row">
+            <h5><i class="bi bi-truck"></i> Despacho con Delivery StyleStore</h5>
+            <span class="badge-envio-tag" [class.en-camino]="selectedOrden.envio.estado === 'en camino'">
+              {{ selectedOrden.envio.estado | uppercase }}
+            </span>
+          </div>
           <p><strong>Destino:</strong> {{ selectedOrden.envio.direccion }}, {{ selectedOrden.envio.ciudad }}</p>
           <p *ngIf="selectedOrden.envio.referencia"><strong>Referencia:</strong> {{ selectedOrden.envio.referencia }}</p>
+          <p *ngIf="selectedOrden.envio.delivery_conductor"><strong>Repartidor:</strong> 🛵 {{ selectedOrden.envio.delivery_conductor }}</p>
           <p *ngIf="selectedOrden.envio.tracking_code || selectedOrden.envio.yango_tracking_code">
-            <strong>Delivery StyleStore:</strong> 
+            <strong>Código de Rastreo:</strong> 
             <span class="tracking-pill">{{ selectedOrden.envio.tracking_code || selectedOrden.envio.yango_tracking_code }}</span>
           </p>
+
+          <div class="modal-tracking-action-wrap" *ngIf="selectedOrden.envio.token_seguimiento" style="margin-top: 14px;">
+            <a 
+              [routerLink]="['/delivery/rastreo', selectedOrden.envio.token_seguimiento]"
+              target="_blank"
+              class="btn-rastreo-delivery"
+              [class.live-active]="selectedOrden.envio.repartidor_lat"
+              style="display: inline-flex; width: 100%; justify-content: center;"
+            >
+              <span class="dot-pulse-mini" *ngIf="selectedOrden.envio.repartidor_lat"></span>
+              🗺️ Rastrear mi pedido en tiempo real con OpenStreetMap ↗
+            </a>
+          </div>
         </div>
 
         <!-- Tabla de Productos -->

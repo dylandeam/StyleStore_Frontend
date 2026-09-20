@@ -85,6 +85,15 @@
           🟢 Iniciar Transmisión GPS en Vivo
         </button>
         <p class="gps-hint">Al presionar, tu navegador solicitará permiso para acceder a tu ubicación. El cliente podrá ver tu posición en tiempo real.</p>
+        
+        <div class="gps-fallback-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1;">
+          <button type="button" class="btn-gps-fallback" (click)="simularAvanceRuta()" style="width: 100%; padding: 10px; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            📍 Fijar Mi Posición en Santa Cruz / Simular Avance en Ruta
+          </button>
+          <small class="text-muted" style="display:block; margin-top: 4px; font-size: 0.78rem; color: #64748b;">
+            💡 Útil si Safari en iPhone bloquea permisos de localización o no tienes GPS satelital disponible.
+          </small>
+        </div>
       } @else {
         <div class="gps-active-indicator">
           <div class="pulse-dot"></div>
@@ -103,9 +112,14 @@
           </div>
         }
 
-        <button class="btn-gps-stop" (click)="detenerGps()">
-          🔴 Detener Transmisión
-        </button>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button class="btn-gps-stop" (click)="detenerGps()" style="flex: 1;">
+            🔴 Detener Transmisión
+          </button>
+          <button type="button" (click)="simularAvanceRuta()" style="flex: 1; padding: 10px; background: #f0fdf4; color: #166534; border: 1px solid #86efac; border-radius: 8px; font-weight: bold; cursor: pointer;">
+            ⏩ Avanzar en Ruta
+          </button>
+        </div>
       }
 
       @if (!gpsActivo() && gpsStatus()) {

@@ -65,60 +65,132 @@ export class ConductorTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
+  isSecureContext = typeof window !== 'undefined' ? (window.isSecureContext ?? true) : true;
+  simulandoRuta = signal(false);
+  private pasoSimulacion = 0;
+
   iniciarGps(): void {
     if (!navigator.geolocation) {
-      this.gpsStatus.set('Tu navegador no soporta GPS. Intenta con Google Chrome.');
+      this.gpsStatus.set('Tu navegador no soporta el sensor GPS.');
       return;
     }
 
-    this.gpsStatus.set('Solicitando permiso de ubicación...');
+    if (!this.isSecureContext) {
+      this.gpsStatus.set('⚠️ Safari en iOS requiere conexión HTTPS segura para el GPS. Puedes usar el botón "Fijar Ubicación / Simular Avance".');
+    } else {
+      this.gpsStatus.set('Solicitando acceso a ubicación en Safari/navegador...');
+    }
+
+    // Paso 1 (Compatible con Safari en iPhone): Obtener fix rápido con baja precisión para evitar timeouts
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.procesarNuevaUbicacion(pos.coords.latitude, pos.coords.longitude);
+        this.iniciarWatchGps();
+      },
+      (err) => {
+        // Si la solicitud de baja precisión falló, intentar de todas formas con watchPosition o dar aviso
+        console.warn('GPS initial fix warning:', err);
+        if (err.code === err.PERMISSION_DENIED) {
+          this.gpsStatus.set('⚠️ Permiso denegado. En tu iPhone ve a Ajustes > Privacidad > Localización > Safari y selecciona "Al usar la app".');
+        } else {
+          this.gpsStatus.set('Iniciando seguimiento continuo...');
+          this.iniciarWatchGps();
+        }
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 30000,
+        timeout: 10000,
+      }
+    );
+  }
+
+  private iniciarWatchGps(): void {
+    if (this.watchId !== null) return;
 
     this.watchId = navigator.geolocation.watchPosition(
       (pos) => {
-        this.pendingLat = pos.coords.latitude;
-        this.pendingLon = pos.coords.longitude;
-        this.ultimaPosicion.set({ lat: this.pendingLat, lon: this.pendingLon });
-        this.gpsActivo.set(true);
-        this.gpsStatus.set(`📡 GPS activo — Lat: ${this.pendingLat.toFixed(5)}, Lon: ${this.pendingLon.toFixed(5)}`);
+        this.procesarNuevaUbicacion(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            this.gpsStatus.set('⚠️ Permiso de ubicación denegado. Activa la ubicación en los ajustes de tu navegador.');
+            this.gpsStatus.set('⚠️ Permiso de ubicación denegado en Safari. Puedes usar el botón de abajo para fijar tu avance.');
             break;
           case err.POSITION_UNAVAILABLE:
-            this.gpsStatus.set('⚠️ No se pudo obtener la ubicación. Verifica que el GPS esté encendido.');
+            this.gpsStatus.set('⚠️ Señal de GPS débil o apagada. Verifica los ajustes de ubicación de tu dispositivo.');
+            break;
+          case err.TIMEOUT:
+            // En iOS timeout ocasional es normal en interiores, reintentar silenciosamente
             break;
           default:
-            this.gpsStatus.set('⚠️ Error al obtener ubicación. Intenta de nuevo.');
+            this.gpsStatus.set('⚠️ Buscando señal GPS estable...');
         }
-        this.gpsActivo.set(false);
       },
       {
         enableHighAccuracy: true,
         maximumAge: 5000,
-        timeout: 15000,
+        timeout: 25000,
       }
     );
 
-    // Enviar posición al servidor cada 6 segundos
-    this.intervalId = setInterval(() => {
-      if (this.pendingLat !== null && this.pendingLon !== null && !this.entregado()) {
-        this.envioService.reportarPosicionConductor(this.token, this.pendingLat, this.pendingLon).subscribe({
-          next: (res) => {
-            this.enviandoCount.update(c => c + 1);
-            if (!res.activo) {
-              // El pedido fue marcado como entregado desde el admin
-              this.entregado.set(true);
-              this.detenerGps();
-            }
-          },
-          error: () => {
-            // Silently retry on next interval
-          },
-        });
-      }
-    }, 6000);
+    // Enviar posición periódicamente cada 5 segundos al servidor
+    if (!this.intervalId) {
+      this.intervalId = setInterval(() => {
+        if (this.pendingLat !== null && this.pendingLon !== null && !this.entregado()) {
+          this.enviarPosicionAlServidor(this.pendingLat, this.pendingLon);
+        }
+      }, 5000);
+    }
+  }
+
+  private procesarNuevaUbicacion(lat: number, lon: number): void {
+    this.pendingLat = lat;
+    this.pendingLon = lon;
+    this.ultimaPosicion.set({ lat, lon });
+    this.gpsActivo.set(true);
+    this.gpsStatus.set(`📡 GPS transmitiendo en vivo — Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`);
+    // Enviar de inmediato el primer fix sin esperar al intervalo
+    this.enviarPosicionAlServidor(lat, lon);
+  }
+
+  private enviarPosicionAlServidor(lat: number, lon: number): void {
+    this.envioService.reportarPosicionConductor(this.token, lat, lon).subscribe({
+      next: (res) => {
+        this.enviandoCount.update((c) => c + 1);
+        if (res && res.activo === false) {
+          this.entregado.set(true);
+          this.detenerGps();
+        }
+      },
+      error: () => {
+        // Silently retry on next interval
+      },
+    });
+  }
+
+  simularAvanceRuta(): void {
+    this.simulandoRuta.set(true);
+    const p = this.pedido();
+    // Coordenadas base de Santa Cruz si no hay destino específico
+    const destLat = p?.latitud_destino ? Number(p.latitud_destino) : -17.7833;
+    const destLon = p?.longitud_destino ? Number(p.longitud_destino) : -63.1821;
+
+    // Iniciar cerca de la sucursal o centro y avanzar hacia el destino
+    const startLat = destLat - 0.025;
+    const startLon = destLon - 0.020;
+
+    const factor = Math.min(1.0, 0.2 + (this.pasoSimulacion * 0.15));
+    const lat = startLat + (destLat - startLat) * factor;
+    const lon = startLon + (destLon - startLon) * factor;
+
+    this.pasoSimulacion++;
+    if (factor >= 1.0) {
+      this.pasoSimulacion = 0;
+    }
+
+    this.procesarNuevaUbicacion(lat, lon);
+    this.gpsStatus.set(`🚗 Ubicación transmitida en Santa Cruz (${(factor * 100).toFixed(0)}% del recorrido hacia el cliente).`);
   }
 
   detenerGps(): void {
@@ -131,6 +203,7 @@ export class ConductorTrackerComponent implements OnInit, OnDestroy {
       this.intervalId = null;
     }
     this.gpsActivo.set(false);
+    this.simulandoRuta.set(false);
     this.gpsStatus.set('Transmisión GPS detenida.');
   }
 

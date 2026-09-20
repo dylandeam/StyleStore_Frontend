@@ -121,6 +121,30 @@ export class ClienteTrackerComponent implements OnInit, OnDestroy {
     }, 5000);
   }
 
+  calcularDistanciaRestanteKm(): number {
+    const t = this.tracking();
+    if (!t) return 0;
+    if (t.repartidor && t.destino && t.repartidor.lat && t.destino.lat) {
+      const R = 6371;
+      const dLat = ((t.destino.lat - t.repartidor.lat) * Math.PI) / 180;
+      const dLon = ((t.destino.lon - t.repartidor.lon) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((t.repartidor.lat * Math.PI) / 180) *
+          Math.cos((t.destino.lat * Math.PI) / 180) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c * 100) / 100;
+    }
+    return t.distancia_km || 3.5;
+  }
+
+  calcularTiempoRestanteMin(): number {
+    const dist = this.calcularDistanciaRestanteKm();
+    return Math.max(3, Math.round(dist * 2.5 + 4));
+  }
+
   private detenerPolling(): void {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);

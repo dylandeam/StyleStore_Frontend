@@ -55,11 +55,11 @@
         </div>
         <div class="meta-item">
           <span class="meta-label">Distancia</span>
-          <span class="meta-value">{{ tracking().distancia_km }} km</span>
+          <span class="meta-value">{{ calcularDistanciaRestanteKm() | number:'1.1-2' }} km</span>
         </div>
         <div class="meta-item">
           <span class="meta-label">Tiempo Est.</span>
-          <span class="meta-value">~{{ tracking().minutos_estimados }} min</span>
+          <span class="meta-value">~{{ calcularTiempoRestanteMin() }} min</span>
         </div>
       </div>
     </div>
