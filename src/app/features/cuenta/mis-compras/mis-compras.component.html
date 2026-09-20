@@ -110,13 +110,14 @@
         </div>
 
         <!-- Resumen de Delivery StyleStore si tiene envío -->
-        <div class="envio-resumen-card" *ngIf="orden.envio">
+        <div class="envio-resumen-card" *ngIf="orden.envio" [class.card-entregado]="isEnvioEntregado(orden)">
           <div class="envio-resumen-header">
             <span>🛵 <strong>Delivery StyleStore</strong></span>
-            <span class="badge-envio-tag" [class.en-camino]="orden.envio.estado === 'en camino'">
-              {{ orden.envio.estado | uppercase }}
+            <span class="badge-envio-tag" [class.en-camino]="orden.envio.estado === 'en camino'" [class.badge-entregado]="isEnvioEntregado(orden)">
+              {{ (isEnvioEntregado(orden) ? 'ENTREGADO' : orden.envio.estado) | uppercase }}
             </span>
-            <span class="badge-live-pulse" *ngIf="orden.envio.repartidor_lat">● EN VIVO</span>
+            <span class="badge-live-pulse" *ngIf="isEnvioEnVivo(orden)">● EN VIVO</span>
+            <span class="badge-check-entregado" *ngIf="isEnvioEntregado(orden)">✅ RECIBIDO</span>
           </div>
           <div class="envio-resumen-info">
             <div>📍 <strong>Destino:</strong> {{ orden.envio.direccion }} ({{ orden.envio.ciudad }})</div>
@@ -143,10 +144,16 @@
           [routerLink]="['/delivery/rastreo', orden.envio?.token_seguimiento]"
           target="_blank"
           class="btn-rastreo-delivery"
-          [class.live-active]="orden.envio?.repartidor_lat"
+          [class.live-active]="isEnvioEnVivo(orden)"
+          [class.entregado-btn]="isEnvioEntregado(orden)"
         >
-          <span class="dot-pulse-mini" *ngIf="orden.envio?.repartidor_lat"></span>
-          🛵 {{ orden.envio?.repartidor_lat ? 'Rastrear Delivery en Vivo' : 'Seguimiento de Entrega' }}
+          <ng-container *ngIf="isEnvioEntregado(orden)">
+            <span>✅ Pedido Entregado con Éxito</span>
+          </ng-container>
+          <ng-container *ngIf="!isEnvioEntregado(orden)">
+            <span class="dot-pulse-mini" *ngIf="isEnvioEnVivo(orden)"></span>
+            🛵 {{ isEnvioEnVivo(orden) ? 'Rastrear Delivery en Vivo' : 'Seguimiento de Entrega' }}
+          </ng-container>
         </a>
 
         <button class="btn-secondary-action" (click)="verDetalle(orden)">
@@ -219,11 +226,17 @@
               [routerLink]="['/delivery/rastreo', selectedOrden.envio.token_seguimiento]"
               target="_blank"
               class="btn-rastreo-delivery"
-              [class.live-active]="selectedOrden.envio.repartidor_lat"
+              [class.live-active]="isEnvioEnVivo(selectedOrden)"
+              [class.entregado-btn]="isEnvioEntregado(selectedOrden)"
               style="display: inline-flex; width: 100%; justify-content: center;"
             >
-              <span class="dot-pulse-mini" *ngIf="selectedOrden.envio.repartidor_lat"></span>
-              🗺️ Rastrear mi pedido en tiempo real con OpenStreetMap ↗
+              <ng-container *ngIf="isEnvioEntregado(selectedOrden)">
+                <span>✅ Pedido Entregado con Éxito (Ver Resumen) ↗</span>
+              </ng-container>
+              <ng-container *ngIf="!isEnvioEntregado(selectedOrden)">
+                <span class="dot-pulse-mini" *ngIf="isEnvioEnVivo(selectedOrden)"></span>
+                🗺️ Rastrear mi pedido en tiempo real con OpenStreetMap ↗
+              </ng-container>
             </a>
           </div>
         </div>

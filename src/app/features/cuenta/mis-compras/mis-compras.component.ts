@@ -105,6 +105,18 @@ export class MisComprasComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
+  isEnvioEntregado(orden?: OrdenVenta | null): boolean {
+    if (!orden) return false;
+    const estEnvio = orden.envio?.estado?.toLowerCase();
+    const estOrden = orden.estado?.toLowerCase();
+    return estEnvio === 'entregado' || estEnvio === 'completado' || estOrden === 'entregada';
+  }
+
+  isEnvioEnVivo(orden?: OrdenVenta | null): boolean {
+    if (!orden || this.isEnvioEntregado(orden)) return false;
+    return !!(orden.envio?.repartidor_lat && orden.envio?.tracking_activo !== false);
+  }
+
   // Verifica si está dentro de los 7 días de gracia para cambios/devoluciones
   isEligibleForCambio(orden: OrdenVenta): boolean {
     if (orden.estado !== 'pagada' && orden.estado !== 'entregada') {
