@@ -9,6 +9,7 @@ export interface Producto {
   foto_vestidor_frontal?: string | null;
   foto_vestidor_trasera?: string | null;
   tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
+  puntos_clave_ia?: string | null;
   precio: number;
   categoria_id: number;
   categoria_nombre?: string | null;
@@ -33,6 +34,7 @@ export interface ProductoCreate {
   foto_vestidor_frontal?: string;
   foto_vestidor_trasera?: string;
   tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
+  puntos_clave_ia?: string | null;
   precio: number;
   categoria_id: number;
   temporada_id: number;
@@ -50,6 +52,7 @@ export interface ProductoUpdate {
   foto_vestidor_frontal?: string;
   foto_vestidor_trasera?: string;
   tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
+  puntos_clave_ia?: string | null;
   precio?: number;
   categoria_id?: number;
   temporada_id?: number;

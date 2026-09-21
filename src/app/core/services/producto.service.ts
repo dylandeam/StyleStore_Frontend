@@ -44,4 +44,12 @@ export class ProductoService {
   deleteProducto(codigo: string): Observable<MessageResponse> {
     return this.http.delete<MessageResponse>(`${this.apiUrl}/${codigo}`);
   }
+
+  analizarPrendaIa(codigo: string): Observable<Producto> {
+    return this.http.post<Producto>(`${this.apiUrl}/${codigo}/analizar-prenda-ia`, {});
+  }
+
+  analizarImagenIa(payload: { foto?: string; foto_vestidor_frontal?: string; tipo_prenda?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/analizar-imagen-ia`, payload);
+  }
 }

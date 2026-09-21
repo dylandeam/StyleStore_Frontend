@@ -524,6 +524,46 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Barra de Calibración IA de la Prenda -->
+                <div class="garment-ai-calibrator-card" style="margin-top: 14px; padding: 12px 14px; background: rgba(20, 38, 61, 0.45); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 8px;">
+                  <div class="calibrator-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div>
+                      <div style="font-weight: 600; color: #d4af37; display: flex; align-items: center; gap: 6px;">
+                        <span>✨</span> Calibración Anatómica con IA (Puntos Clave AR)
+                      </div>
+                      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 2px;">
+                        Detecta automáticamente cuello, hombros, codos, puños (manga larga/corta) y cintura para adaptar la ropa al cuerpo.
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-gold btn-sm"
+                      (click)="analizarPrendaConIA()"
+                      [disabled]="isAnalyzingIA() || (!formData.foto_vestidor_frontal && !formData.foto && !fotoVestidorFrontalPreview())"
+                    >
+                      @if (isAnalyzingIA()) {
+                        ⏳ Analizando prenda con IA...
+                      } @else {
+                        ✨ Analizar Puntos Clave con IA
+                      }
+                    </button>
+                  </div>
+
+                  @if (iaAnalysisResult()) {
+                    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; font-size: 0.82rem;">
+                      <span style="padding: 3px 8px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.5); color: #93c5fd; border-radius: 4px;">
+                        👕 {{ iaAnalysisResult().tipo_manga === 'manga_larga' ? 'Manga Larga (Trackea Hombros -> Codos -> Muñecas)' : (iaAnalysisResult().tipo_manga === 'manga_corta' ? 'Manga Corta (Llega a Bíceps)' : 'Sin Mangas') }}
+                      </span>
+                      <span style="padding: 3px 8px; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.5); color: #86efac; border-radius: 4px;">
+                        🎯 17 Puntos UV Calibrados
+                      </span>
+                      <span style="padding: 3px 8px; background: rgba(212, 175, 55, 0.2); border: 1px solid rgba(212, 175, 55, 0.5); color: #fde047; border-radius: 4px;">
+                        🛡️ Confianza IA: {{ (iaAnalysisResult().confianza * 100) | number:'1.0-0' }}%
+                      </span>
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>

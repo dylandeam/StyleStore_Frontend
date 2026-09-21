@@ -15,6 +15,7 @@ import { ProductoService } from '../../core/services/producto.service';
 import { CarritoService, CatalogoItem } from '../../core/services/carrito.service';
 import { UploadService } from '../../core/services/upload.service';
 import { Producto } from '../../core/models/producto.model';
+import { GarmentAnalyzerService, GarmentAnalysisResult } from '../../core/services/garment-analyzer.service';
 
 declare global {
   interface Window {
@@ -38,11 +39,13 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   private productoService = inject(ProductoService);
   private carritoService = inject(CarritoService);
   public uploadService = inject(UploadService);
+  private garmentAnalyzer = inject(GarmentAnalyzerService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
   // Estados de Cámara e IA
   isCameraRunning = signal<boolean>(false);
+  garmentSleeveType = signal<string>('manga_larga');
   isCameraLoading = signal<boolean>(false);
   isPoseEngineReady = signal<boolean>(false);
   cameraError = signal<string>('');
@@ -600,6 +603,8 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
           rs,
           le,
           re,
+          lw,
+          rw,
           lh,
           rh,
           width,
@@ -730,7 +735,7 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     ctx.restore();
   }
 
-  // Zona Superior: Hombros, Torso y Ruedo con Malla Bilineal 5x5 Curva Adaptativa
+  // Zona Superior: Hombros, Torso y Mangas Articuladas por IA (Landmark-to-Landmark Mapping)
   private drawTopGarmentMesh(
     ctx: CanvasRenderingContext2D,
     product: Producto,
@@ -738,6 +743,8 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     rs: any,
     le: any,
     re: any,
+    lw: any,
+    rw: any,
     lh: any,
     rh: any,
     w: number,
@@ -757,12 +764,31 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     const shDist = Math.hypot(rs.x - ls.x, rs.y - ls.y);
     if (shDist < 10) return;
 
-    // Ordenar hombros y puntos de izquierda a derecha en canvas
+    // 1. Obtener o inferir análisis anatómico de la prenda (IA)
+    let analysis: GarmentAnalysisResult | null = null;
+    if (product.puntos_clave_ia) {
+      try {
+        analysis = JSON.parse(product.puntos_clave_ia);
+      } catch {
+        analysis = null;
+      }
+    }
+    if (!analysis || !analysis.puntos_clave) {
+      analysis = this.garmentAnalyzer.analyzeImage(img, product.tipo_prenda || 'superior');
+    }
+
+    const sleeveType = analysis.tipo_manga || 'manga_larga';
+    this.garmentSleeveType.set(sleeveType);
+    const lm = analysis.puntos_clave;
+
+    // Ordenar puntos de izquierda a derecha en canvas
     const isLsScreenLeft = ls.x <= rs.x;
     const sLeft = isLsScreenLeft ? ls : rs;
     const sRight = isLsScreenLeft ? rs : ls;
     const eLeft = isLsScreenLeft ? le : re;
     const eRight = isLsScreenLeft ? re : le;
+    const wLeft = isLsScreenLeft ? lw : rw;
+    const wRight = isLsScreenLeft ? rw : lw;
     const hLeft = isLsScreenLeft ? lh : rh;
     const hRight = isLsScreenLeft ? rh : lh;
 
@@ -800,48 +826,45 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     const yawCos = Math.max(0.68, Math.cos(yawRad));
     const yawShiftX = Math.sin(yawRad) * (shDist * 0.12 * scale);
 
-    // 5 filas anatómicas del torso:
-    // Row 0: Cuello / Clavícula (base del cuello, descansa elegantemente sobre la clavícula)
-    // Row 1: Pecho alto / Axilas
-    // Row 2: Torso medio / Costillas
-    // Row 3: Cintura
-    // Row 4: Ruedo inferior (con inercia física suave)
-    interface RowSpec {
-      t: number;
-      baseWidthFactor: number;
-    }
+    // =========================================================================
+    // 2. PARTE A: CUERPO CENTRAL DE LA PRENDA (Torso, Clavícula, Pecho y Cintura)
+    // =========================================================================
+    // El torso utiliza EXCLUSIVAMENTE la región central de la textura (entre las sisas)
+    // eliminando las mangas del abdomen para que la ropa no se aplaste en la panza.
+    const uTorsoMin = lm.armpit_left[0] * imgW;
+    const uTorsoMax = lm.armpit_right[0] * imgW;
+    const vTorsoMin = lm.collar_center[1] * imgH;
+    const vTorsoMax = lm.hem_center[1] * imgH;
 
-    const rowSpecs: RowSpec[] = [
-      { t: -0.06, baseWidthFactor: 1.15 },
-      { t: 0.28, baseWidthFactor: 1.18 },
-      { t: 0.58, baseWidthFactor: 1.06 },
-      { t: 0.88, baseWidthFactor: 1.08 },
-      { t: 1.18, baseWidthFactor: 1.16 },
+    const rowSpecs = [
+      { t: -0.06, baseWidthFactor: 1.06 }, // Cuello / Clavícula
+      { t: 0.28, baseWidthFactor: 1.04 },  // Pecho alto / Sisas
+      { t: 0.58, baseWidthFactor: 0.96 },  // Torso medio / Costillas
+      { t: 0.88, baseWidthFactor: 0.98 },  // Cintura
+      { t: 1.18, baseWidthFactor: 1.06 },  // Ruedo inferior
     ];
 
     const phys = this.hemClothPhysics;
-    const numRows = rowSpecs.length;
-    const numCols = 5; // 4 quads por fila = 32 triángulos sin distorsión diagonal
+    const numTorsoRows = rowSpecs.length;
+    const numTorsoCols = 5;
 
-    const P: { x: number; y: number }[][] = [];
-    const UV: { u: number; v: number }[][] = [];
+    const PTorso: { x: number; y: number }[][] = [];
+    const UVTorso: { u: number; v: number }[][] = [];
 
-    for (let i = 0; i < numRows; i++) {
+    for (let i = 0; i < numTorsoRows; i++) {
       const spec = rowSpecs[i];
       let rowW = shDist * spec.baseWidthFactor * scale * fitFactor * yawCos;
 
       let cx = midShX + spUx * (spec.t * spineLen) + yawShiftX;
       let cy = midShY + spUy * (spec.t * spineLen);
 
-      // Si es el ruedo (última fila), aplicar inercia física suave de vaivén
-      if (i === numRows - 1 && phys.initialized) {
+      if (i === numTorsoRows - 1 && phys.initialized) {
         const swayX = (phys.center.x - midHpX) * 0.35;
         const swayY = (phys.center.y - midHpY) * 0.25;
         cx += swayX;
         cy += swayY;
       }
 
-      // Si está activado el ajuste por sensor de profundidad / silueta, refinar
       if (i >= 1 && i <= 3) {
         const contour = this.getBodyContourAtY(cy / h, cx, w, rowW);
         if (contour) {
@@ -850,59 +873,37 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
         }
       }
 
-      P[i] = [];
-      UV[i] = [];
+      PTorso[i] = [];
+      UVTorso[i] = [];
 
-      for (let j = 0; j < numCols; j++) {
-        const f = j / (numCols - 1) - 0.5;
-        const curveOffset = Math.cos(f * Math.PI) * (shDist * 0.04 * scale);
+      for (let j = 0; j < numTorsoCols; j++) {
+        const f = j / (numTorsoCols - 1) - 0.5;
+        const curveOffset = Math.cos(f * Math.PI) * (shDist * 0.03 * scale);
 
-        let vx = cx + latUx * (f * rowW) + spUx * (curveOffset * 0.3);
-        let vy = cy + latUy * (f * rowW) + spUy * (curveOffset * 0.3);
+        const vx = cx + latUx * (f * rowW) + spUx * (curveOffset * 0.3);
+        const vy = cy + latUy * (f * rowW) + spUy * (curveOffset * 0.3);
 
-        // Si es la fila 1 (pecho/mangas) y los brazos se levantan:
-        if (i === 1) {
-          if (j === 0 && eLeft) {
-            const armDx = eLeft.x - sLeft.x;
-            const armDy = eLeft.y - sLeft.y;
-            const armLen = Math.hypot(armDx, armDy) || 1;
-            if (armDx < -15) {
-              vx += (armDx / armLen) * Math.min(Math.abs(armDx), shDist * 0.2);
-              vy += (armDy / armLen) * Math.min(Math.abs(armDy), shDist * 0.14);
-            }
-          } else if (j === numCols - 1 && eRight) {
-            const armDx = eRight.x - sRight.x;
-            const armDy = eRight.y - sRight.y;
-            const armLen = Math.hypot(armDx, armDy) || 1;
-            if (armDx > 15) {
-              vx += (armDx / armLen) * Math.min(armDx, shDist * 0.2);
-              vy += (armDy / armLen) * Math.min(armDy, shDist * 0.14);
-            }
-          }
-        }
-
-        P[i][j] = { x: vx, y: vy };
-        UV[i][j] = {
-          u: (j / (numCols - 1)) * imgW,
-          v: (i / (numRows - 1)) * imgH,
+        PTorso[i][j] = { x: vx, y: vy };
+        UVTorso[i][j] = {
+          u: uTorsoMin + (j / (numTorsoCols - 1)) * (uTorsoMax - uTorsoMin),
+          v: vTorsoMin + (i / (numTorsoRows - 1)) * (vTorsoMax - vTorsoMin),
         };
       }
     }
 
-    // Renderizar la cuadrícula de quads regulares (cada quad se divide en 2 triángulos idénticos)
-    for (let i = 0; i < numRows - 1; i++) {
-      for (let j = 0; j < numCols - 1; j++) {
-        const p00 = P[i][j];
-        const p10 = P[i][j + 1];
-        const p01 = P[i + 1][j];
-        const p11 = P[i + 1][j + 1];
+    // Renderizar quads del torso
+    for (let i = 0; i < numTorsoRows - 1; i++) {
+      for (let j = 0; j < numTorsoCols - 1; j++) {
+        const p00 = PTorso[i][j];
+        const p10 = PTorso[i][j + 1];
+        const p01 = PTorso[i + 1][j];
+        const p11 = PTorso[i + 1][j + 1];
 
-        const uv00 = UV[i][j];
-        const uv10 = UV[i][j + 1];
-        const uv01 = UV[i + 1][j];
-        const uv11 = UV[i + 1][j + 1];
+        const uv00 = UVTorso[i][j];
+        const uv10 = UVTorso[i][j + 1];
+        const uv01 = UVTorso[i + 1][j];
+        const uv11 = UVTorso[i + 1][j + 1];
 
-        // Triángulo 1 (Top-Left)
         this.drawTexturedTriangle(
           ctx,
           img,
@@ -920,7 +921,6 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
           p01.y
         );
 
-        // Triángulo 2 (Bottom-Right)
         this.drawTexturedTriangle(
           ctx,
           img,
@@ -938,6 +938,145 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
           p01.y
         );
       }
+    }
+
+    // =========================================================================
+    // 3. PARTE B: MANGA IZQUIERDA Y DERECHA ARTICULADAS (Hombro -> Codo -> Muñeca)
+    // =========================================================================
+    if (sleeveType !== 'sin_mangas') {
+      const renderArmSleeve = (
+        sPt: any,
+        ePt: any,
+        wPt: any,
+        isLeft: boolean
+      ) => {
+        // Límites UV de la manga en la foto
+        const uSleeveMin = isLeft ? 0 : lm.armpit_right[0] * imgW;
+        const uSleeveMax = isLeft ? lm.armpit_left[0] * imgW : imgW;
+        const vSleeveMin = (isLeft ? lm.shoulder_left[1] : lm.shoulder_right[1]) * imgH;
+        const vSleeveMax = (isLeft ? lm.cuff_left[1] : lm.cuff_right[1]) * imgH;
+
+        // Vector brazo superior (hombro -> codo)
+        const upperDx = ePt.x - sPt.x;
+        const upperDy = ePt.y - sPt.y;
+        const upperLen = Math.hypot(upperDx, upperDy) || (shDist * 0.7);
+        const upNormX = -upperDy / upperLen;
+        const upNormY = upperDx / upperLen;
+
+        // Vector antebrazo (codo -> muñeca)
+        const foreDx = wPt.x - ePt.x;
+        const foreDy = wPt.y - ePt.y;
+        const foreLen = Math.hypot(foreDx, foreDy) || (shDist * 0.65);
+        const foreNormX = -foreDy / foreLen;
+        const foreNormY = foreDx / foreLen;
+
+        const sleeveW = shDist * 0.25 * scale;
+
+        interface SleeveSection {
+          cx: number;
+          cy: number;
+          nx: number;
+          ny: number;
+          w: number;
+          vFrac: number;
+        }
+
+        const sections: SleeveSection[] = [];
+
+        if (sleeveType === 'manga_larga') {
+          // Manga Larga: 5 secciones articuladas que llegan a la muñeca
+          sections.push(
+            { cx: sPt.x, cy: sPt.y + vOffset, nx: upNormX, ny: upNormY, w: sleeveW * 1.15, vFrac: 0.0 },
+            { cx: sPt.x + upperDx * 0.5, cy: sPt.y + vOffset + upperDy * 0.5, nx: upNormX, ny: upNormY, w: sleeveW * 1.05, vFrac: 0.28 },
+            { cx: ePt.x, cy: ePt.y + vOffset, nx: (upNormX + foreNormX) / 2, ny: (upNormY + foreNormY) / 2, w: sleeveW * 0.95, vFrac: 0.55 },
+            { cx: ePt.x + foreDx * 0.5, cy: ePt.y + vOffset + foreDy * 0.5, nx: foreNormX, ny: foreNormY, w: sleeveW * 0.88, vFrac: 0.80 },
+            { cx: wPt.x, cy: wPt.y + vOffset, nx: foreNormX, ny: foreNormY, w: sleeveW * 0.82, vFrac: 1.0 }
+          );
+        } else {
+          // Manga Corta: 3 secciones que terminan sobre el codo
+          sections.push(
+            { cx: sPt.x, cy: sPt.y + vOffset, nx: upNormX, ny: upNormY, w: sleeveW * 1.15, vFrac: 0.0 },
+            { cx: sPt.x + upperDx * 0.35, cy: sPt.y + vOffset + upperDy * 0.35, nx: upNormX, ny: upNormY, w: sleeveW * 1.08, vFrac: 0.5 },
+            { cx: sPt.x + upperDx * 0.68, cy: sPt.y + vOffset + upperDy * 0.68, nx: upNormX, ny: upNormY, w: sleeveW * 1.02, vFrac: 1.0 }
+          );
+        }
+
+        const numSec = sections.length;
+        const secCols = 3;
+        const PSleeve: { x: number; y: number }[][] = [];
+        const UVSleeve: { u: number; v: number }[][] = [];
+
+        for (let s = 0; s < numSec; s++) {
+          const sec = sections[s];
+          PSleeve[s] = [];
+          UVSleeve[s] = [];
+
+          for (let c = 0; c < secCols; c++) {
+            const f = c / (secCols - 1) - 0.5;
+            PSleeve[s][c] = {
+              x: sec.cx + sec.nx * (f * sec.w),
+              y: sec.cy + sec.ny * (f * sec.w),
+            };
+            UVSleeve[s][c] = {
+              u: uSleeveMin + (c / (secCols - 1)) * (uSleeveMax - uSleeveMin),
+              v: vSleeveMin + sec.vFrac * (vSleeveMax - vSleeveMin),
+            };
+          }
+        }
+
+        for (let s = 0; s < numSec - 1; s++) {
+          for (let c = 0; c < secCols - 1; c++) {
+            const p00 = PSleeve[s][c];
+            const p10 = PSleeve[s][c + 1];
+            const p01 = PSleeve[s + 1][c];
+            const p11 = PSleeve[s + 1][c + 1];
+
+            const uv00 = UVSleeve[s][c];
+            const uv10 = UVSleeve[s][c + 1];
+            const uv01 = UVSleeve[s + 1][c];
+            const uv11 = UVSleeve[s + 1][c + 1];
+
+            this.drawTexturedTriangle(
+              ctx,
+              img,
+              uv00.u,
+              uv00.v,
+              uv10.u,
+              uv10.v,
+              uv01.u,
+              uv01.v,
+              p00.x,
+              p00.y,
+              p10.x,
+              p10.y,
+              p01.x,
+              p01.y
+            );
+
+            this.drawTexturedTriangle(
+              ctx,
+              img,
+              uv10.u,
+              uv10.v,
+              uv11.u,
+              uv11.v,
+              uv01.u,
+              uv01.v,
+              p10.x,
+              p10.y,
+              p11.x,
+              p11.y,
+              p01.x,
+              p01.y
+            );
+          }
+        }
+      };
+
+      // Renderizar Manga Izquierda (acoplada a hombro y brazo izquierdo)
+      renderArmSleeve(sLeft, eLeft, wLeft, true);
+      // Renderizar Manga Derecha (acoplada a hombro y brazo derecho)
+      renderArmSleeve(sRight, eRight, wRight, false);
     }
   }
 

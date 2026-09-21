@@ -21,6 +21,7 @@ import { Talla } from '../../../../core/models/talla.model';
 import { Sucursal } from '../../../../core/models/sucursal.model';
 import { StockInventarioItem } from '../../../../core/models/stock.model';
 import { BranchSelectionService } from '../../../../core/services/branch-selection.service';
+import { GarmentAnalyzerService } from '../../../../core/services/garment-analyzer.service';
 
 @Component({
   selector: 'app-productos-list',
@@ -32,6 +33,7 @@ import { BranchSelectionService } from '../../../../core/services/branch-selecti
 export class ProductosListComponent implements OnInit {
   private router = inject(Router);
   private productoService = inject(ProductoService);
+  private garmentAnalyzer = inject(GarmentAnalyzerService);
   private categoriasService = inject(CategoriasService);
   private temporadasService = inject(TemporadasService);
   private coleccionService = inject(ColeccionService);
@@ -88,6 +90,8 @@ export class ProductosListComponent implements OnInit {
   isUploadingFotoVestidorTrasera = signal<boolean>(false);
   fotoVestidorTraseraPreview = signal<string>('');
   showVestidorFotosSection = signal<boolean>(false);
+  isAnalyzingIA = signal<boolean>(false);
+  iaAnalysisResult = signal<any>(null);
 
   formData: ProductoCreate = {
     codigo: '',
@@ -98,6 +102,7 @@ export class ProductosListComponent implements OnInit {
     foto_vestidor_frontal: '',
     foto_vestidor_trasera: '',
     tipo_prenda: 'superior',
+    puntos_clave_ia: '',
     precio: 0,
     categoria_id: 0,
     temporada_id: 0,
@@ -212,6 +217,7 @@ export class ProductosListComponent implements OnInit {
       foto_vestidor_frontal: '',
       foto_vestidor_trasera: '',
       tipo_prenda: 'superior',
+      puntos_clave_ia: '',
       precio: 0,
       categoria_id: firstCat,
       temporada_id: firstTemp,
@@ -220,6 +226,7 @@ export class ProductosListComponent implements OnInit {
       color_ids: [],
       active: true,
     };
+    this.iaAnalysisResult.set(null);
     this.modalError.set('');
     this.modalSuccess.set('');
     this.showModal.set(true);
@@ -242,6 +249,7 @@ export class ProductosListComponent implements OnInit {
       foto_vestidor_frontal: p.foto_vestidor_frontal || '',
       foto_vestidor_trasera: p.foto_vestidor_trasera || '',
       tipo_prenda: p.tipo_prenda || 'superior',
+      puntos_clave_ia: p.puntos_clave_ia || '',
       precio: p.precio,
       categoria_id: p.categoria_id,
       temporada_id: p.temporada_id,
@@ -250,9 +258,78 @@ export class ProductosListComponent implements OnInit {
       color_ids: p.colores ? p.colores.map((c) => c.id) : [],
       active: p.active,
     };
+
+    if (p.puntos_clave_ia) {
+      try {
+        this.iaAnalysisResult.set(JSON.parse(p.puntos_clave_ia));
+      } catch {
+        this.iaAnalysisResult.set(null);
+      }
+    } else {
+      this.iaAnalysisResult.set(null);
+    }
+
     this.modalError.set('');
     this.modalSuccess.set('');
     this.showModal.set(true);
+  }
+
+  analizarPrendaConIA(): void {
+    const imgUrl = this.formData.foto_vestidor_frontal || this.formData.foto;
+    if (!imgUrl && !this.fotoVestidorFrontalPreview()) {
+      this.modalError.set('Por favor sube o selecciona primero una foto frontal de la prenda.');
+      return;
+    }
+    this.isAnalyzingIA.set(true);
+    this.modalError.set('');
+    this.modalSuccess.set('');
+
+    if (this.isEditing() && this.editingCodigo) {
+      this.productoService.analizarPrendaIa(this.editingCodigo).subscribe({
+        next: (updatedProd) => {
+          this.isAnalyzingIA.set(false);
+          if (updatedProd.puntos_clave_ia) {
+            this.formData.puntos_clave_ia = updatedProd.puntos_clave_ia;
+            try {
+              const res = JSON.parse(updatedProd.puntos_clave_ia);
+              this.iaAnalysisResult.set(res);
+              const desc = res.tipo_manga === 'manga_larga' ? 'Manga Larga (Hombros -> Codos -> Muñecas)' : res.tipo_manga === 'manga_corta' ? 'Manga Corta' : 'Sin Mangas';
+              this.modalSuccess.set(`✨ IA calibró prenda: ${desc} con puntos anatómicos listos.`);
+            } catch {}
+          }
+        },
+        error: () => {
+          this.analizarLocalmenteConIA();
+        },
+      });
+    } else {
+      this.analizarLocalmenteConIA();
+    }
+  }
+
+  private analizarLocalmenteConIA(): void {
+    const src = this.fotoVestidorFrontalPreview() || (this.formData.foto_vestidor_frontal ? this.uploadService.getImageUrl(this.formData.foto_vestidor_frontal) : (this.formData.foto ? this.uploadService.getImageUrl(this.formData.foto) : ''));
+    if (!src) {
+      this.isAnalyzingIA.set(false);
+      this.modalError.set('No hay imagen válida para analizar.');
+      return;
+    }
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const res = this.garmentAnalyzer.analyzeImage(img, (this.formData.tipo_prenda as any) || 'superior');
+      this.formData.puntos_clave_ia = JSON.stringify(res);
+      this.iaAnalysisResult.set(res);
+      this.isAnalyzingIA.set(false);
+      const desc = res.tipo_manga === 'manga_larga' ? 'Manga Larga (Hombros -> Codos -> Muñecas)' : res.tipo_manga === 'manga_corta' ? 'Manga Corta' : 'Sin Mangas';
+      this.modalSuccess.set(`✨ IA calibró prenda: ${desc} (17 puntos anatómicos detectados).`);
+    };
+    img.onerror = () => {
+      this.isAnalyzingIA.set(false);
+      this.modalError.set('No se pudo cargar la imagen para el análisis local.');
+    };
+    img.src = src;
   }
 
   closeModal(): void {
@@ -404,6 +481,7 @@ export class ProductosListComponent implements OnInit {
         foto_vestidor_frontal: this.formData.foto_vestidor_frontal,
         foto_vestidor_trasera: this.formData.foto_vestidor_trasera,
         tipo_prenda: this.formData.tipo_prenda || 'superior',
+        puntos_clave_ia: this.formData.puntos_clave_ia,
         precio: this.formData.precio,
         categoria_id: Number(this.formData.categoria_id),
         temporada_id: Number(this.formData.temporada_id),

@@ -260,6 +260,18 @@
           </span>
         }
 
+        @if (isUserDetected() && activeTop()) {
+          <span class="badge-depth hw" style="background: rgba(59, 130, 246, 0.25); border-color: rgba(59, 130, 246, 0.6); color: #93c5fd;">
+            @if (garmentSleeveType() === 'manga_larga') {
+              🎯 Manga Larga (Muñecas)
+            } @else if (garmentSleeveType() === 'manga_corta') {
+              👕 Manga Corta
+            } @else {
+              🎽 Sin Mangas
+            }
+          </span>
+        }
+
         @if (isUserDetected()) {
           <span
             class="badge-orientation"
