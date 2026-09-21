@@ -67,7 +67,7 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-label">Ventas Totales</span>
-            <strong class="kpi-number">${{ stats.ventas?.total_recaudado || 0 | number:'1.2-2' }}</strong>
+            <strong class="kpi-number">Bs. {{ stats.ventas?.total_recaudado || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">{{ stats.ventas?.cantidad_ventas || 0 }} transacciones registradas</small>
           </div>
         </div>
@@ -115,7 +115,7 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-label">Cobros en Caja POS</span>
-            <strong class="kpi-number text-success">${{ stats.ventas?.desglose_pagos?.efectivo || 0 | number:'1.2-2' }}</strong>
+            <strong class="kpi-number text-success">Bs. {{ stats.ventas?.desglose_pagos?.efectivo || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">Efectivo recibido en mostrador</small>
           </div>
         </div>
@@ -127,7 +127,7 @@
           </div>
           <div class="kpi-data">
             <span class="kpi-label">Pagos Digitales PayPal</span>
-            <strong class="kpi-number text-primary">${{ stats.ventas?.desglose_pagos?.en_linea || stats.ventas?.desglose_pagos?.paypal || 0 | number:'1.2-2' }}</strong>
+            <strong class="kpi-number text-primary">Bs. {{ stats.ventas?.desglose_pagos?.en_linea || stats.ventas?.desglose_pagos?.paypal || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">Capturados vía PayPal Orders v2</small>
           </div>
         </div>
