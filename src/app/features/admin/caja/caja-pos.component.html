@@ -109,22 +109,6 @@
         <div class="pos-icon">💵</div>
         <h3>Selecciona una orden</h3>
         <p>Haz clic en una orden pendiente para emitir su ticket de pago.</p>
-
-        <!-- Preview del QR Activo de la Tienda -->
-        <div class="qr-preview-box-empty">
-          <div class="qr-preview-badge">📲 QR de Cobro Configurado en Mostrador</div>
-          <div class="qr-image-wrapper-mini" *ngIf="qrConfig?.imagen_url">
-            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Mostrador" class="qr-mini-img" (error)="onQRImgError($event)" />
-          </div>
-          <div class="qr-no-img-text" *ngIf="!qrConfig?.imagen_url">
-            <span>📷 No se ha subido una imagen de QR de cobro</span>
-          </div>
-          <div class="qr-banco-sub">{{ qrConfig?.banco_destino || 'Red Enlace / Banco Unión / BNB / BCP' }}</div>
-          <div class="qr-titular-sub">Titular: <strong>{{ qrConfig?.titular || 'StyleStore Bolivia' }}</strong></div>
-          <button type="button" class="btn-config-qr-mini" (click)="abrirModalUploadQR()">
-            ⚙️ Subir / Actualizar Imagen QR
-          </button>
-        </div>
       </div>
 
       <!-- Formulario de Cobro Activo -->
