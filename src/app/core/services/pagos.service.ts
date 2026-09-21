@@ -45,10 +45,11 @@ export class PagosService {
     });
   }
 
-  cobrarEnCaja(ordenVentaId: number, efectivoRecibido: number): Observable<CobroCajaResponse> {
+  cobrarEnCaja(ordenVentaId: number, efectivoRecibido: number, metodoPago: string = 'efectivo'): Observable<CobroCajaResponse> {
     return this.http.post<CobroCajaResponse>(`${this.apiUrl}/caja`, {
       orden_venta_id: ordenVentaId,
       efectivo_recibido: efectivoRecibido,
+      metodo_pago: metodoPago,
     });
   }
 
@@ -71,5 +72,30 @@ export class PagosService {
   eliminarPago(pagoId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${pagoId}`);
   }
+
+  // --- QR Config (imagen de cobro presencial) ---
+
+  getQRConfig(): Observable<QRConfigResponse> {
+    return this.http.get<QRConfigResponse>(`${this.apiUrl}/config-qr`);
+  }
+
+  updateQRConfig(payload: QRConfigDTO): Observable<QRConfigResponse> {
+    return this.http.post<QRConfigResponse>(`${this.apiUrl}/config-qr`, payload);
+  }
 }
 
+export interface QRConfigResponse {
+  id: number | null;
+  imagen_url: string | null;
+  banco_destino: string | null;
+  titular: string | null;
+  activo: boolean;
+  updated_at: string | null;
+}
+
+export interface QRConfigDTO {
+  imagen_url: string;
+  banco_destino?: string;
+  titular?: string;
+  sucursal_id?: number;
+}

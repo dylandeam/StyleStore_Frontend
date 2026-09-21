@@ -10,6 +10,14 @@
       <h1>Gestionar Pagos</h1>
       <p class="subtitle">Cobro de compras online, emisión de tickets térmicos, ventas en mostrador (Efectivo / QR) e historial de pagos.</p>
     </div>
+    <div class="pos-header-actions">
+      <button type="button" class="btn-config-qr-header" (click)="abrirModalUploadQR()" title="Configurar QR de cobro en mostrador">
+        <span class="qr-btn-icon">📱</span>
+        <span class="qr-btn-text">Configurar QR Mostrador</span>
+        <span class="badge-qr-status" *ngIf="qrConfig?.imagen_url">Vigente</span>
+        <span class="badge-qr-status pending" *ngIf="!qrConfig?.imagen_url">Sin QR</span>
+      </button>
+    </div>
   </div>
 
   <!-- Pestañas Superiores de Gestionar Pagos -->
@@ -143,9 +151,75 @@
           </button>
         </div>
 
-        <!-- ACCIÓN 2: Cobro en Efectivo con Vuelto (Presencial o si desea registrar efectivo) -->
-        <div class="cash-checkout-box" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'efectivo'">
-          <h4 class="section-title">O cobrar en efectivo con cálculo de vuelto:</h4>
+        <!-- Selector de Modo de Cobro Presencial en Caja: Efectivo vs QR Simple -->
+        <div class="metodo-pago-selector tab1-selector" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea'">
+          <label>Selecciona Modo de Cobro en Mostrador:</label>
+          <div class="metodo-buttons">
+            <button 
+              type="button" 
+              class="btn-metodo" 
+              [class.active]="metodoCobroOrden === 'efectivo'"
+              (click)="metodoCobroOrden = 'efectivo'"
+            >
+              💵 Efectivo (con Vuelto)
+            </button>
+            <button 
+              type="button" 
+              class="btn-metodo" 
+              [class.active]="metodoCobroOrden === 'qr'"
+              (click)="metodoCobroOrden = 'qr'"
+            >
+              📱 QR Simple (Mostrador)
+            </button>
+          </div>
+        </div>
+
+        <!-- Cobro con QR Simple (Orden Pendiente) -->
+        <div class="qr-pos-card" *ngIf="metodoCobroOrden === 'qr' && ordenSeleccionada.tipo_venta !== 'en linea'">
+          <div class="qr-pos-header">
+            <div class="qr-info-left">
+              <h4>📲 QR Simple de Cobro</h4>
+              <p class="qr-banco-title">{{ qrConfig?.banco_destino || 'Red Enlace / Banco Unión / BCP / BNB' }}</p>
+              <p class="qr-titular-text">Titular: <strong>{{ qrConfig?.titular || 'StyleStore Bolivia' }}</strong></p>
+            </div>
+            <button type="button" class="btn-qr-action-sm" (click)="abrirModalUploadQR()" title="Actualizar código QR">
+              🔄 Cambiar QR
+            </button>
+          </div>
+
+          <div class="qr-display-container">
+            <div class="qr-image-wrapper" *ngIf="qrConfig?.imagen_url">
+              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" />
+              <div class="qr-scan-badge">Escanea para pagar</div>
+            </div>
+            <div class="qr-empty-placeholder" *ngIf="!qrConfig?.imagen_url">
+              <span class="empty-icon">📷</span>
+              <p>No se ha cargado una imagen de QR de cobro.</p>
+              <button type="button" class="btn-upload-qr-trigger" (click)="abrirModalUploadQR()">
+                + Subir Imagen del QR
+              </button>
+            </div>
+            <div class="qr-amount-box">
+              <span class="lbl">Monto Exacto a Transferir:</span>
+              <span class="val">Bs. {{ ordenSeleccionada.total | number:'1.2-2' }}</span>
+              <span class="hint">El cliente escanea el QR desde su app bancaria y paga el monto exacto. No requiere cálculo de vuelto.</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-emitir-ticket btn-qr-confirm"
+            [disabled]="procesando"
+            (click)="procesarCobro()"
+          >
+            <span *ngIf="!procesando">✓ Registrar Cobro QR y Emitir Ticket</span>
+            <span *ngIf="procesando">Registrando cobro QR...</span>
+          </button>
+        </div>
+
+        <!-- ACCIÓN 2: Cobro en Efectivo con Vuelto -->
+        <div class="cash-checkout-box" *ngIf="metodoCobroOrden === 'efectivo' && (ordenSeleccionada.tipo_venta !== 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'efectivo')">
+          <h4 class="section-title">Cobro en efectivo con cálculo de vuelto:</h4>
           <div class="cash-input-group">
             <label>Efectivo Recibido (Bs.)</label>
             <input
@@ -449,9 +523,32 @@
           </div>
         </div>
 
-        <!-- Si el método es QR: mostrar aviso sin vuelto -->
-        <div class="qr-notice-box" *ngIf="metodoPagoDirecto === 'qr' && cartDirecto.length > 0">
-          <span>📲 Cobro mediante QR Simple. El cliente escanea y abona el monto exacto (Bs. {{ totalVentaDirecta | number:'1.2-2' }}). No requiere vuelto.</span>
+        <!-- Si el método es QR: mostrar QR de cobro con imagen -->
+        <div class="qr-pos-card compact" *ngIf="metodoPagoDirecto === 'qr' && cartDirecto.length > 0">
+          <div class="qr-pos-header">
+            <div class="qr-info-left">
+              <h4>📲 QR Simple de Cobro</h4>
+              <p class="qr-banco-title">{{ qrConfig?.banco_destino || 'Red Enlace / Banco Unión / BCP / BNB' }}</p>
+              <p class="qr-titular-text">Titular: <strong>{{ qrConfig?.titular || 'StyleStore Bolivia' }}</strong></p>
+            </div>
+            <button type="button" class="btn-qr-action-sm" (click)="abrirModalUploadQR()" title="Actualizar QR">🔄</button>
+          </div>
+          <div class="qr-display-container">
+            <div class="qr-image-wrapper" *ngIf="qrConfig?.imagen_url">
+              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" />
+              <div class="qr-scan-badge">Escanea para pagar</div>
+            </div>
+            <div class="qr-empty-placeholder" *ngIf="!qrConfig?.imagen_url">
+              <span class="empty-icon">📷</span>
+              <p>No hay QR cargado.</p>
+              <button type="button" class="btn-upload-qr-trigger" (click)="abrirModalUploadQR()">+ Subir QR</button>
+            </div>
+            <div class="qr-amount-box">
+              <span class="lbl">Monto Exacto:</span>
+              <span class="val">Bs. {{ totalVentaDirecta | number:'1.2-2' }}</span>
+              <span class="hint">No requiere vuelto.</span>
+            </div>
+          </div>
         </div>
 
         <!-- Botón Procesar Venta Directa -->
@@ -615,4 +712,90 @@
       </div>
     </div>
   </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: SUBIR / ACTUALIZAR QR DE COBRO EN MOSTRADOR        -->
+  <!-- ========================================================= -->
+  <div class="modal-overlay" *ngIf="showModalUploadQR" (click)="cerrarModalUploadQR()">
+    <div class="modal-content qr-upload-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📱 Configurar QR de Cobro en Mostrador</h3>
+        <button type="button" class="btn-close-modal" (click)="cerrarModalUploadQR()">✕</button>
+      </div>
+
+      <div class="modal-body qr-upload-body">
+        <p class="qr-upload-desc">
+          Sube la imagen del código QR que se mostrará al cliente para que pague por
+          <strong>QR Simple / Transferencia bancaria</strong> desde su app bancaria en el mostrador.
+          Puedes actualizar esta imagen en cualquier momento (los QR tienen fecha de expiración).
+        </p>
+
+        <!-- QR Vigente Actual -->
+        <div class="qr-current-preview" *ngIf="qrConfig?.imagen_url">
+          <h4>QR Vigente Actual:</h4>
+          <div class="qr-preview-img-container">
+            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Vigente" class="qr-preview-img" />
+          </div>
+          <div class="qr-meta-row">
+            <span class="meta-label">Banco:</span>
+            <span class="meta-value">{{ qrConfig?.banco_destino }}</span>
+          </div>
+          <div class="qr-meta-row">
+            <span class="meta-label">Titular:</span>
+            <span class="meta-value">{{ qrConfig?.titular }}</span>
+          </div>
+          <div class="qr-meta-row" *ngIf="qrConfig?.updated_at">
+            <span class="meta-label">Última actualización:</span>
+            <span class="meta-value">{{ qrConfig?.updated_at }}</span>
+          </div>
+        </div>
+
+        <div class="qr-no-preview" *ngIf="!qrConfig?.imagen_url">
+          <span class="empty-icon-lg">📷</span>
+          <p>No se ha cargado ninguna imagen de QR de cobro.</p>
+        </div>
+
+        <!-- Campos de Información del QR -->
+        <div class="qr-form-fields">
+          <div class="form-group">
+            <label>Banco / Red Destino:</label>
+            <input type="text" [(ngModel)]="qrBancoDestino" class="form-input" placeholder="Ej: QR Simple BNB / BCP / Banco Unión" />
+          </div>
+          <div class="form-group">
+            <label>Titular / Nombre del Beneficiario:</label>
+            <input type="text" [(ngModel)]="qrTitular" class="form-input" placeholder="Ej: StyleStore Bolivia" />
+          </div>
+        </div>
+
+        <!-- Input de Subida de Imagen -->
+        <div class="qr-upload-actions">
+          <label class="btn-upload-qr-file" [class.uploading]="subiendoQR">
+            <span *ngIf="!subiendoQR">📤 Seleccionar Nueva Imagen de QR</span>
+            <span *ngIf="subiendoQR">⏳ Subiendo imagen...</span>
+            <input
+              type="file"
+              accept="image/png, image/jpeg, image/webp, image/jpg"
+              (change)="onQRFileSelected($event)"
+              [disabled]="subiendoQR"
+              style="display: none;"
+            />
+          </label>
+          <button
+            type="button"
+            class="btn-save-qr-data"
+            *ngIf="qrConfig?.imagen_url"
+            [disabled]="subiendoQR"
+            (click)="guardarDatosQR()"
+          >
+            💾 Guardar Datos del QR
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="cerrarModalUploadQR()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 </div>

@@ -1578,5 +1578,125 @@
   box-shadow: none;
 }
 
+/* ==========================================
+   QR CONFIG & COBRO STYLES
+   ========================================== */
 
+.pos-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.pos-header-actions { display: flex; align-items: center; gap: 10px; }
 
+.btn-config-qr-header {
+  display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #14263D, #1e3a5f); color: #fff;
+  border: none; border-radius: 10px; padding: 10px 18px;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 2px 8px rgba(20,38,61,0.18);
+}
+.btn-config-qr-header:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(20,38,61,0.28); }
+.qr-btn-icon { font-size: 1.2rem; }
+.badge-qr-status { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; background: #22c55e; color: #fff; font-weight: 700; }
+.badge-qr-status.pending { background: #f59e0b; }
+
+.tab1-selector { margin-top: 16px; }
+
+/* QR POS Card (inline display) */
+.qr-pos-card {
+  background: linear-gradient(145deg, #f0f4ff 0%, #e8f0fe 100%);
+  border: 1px solid #c7d4e8; border-radius: 14px;
+  padding: 20px; margin-top: 16px;
+}
+.qr-pos-card.compact { padding: 14px; margin-top: 12px; }
+.qr-pos-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.qr-info-left h4 { margin: 0 0 4px; font-size: 1rem; color: #14263D; }
+.qr-banco-title { font-size: 0.82rem; color: #475569; margin: 0 0 2px; }
+.qr-titular-text { font-size: 0.8rem; color: #64748b; margin: 0; }
+
+.btn-qr-action-sm {
+  background: #fff; border: 1px solid #cbd5e1; border-radius: 8px;
+  padding: 6px 12px; font-size: 0.78rem; cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-qr-action-sm:hover { background: #f1f5f9; border-color: #94a3b8; }
+
+.qr-display-container { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+
+.qr-image-wrapper {
+  position: relative; display: flex; flex-direction: column; align-items: center;
+  background: #fff; border-radius: 12px; padding: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08); border: 2px solid #e2e8f0;
+}
+.qr-image-pos { width: 180px; height: 180px; object-fit: contain; border-radius: 8px; }
+.qr-pos-card.compact .qr-image-pos { width: 140px; height: 140px; }
+.qr-scan-badge {
+  margin-top: 8px; font-size: 0.72rem; font-weight: 700;
+  color: #14263D; background: #e0ecff; padding: 3px 12px;
+  border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.qr-empty-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-width: 180px; min-height: 180px; background: #f8fafc;
+  border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center;
+}
+.qr-empty-placeholder .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.qr-empty-placeholder p { font-size: 0.82rem; color: #94a3b8; margin: 0 0 10px; }
+.btn-upload-qr-trigger {
+  background: #14263D; color: #fff; border: none; border-radius: 8px;
+  padding: 8px 16px; font-size: 0.82rem; cursor: pointer; font-weight: 600;
+}
+.btn-upload-qr-trigger:hover { background: #1e3a5f; }
+
+.qr-amount-box {
+  display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px;
+}
+.qr-amount-box .lbl { font-size: 0.78rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.qr-amount-box .val { font-size: 1.6rem; font-weight: 800; color: #14263D; }
+.qr-amount-box .hint { font-size: 0.76rem; color: #94a3b8; line-height: 1.35; }
+
+.btn-qr-confirm { background: linear-gradient(135deg, #0f766e, #14b8a6) !important; margin-top: 14px; }
+.btn-qr-confirm:hover:not(:disabled) { background: linear-gradient(135deg, #0d6b63, #0ea5a5) !important; }
+
+/* QR Upload Modal */
+.qr-upload-modal { max-width: 520px; }
+.qr-upload-body { padding: 20px; }
+.qr-upload-desc { font-size: 0.88rem; color: #475569; line-height: 1.5; margin: 0 0 18px; }
+
+.qr-current-preview { margin-bottom: 18px; }
+.qr-current-preview h4 { font-size: 0.92rem; color: #14263D; margin: 0 0 10px; }
+.qr-preview-img-container { text-align: center; margin-bottom: 12px; }
+.qr-preview-img { max-width: 220px; max-height: 220px; object-fit: contain; border-radius: 10px; border: 2px solid #e2e8f0; }
+
+.qr-meta-row { display: flex; gap: 8px; font-size: 0.82rem; margin-bottom: 4px; }
+.meta-label { color: #64748b; font-weight: 600; min-width: 100px; }
+.meta-value { color: #1e293b; }
+
+.qr-no-preview { text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; margin-bottom: 18px; }
+.empty-icon-lg { font-size: 3rem; display: block; margin-bottom: 8px; }
+.qr-no-preview p { color: #94a3b8; font-size: 0.88rem; }
+
+.qr-form-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+.qr-form-fields .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px; }
+.qr-form-fields .form-input {
+  width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+  font-size: 0.88rem; background: #f8fafc; transition: border-color 0.2s;
+}
+.qr-form-fields .form-input:focus { border-color: #14263D; outline: none; background: #fff; }
+
+.qr-upload-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-upload-qr-file {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #14263D, #1e3a5f); color: #fff;
+  border: none; border-radius: 10px; padding: 12px 20px;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; flex: 1; min-width: 200px; text-align: center;
+}
+.btn-upload-qr-file:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(20,38,61,0.25); }
+.btn-upload-qr-file.uploading { opacity: 0.7; cursor: wait; }
+
+.btn-save-qr-data {
+  background: #22c55e; color: #fff; border: none; border-radius: 10px;
+  padding: 12px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save-qr-data:hover { background: #16a34a; }
+.btn-save-qr-data:disabled { opacity: 0.5; cursor: not-allowed; }

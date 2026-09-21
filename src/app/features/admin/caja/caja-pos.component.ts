@@ -2,7 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentaService } from '../../../core/services/venta.service';
-import { PagosService, CobroCajaResponse } from '../../../core/services/pagos.service';
+import { PagosService, CobroCajaResponse, QRConfigResponse } from '../../../core/services/pagos.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { UploadService } from '../../../core/services/upload.service';
@@ -38,10 +38,19 @@ export class CajaPosComponent implements OnInit {
   procesando: boolean = false;
   error: string | null = null;
   mensajeToast: string | null = null;
+  metodoCobroOrden: 'efectivo' | 'qr' = 'efectivo';
 
   // Cobro
   efectivoRecibido: number = 0;
   ticketEmitido: CobroCajaResponse | null = null;
+
+  // QR Config para Cobro en Mostrador (QR Simple)
+  qrConfig: QRConfigResponse | null = null;
+  loadingQR: boolean = false;
+  subiendoQR: boolean = false;
+  showModalUploadQR: boolean = false;
+  qrBancoDestino: string = 'QR Simple BNB / BCP / Banco Unión';
+  qrTitular: string = 'StyleStore Bolivia';
 
   // Venta Directa en Mostrador
   sucursales: Sucursal[] = [];
@@ -67,6 +76,7 @@ export class CajaPosComponent implements OnInit {
   ngOnInit(): void {
     this.cargarOrdenesPendientes();
     this.cargarSucursales();
+    this.cargarQRConfig();
   }
 
   cargarOrdenesPendientes(): void {
@@ -98,6 +108,7 @@ export class CajaPosComponent implements OnInit {
     this.efectivoRecibido = Number(orden.total);
     this.ticketEmitido = null;
     this.error = null;
+    this.metodoCobroOrden = (orden.metodo_pago || '').toLowerCase() === 'qr' ? 'qr' : 'efectivo';
     this.cdr.markForCheck();
   }
 
@@ -113,17 +124,19 @@ export class CajaPosComponent implements OnInit {
 
   get cambio(): number {
     if (!this.ordenSeleccionada) return 0;
+    if (this.metodoCobroOrden === 'qr') return 0;
     const diff = (this.efectivoRecibido || 0) - Number(this.ordenSeleccionada.total);
     return diff > 0 ? diff : 0;
   }
 
   get puedeCobrar(): boolean {
     if (!this.ordenSeleccionada) return false;
+    if (this.metodoCobroOrden === 'qr') return true;
     return (this.efectivoRecibido || 0) >= Number(this.ordenSeleccionada.total);
   }
 
   procesarCobro(): void {
-    if (!this.puedeCobrar) {
+    if (this.metodoCobroOrden === 'efectivo' && !this.puedeCobrar) {
       this.error = 'El monto recibido es inferior al total de la orden.';
       return;
     }
@@ -132,7 +145,9 @@ export class CajaPosComponent implements OnInit {
     this.error = null;
     this.cdr.markForCheck();
 
-    this.pagosService.cobrarEnCaja(this.ordenSeleccionada.id, this.efectivoRecibido).subscribe({
+    const montoCobro = this.metodoCobroOrden === 'efectivo' ? this.efectivoRecibido : Number(this.ordenSeleccionada.total);
+
+    this.pagosService.cobrarEnCaja(this.ordenSeleccionada.id, montoCobro, this.metodoCobroOrden).subscribe({
       next: (res) => {
         this.ngZone.run(() => {
           this.procesando = false;
@@ -620,5 +635,120 @@ export class CajaPosComponent implements OnInit {
       printIframe.contentWindow?.focus();
       printIframe.contentWindow?.print();
     }, 250);
+  }
+
+  // ==========================================
+  // CONFIGURACIÓN DE QR DE COBRO EN MOSTRADOR
+  // ==========================================
+
+  cargarQRConfig(): void {
+    this.loadingQR = true;
+    this.pagosService.getQRConfig().subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.qrConfig = res;
+          if (res.banco_destino) this.qrBancoDestino = res.banco_destino;
+          if (res.titular) this.qrTitular = res.titular;
+          this.loadingQR = false;
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.loadingQR = false;
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  abrirModalUploadQR(): void {
+    this.showModalUploadQR = true;
+    this.cdr.markForCheck();
+  }
+
+  cerrarModalUploadQR(): void {
+    this.showModalUploadQR = false;
+    this.cdr.markForCheck();
+  }
+
+  onQRFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    this.subiendoQR = true;
+    this.cdr.markForCheck();
+
+    this.uploadService.uploadImage(file, 'qr').subscribe({
+      next: (res) => {
+        const qrUrl = res.url;
+        this.pagosService.updateQRConfig({
+          imagen_url: qrUrl,
+          banco_destino: this.qrBancoDestino,
+          titular: this.qrTitular,
+          sucursal_id: this.selectedSucursalId,
+        }).subscribe({
+          next: (updated) => {
+            this.ngZone.run(() => {
+              this.qrConfig = updated;
+              this.subiendoQR = false;
+              this.showModalUploadQR = false;
+              this.mostrarToast('¡Imagen de QR de mostrador actualizada correctamente!');
+              this.cdr.markForCheck();
+            });
+          },
+          error: (err) => {
+            this.ngZone.run(() => {
+              this.subiendoQR = false;
+              alert(err.error?.detail || 'Error al guardar la configuración del QR.');
+              this.cdr.markForCheck();
+            });
+          },
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.subiendoQR = false;
+          alert(err.error?.detail || 'Error al subir la imagen del QR.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  guardarDatosQR(): void {
+    if (!this.qrConfig?.imagen_url) {
+      alert('Por favor selecciona o sube una imagen para el código QR.');
+      return;
+    }
+    this.subiendoQR = true;
+    this.pagosService.updateQRConfig({
+      imagen_url: this.qrConfig.imagen_url,
+      banco_destino: this.qrBancoDestino,
+      titular: this.qrTitular,
+      sucursal_id: this.selectedSucursalId,
+    }).subscribe({
+      next: (updated) => {
+        this.ngZone.run(() => {
+          this.qrConfig = updated;
+          this.subiendoQR = false;
+          this.showModalUploadQR = false;
+          this.mostrarToast('¡Configuración de QR actualizada exitosamente!');
+          this.cdr.markForCheck();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.subiendoQR = false;
+          alert(err.error?.detail || 'Error al actualizar configuración del QR.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  getQRImageUrl(url?: string | null): string {
+    if (!url) return '';
+    return this.uploadService.getFileUrl(url, 'qr');
   }
 }
