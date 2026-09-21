@@ -1,0 +1,322 @@
+<div class="vestidor-container">
+  <!-- Toast Notification -->
+  @if (toastMessage()) {
+    <div class="toast-floating">
+      <span>{{ toastMessage() }}</span>
+    </div>
+  }
+
+  <!-- Cabecera Superior Luxury -->
+  <header class="vestidor-header">
+    <div class="header-left">
+      <a routerLink="/catalogo" class="btn-back">← Catálogo</a>
+      <div>
+        <h1 class="header-title">🪞 Vestidor Virtual AR</h1>
+        <p class="header-subtitle">Prueba la ropa en tiempo real con tu cámara como en TikTok</p>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Indicador de Look Equipado -->
+      @if (activeTop() || activeBottom() || activeDress()) {
+        <div class="look-price-chip">
+          <span class="chip-label">Look Total:</span>
+          <span class="chip-val">Bs {{ totalLookPrice() | number:'1.2-2' }}</span>
+        </div>
+        <button class="btn btn-gold btn-sm" (click)="addLookToCart()" [disabled]="isAddingToCart()">
+          @if (isAddingToCart()) { ⏳ Agregando... } @else { 🛒 Comprar Look }
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Área Principal de la Cámara y AR -->
+  <div class="ar-viewport-wrapper">
+    <div class="ar-viewport">
+      <!-- Video de la Cámara -->
+      <video
+        #videoElement
+        playsinline
+        webkit-playsinline
+        autoplay
+        muted
+        [class.mirrored]="isMirrorMode() && tryonMode() === 'camara'"
+      ></video>
+
+      <!-- Canvas de Realidad Aumentada -->
+      <canvas #arCanvas class="ar-canvas"></canvas>
+
+      <!-- Guía de Encuadre de Silueta (cuando no detecta al usuario aún) -->
+      @if (!isUserDetected() && isCameraRunning() && tryonMode() === 'camara') {
+        <div class="silhouette-guide">
+          <div class="guide-box">
+            <span class="guide-icon">🧍</span>
+            <p>Párate de cuerpo entero frente a la cámara (1.5 - 2 metros)</p>
+          </div>
+        </div>
+      }
+
+      <!-- Loading State de la Cámara o IA -->
+      @if (isCameraLoading()) {
+        <div class="viewport-loader">
+          <div class="luxury-spinner"></div>
+          <p>Iniciando motor de Realidad Aumentada...</p>
+          <small>Por favor acepta los permisos de cámara en tu navegador</small>
+        </div>
+      }
+
+      <!-- Error de Cámara -->
+      @if (cameraError()) {
+        <div class="viewport-error">
+          <span class="error-icon">📷</span>
+          <p>{{ cameraError() }}</p>
+          <div class="error-actions">
+            <button class="btn btn-secondary btn-sm" (click)="startCamera()">🔄 Reintentar Cámara</button>
+            <button class="btn btn-gold btn-sm" (click)="photoFileInput.click()">📁 Probar con una Foto</button>
+          </div>
+        </div>
+      }
+
+      <!-- Barra Flotante Superior de Controles -->
+      <div class="viewport-top-bar">
+        <!-- Selector Frente / Espalda -->
+        <div class="view-switch-group">
+          <button
+            class="switch-btn"
+            [class.active]="viewMode() === 'auto'"
+            (click)="viewMode.set('auto')"
+            title="Detección automática al girar"
+          >
+            Auto {{ isBackDetected() ? '(Espalda)' : '(Frente)' }}
+          </button>
+          <button
+            class="switch-btn"
+            [class.active]="viewMode() === 'front'"
+            (click)="viewMode.set('front')"
+          >
+            Frente
+          </button>
+          <button
+            class="switch-btn"
+            [class.active]="viewMode() === 'back'"
+            (click)="viewMode.set('back')"
+          >
+            Espalda
+          </button>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="viewport-quick-tools">
+          <button
+            class="tool-btn"
+            (click)="toggleCameraFacing()"
+            title="Cambiar Cámara Frontal / Trasera"
+          >
+            🔄
+          </button>
+          <button
+            class="tool-btn"
+            [class.active]="showSettingsPanel()"
+            (click)="showSettingsPanel.set(!showSettingsPanel())"
+            title="Ajustes de Calibración"
+          >
+            ⚙️
+          </button>
+          <button
+            class="tool-btn"
+            (click)="photoFileInput.click()"
+            title="Subir foto estática de cuerpo entero"
+          >
+            🖼️
+          </button>
+          <input
+            #photoFileInput
+            type="file"
+            accept="image/*"
+            style="display: none"
+            (change)="onPhotoSelected($event)"
+          />
+        </div>
+      </div>
+
+      <!-- Panel Desplegable de Ajustes de Calibración -->
+      @if (showSettingsPanel()) {
+        <div class="settings-floating-card">
+          <div class="settings-header">
+            <h4>⚙️ Calibración del Probador</h4>
+            <button class="btn-close-sm" (click)="showSettingsPanel.set(false)">✕</button>
+          </div>
+
+          <div class="setting-item">
+            <label>Tamaño / Zoom Prenda: {{ scaleMultiplier() | number:'1.2-2' }}x</label>
+            <input
+              type="range"
+              min="0.7"
+              max="1.4"
+              step="0.05"
+              [ngModel]="scaleMultiplier()"
+              (ngModelChange)="scaleMultiplier.set($event)"
+            />
+          </div>
+
+          <div class="setting-item">
+            <label>Ajuste Vertical (Subir / Bajar): {{ verticalOffset() }}%</label>
+            <input
+              type="range"
+              min="-15"
+              max="15"
+              step="1"
+              [ngModel]="verticalOffset()"
+              (ngModelChange)="verticalOffset.set($event)"
+            />
+          </div>
+
+          <div class="setting-item">
+            <label>Opacidad de Prenda: {{ (opacityLevel() * 100) | number:'1.0-0' }}%</label>
+            <input
+              type="range"
+              min="0.5"
+              max="1.0"
+              step="0.05"
+              [ngModel]="opacityLevel()"
+              (ngModelChange)="opacityLevel.set($event)"
+            />
+          </div>
+
+          <div class="setting-toggle">
+            <label>Efecto Espejo:</label>
+            <button
+              class="btn-toggle"
+              [class.active]="isMirrorMode()"
+              (click)="isMirrorMode.set(!isMirrorMode())"
+            >
+              {{ isMirrorMode() ? 'Activado' : 'Desactivado' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Botón Flotante para Tomar Foto del Look -->
+      <button class="btn-capture-snapshot" (click)="takeSnapshot()" title="Tomar foto de mi look">
+        <span class="shutter-circle">📸</span>
+      </button>
+
+      <!-- Badge Flotante de Detección Activa -->
+      <div class="status-pill" [class.detected]="isUserDetected()">
+        <span class="status-dot"></span>
+        <span>{{ isUserDetected() ? 'Cuerpo Detectado' : 'Buscando Silueta...' }}</span>
+        @if (isBackDetected()) {
+          <span class="badge-back">Espalda</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Carrusel Inferior Estilo TikTok / Instagram de Selección de Prendas -->
+  <footer class="vestidor-bottom-sheet">
+    <div class="bottom-sheet-header">
+      <!-- Filtros por Categoría de Prenda -->
+      <div class="category-tabs">
+        <button
+          class="cat-tab"
+          [class.active]="categoryFilter() === 'all'"
+          (click)="categoryFilter.set('all')"
+        >
+          Todo
+        </button>
+        <button
+          class="cat-tab"
+          [class.active]="categoryFilter() === 'superior'"
+          (click)="categoryFilter.set('superior')"
+        >
+          👕 Superior
+        </button>
+        <button
+          class="cat-tab"
+          [class.active]="categoryFilter() === 'inferior'"
+          (click)="categoryFilter.set('inferior')"
+        >
+          👖 Inferior
+        </button>
+        <button
+          class="cat-tab"
+          [class.active]="categoryFilter() === 'cuerpo_entero'"
+          (click)="categoryFilter.set('cuerpo_entero')"
+        >
+          👗 Vestidos
+        </button>
+      </div>
+
+      <!-- Resumen rápido de lo que tienes puesto -->
+      <div class="equipped-tags">
+        @if (activeDress()) {
+          <span class="eq-tag" (click)="unequipProduct('cuerpo_entero')">
+            👗 {{ activeDress()?.nombre }} ✕
+          </span>
+        } @else {
+          @if (activeTop()) {
+            <span class="eq-tag" (click)="unequipProduct('superior')">
+              👕 {{ activeTop()?.nombre }} ✕
+            </span>
+          }
+          @if (activeBottom()) {
+            <span class="eq-tag" (click)="unequipProduct('inferior')">
+              👖 {{ activeBottom()?.nombre }} ✕
+            </span>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Carrusel Horizontal de Prendas -->
+    <div class="products-carousel-track">
+      @if (isLoadingCatalog()) {
+        <div class="carousel-loading">Cargando colección de StyleStore...</div>
+      } @else if (filteredProducts().length === 0) {
+        <div class="carousel-empty">No hay prendas disponibles en esta categoría.</div>
+      } @else {
+        @for (prod of filteredProducts(); track prod.codigo) {
+          <div
+            class="garment-card"
+            [class.equipped]="isEquipped(prod)"
+            (click)="equipProduct(prod)"
+          >
+            <div class="garment-thumb">
+              <img [src]="getImage(getGarmentImageUrl(prod, isBackDetected()))" [alt]="prod.nombre" />
+              @if (isEquipped(prod)) {
+                <div class="equipped-badge">✓ Puesto</div>
+              }
+            </div>
+            <div class="garment-meta">
+              <span class="garment-name">{{ prod.nombre }}</span>
+              <span class="garment-price">Bs {{ prod.precio | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </footer>
+
+  <!-- Modal de Foto Capturada (Snapshot) -->
+  @if (showSnapshotModal()) {
+    <div class="modal-backdrop" (click)="showSnapshotModal.set(false)">
+      <div class="snapshot-modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>✨ Tu Look en StyleStore</h3>
+          <button class="btn-close" (click)="showSnapshotModal.set(false)">✕</button>
+        </div>
+        <div class="snapshot-preview-box">
+          <img [src]="snapshotUrl()" alt="Look Capturado" />
+        </div>
+        <div class="snapshot-actions">
+          <button class="btn btn-gold" (click)="downloadSnapshot()">
+            📥 Descargar Foto
+          </button>
+          <button class="btn btn-secondary" (click)="showSnapshotModal.set(false)">
+            Volver al Vestidor
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

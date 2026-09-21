@@ -1102,4 +1102,84 @@
   letter-spacing: 0.5px;
 }
 
+/* Vestidor Virtual y Multi-foto en Modal */
+.garment-type-card {
+  background: linear-gradient(135deg, rgba(20, 38, 61, 0.04) 0%, rgba(200, 169, 126, 0.08) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.photos-grid-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  .photos-grid-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vestidor-custom-card {
+  margin-bottom: 1.25rem;
+  border: 1px dashed rgba(200, 169, 126, 0.5);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.vestidor-toggle-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(20, 38, 61, 0.03);
+  border: none;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.vestidor-toggle-btn:hover {
+  background: rgba(20, 38, 61, 0.07);
+}
+
+.vestidor-fotos-content {
+  padding: 1rem;
+}
+
+.vestidor-tip-alert {
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.82rem;
+  color: #713f12;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.vestidor-subupload {
+  background: var(--bg-card);
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.bg-checkered {
+  background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+                    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+                    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
 

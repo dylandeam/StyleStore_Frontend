@@ -81,12 +81,23 @@ export class ProductosListComponent implements OnInit {
   modalSuccess = signal<string>('');
   isUploadingFoto = signal<boolean>(false);
   fotoPreview = signal<string>('');
+  isUploadingFotoTrasera = signal<boolean>(false);
+  fotoTraseraPreview = signal<string>('');
+  isUploadingFotoVestidorFrontal = signal<boolean>(false);
+  fotoVestidorFrontalPreview = signal<string>('');
+  isUploadingFotoVestidorTrasera = signal<boolean>(false);
+  fotoVestidorTraseraPreview = signal<string>('');
+  showVestidorFotosSection = signal<boolean>(false);
 
   formData: ProductoCreate = {
     codigo: '',
     nombre: '',
     descripcion: '',
     foto: '',
+    foto_trasera: '',
+    foto_vestidor_frontal: '',
+    foto_vestidor_trasera: '',
+    tipo_prenda: 'superior',
     precio: 0,
     categoria_id: 0,
     temporada_id: 0,
@@ -185,6 +196,10 @@ export class ProductosListComponent implements OnInit {
     this.isEditing.set(false);
     this.editingCodigo = null;
     this.fotoPreview.set('');
+    this.fotoTraseraPreview.set('');
+    this.fotoVestidorFrontalPreview.set('');
+    this.fotoVestidorTraseraPreview.set('');
+    this.showVestidorFotosSection.set(false);
     const firstCat = this.categorias().length > 0 ? this.categorias()[0].id : 0;
     const firstTemp = this.temporadas().length > 0 ? this.temporadas()[0].id : 0;
 
@@ -193,6 +208,10 @@ export class ProductosListComponent implements OnInit {
       nombre: '',
       descripcion: '',
       foto: '',
+      foto_trasera: '',
+      foto_vestidor_frontal: '',
+      foto_vestidor_trasera: '',
+      tipo_prenda: 'superior',
       precio: 0,
       categoria_id: firstCat,
       temporada_id: firstTemp,
@@ -210,11 +229,19 @@ export class ProductosListComponent implements OnInit {
     this.isEditing.set(true);
     this.editingCodigo = p.codigo;
     this.fotoPreview.set(p.foto ? this.uploadService.getImageUrl(p.foto) : '');
+    this.fotoTraseraPreview.set(p.foto_trasera ? this.uploadService.getImageUrl(p.foto_trasera) : '');
+    this.fotoVestidorFrontalPreview.set(p.foto_vestidor_frontal ? this.uploadService.getImageUrl(p.foto_vestidor_frontal) : '');
+    this.fotoVestidorTraseraPreview.set(p.foto_vestidor_trasera ? this.uploadService.getImageUrl(p.foto_vestidor_trasera) : '');
+    this.showVestidorFotosSection.set(!!(p.foto_vestidor_frontal || p.foto_vestidor_trasera));
     this.formData = {
       codigo: p.codigo,
       nombre: p.nombre,
       descripcion: p.descripcion || '',
       foto: p.foto || '',
+      foto_trasera: p.foto_trasera || '',
+      foto_vestidor_frontal: p.foto_vestidor_frontal || '',
+      foto_vestidor_trasera: p.foto_vestidor_trasera || '',
+      tipo_prenda: p.tipo_prenda || 'superior',
       precio: p.precio,
       categoria_id: p.categoria_id,
       temporada_id: p.temporada_id,
@@ -233,51 +260,109 @@ export class ProductosListComponent implements OnInit {
     this.modalError.set('');
     this.modalSuccess.set('');
     this.fotoPreview.set('');
+    this.fotoTraseraPreview.set('');
+    this.fotoVestidorFrontalPreview.set('');
+    this.fotoVestidorTraseraPreview.set('');
   }
 
-  onFotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) return;
-
-    const file = input.files[0];
+  private handleImageUpload(
+    file: File,
+    onSuccess: (url: string) => void,
+    onLoading: (loading: boolean) => void,
+    onPreview: (preview: string) => void
+  ): void {
     const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowed.includes(file.type)) {
       this.modalError.set('Formato no permitido. Solo se admiten imágenes PNG, JPG o WEBP.');
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       this.modalError.set('El tamaño de la imagen no debe superar los 5 MB.');
       return;
     }
 
-    // Previsualización local inmediata
     const reader = new FileReader();
-    reader.onload = (e) => {
-      this.fotoPreview.set(e.target?.result as string);
-    };
+    reader.onload = (e) => onPreview(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Subida al backend
-    this.isUploadingFoto.set(true);
+    onLoading(true);
     this.modalError.set('');
     this.uploadService.uploadImage(file, 'productos').subscribe({
       next: (res) => {
-        this.formData.foto = res.url;
-        this.fotoPreview.set(this.uploadService.getImageUrl(res.url));
-        this.isUploadingFoto.set(false);
+        onSuccess(res.url);
+        onPreview(this.uploadService.getImageUrl(res.url));
+        onLoading(false);
       },
       error: (err) => {
-        this.isUploadingFoto.set(false);
+        onLoading(false);
         const detail = err.error?.detail || 'Error al subir la imagen del producto.';
         this.modalError.set(typeof detail === 'string' ? detail : JSON.stringify(detail));
       },
     });
   }
 
+  onFotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    this.handleImageUpload(
+      input.files[0],
+      (url) => (this.formData.foto = url),
+      (loading) => this.isUploadingFoto.set(loading),
+      (prev) => this.fotoPreview.set(prev)
+    );
+  }
+
   removeFoto(): void {
     this.formData.foto = '';
     this.fotoPreview.set('');
+  }
+
+  onFotoTraseraSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    this.handleImageUpload(
+      input.files[0],
+      (url) => (this.formData.foto_trasera = url),
+      (loading) => this.isUploadingFotoTrasera.set(loading),
+      (prev) => this.fotoTraseraPreview.set(prev)
+    );
+  }
+
+  removeFotoTrasera(): void {
+    this.formData.foto_trasera = '';
+    this.fotoTraseraPreview.set('');
+  }
+
+  onFotoVestidorFrontalSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    this.handleImageUpload(
+      input.files[0],
+      (url) => (this.formData.foto_vestidor_frontal = url),
+      (loading) => this.isUploadingFotoVestidorFrontal.set(loading),
+      (prev) => this.fotoVestidorFrontalPreview.set(prev)
+    );
+  }
+
+  removeFotoVestidorFrontal(): void {
+    this.formData.foto_vestidor_frontal = '';
+    this.fotoVestidorFrontalPreview.set('');
+  }
+
+  onFotoVestidorTraseraSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    this.handleImageUpload(
+      input.files[0],
+      (url) => (this.formData.foto_vestidor_trasera = url),
+      (loading) => this.isUploadingFotoVestidorTrasera.set(loading),
+      (prev) => this.fotoVestidorTraseraPreview.set(prev)
+    );
+  }
+
+  removeFotoVestidorTrasera(): void {
+    this.formData.foto_vestidor_trasera = '';
+    this.fotoVestidorTraseraPreview.set('');
   }
 
   readonly defaultProductImage =
@@ -315,6 +400,10 @@ export class ProductosListComponent implements OnInit {
         nombre: this.formData.nombre,
         descripcion: this.formData.descripcion,
         foto: this.formData.foto,
+        foto_trasera: this.formData.foto_trasera,
+        foto_vestidor_frontal: this.formData.foto_vestidor_frontal,
+        foto_vestidor_trasera: this.formData.foto_vestidor_trasera,
+        tipo_prenda: this.formData.tipo_prenda || 'superior',
         precio: this.formData.precio,
         categoria_id: Number(this.formData.categoria_id),
         temporada_id: Number(this.formData.temporada_id),
@@ -341,6 +430,7 @@ export class ProductosListComponent implements OnInit {
     } else {
       const createData: ProductoCreate = {
         ...this.formData,
+        tipo_prenda: this.formData.tipo_prenda || 'superior',
         categoria_id: Number(this.formData.categoria_id),
         temporada_id: Number(this.formData.temporada_id),
         coleccion_id: colId,

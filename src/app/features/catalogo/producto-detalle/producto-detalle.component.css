@@ -960,4 +960,130 @@
   cursor: pointer;
 }
 
+/* Selector de Ángulos Frontal / Trasera */
+.angulos-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.btn-angle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.btn-angle img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #f8fafc;
+}
+
+.btn-angle:hover {
+  border-color: #c8a97e;
+  transform: translateY(-1px);
+}
+
+.btn-angle.active {
+  border-color: #14263d;
+  background: #f8fafc;
+  color: #14263d;
+  box-shadow: 0 2px 8px rgba(20, 38, 61, 0.12);
+}
+
+/* Banner Destacado: Probar en Vestidor Virtual (AR) */
+.btn-tryon-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #14263d 0%, #1e3a5f 100%);
+  border: 1px solid rgba(200, 169, 126, 0.4);
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin: 16px 0 20px;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(20, 38, 61, 0.18);
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-tryon-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(20, 38, 61, 0.28);
+  border-color: #c8a97e;
+}
+
+.tryon-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tryon-sparkle {
+  font-size: 1.8rem;
+  animation: floatIcon 2.5s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.tryon-text-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tryon-title {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.2px;
+}
+
+.tryon-subtitle {
+  color: #cbd5e1;
+  font-size: 0.75rem;
+}
+
+.tryon-action-pill {
+  background: linear-gradient(135deg, #c8a97e 0%, #b89360 100%);
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(200, 169, 126, 0.3);
+  transition: opacity 0.2s;
+}
+
+.btn-tryon-banner:hover .tryon-action-pill {
+  opacity: 0.92;
+}
+
+@media (max-width: 600px) {
+  .btn-tryon-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .tryon-action-pill {
+    align-self: flex-end;
+  }
+}
+
+
 

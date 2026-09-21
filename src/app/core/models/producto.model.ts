@@ -5,6 +5,10 @@ export interface Producto {
   nombre: string;
   descripcion?: string | null;
   foto?: string | null;
+  foto_trasera?: string | null;
+  foto_vestidor_frontal?: string | null;
+  foto_vestidor_trasera?: string | null;
+  tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
   precio: number;
   categoria_id: number;
   categoria_nombre?: string | null;
@@ -25,6 +29,10 @@ export interface ProductoCreate {
   nombre: string;
   descripcion?: string;
   foto?: string;
+  foto_trasera?: string;
+  foto_vestidor_frontal?: string;
+  foto_vestidor_trasera?: string;
+  tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
   precio: number;
   categoria_id: number;
   temporada_id: number;
@@ -38,6 +46,10 @@ export interface ProductoUpdate {
   nombre?: string;
   descripcion?: string;
   foto?: string;
+  foto_trasera?: string;
+  foto_vestidor_frontal?: string;
+  foto_vestidor_trasera?: string;
+  tipo_prenda?: 'superior' | 'inferior' | 'cuerpo_entero' | 'accesorio';
   precio?: number;
   categoria_id?: number;
   temporada_id?: number;

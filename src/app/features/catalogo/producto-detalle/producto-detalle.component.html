@@ -35,7 +35,7 @@
       <!-- Columna Izquierda: Galería e Imagen -->
       <div class="galeria-seccion">
         <div class="imagen-wrapper">
-          <img [src]="getImageUrl(producto.foto)" [alt]="producto.nombre" class="producto-img" />
+          <img [src]="getImageUrl(getFotoActual())" [alt]="producto.nombre" class="producto-img" />
           <div class="badges-overlay">
             <span class="badge-tag badge-coleccion" *ngIf="producto.coleccion_nombre">
               Colección: {{ producto.coleccion_nombre }}
@@ -45,6 +45,30 @@
             </span>
           </div>
         </div>
+
+        <!-- Selector de Ángulo Frontal / Trasera si tiene foto trasera -->
+        @if (producto.foto_trasera) {
+          <div class="angulos-switcher">
+            <button
+              type="button"
+              class="btn-angle"
+              [class.active]="vistaFoto() === 'frontal'"
+              (click)="setVistaFoto('frontal')"
+            >
+              <img [src]="getImageUrl(producto.foto)" alt="Frontal" />
+              <span>Frente</span>
+            </button>
+            <button
+              type="button"
+              class="btn-angle"
+              [class.active]="vistaFoto() === 'trasera'"
+              (click)="setVistaFoto('trasera')"
+            >
+              <img [src]="getImageUrl(producto.foto_trasera)" alt="Trasera" />
+              <span>Espalda</span>
+            </button>
+          </div>
+        }
       </div>
 
       <!-- Columna Derecha: Información y Compra -->
@@ -57,6 +81,18 @@
           <span class="moneda">Bs.</span>
           <span class="precio-valor">{{ producto.precio | number:'1.2-2' }}</span>
         </div>
+
+        <!-- Botón Destacado: Probar en Vestidor Virtual (AR) -->
+        <a [routerLink]="['/vestidor-virtual']" [queryParams]="{ producto: producto.codigo }" class="btn-tryon-banner">
+          <div class="tryon-banner-left">
+            <span class="tryon-sparkle">🪞</span>
+            <div class="tryon-text-wrap">
+              <span class="tryon-title">Probar en Vestidor Virtual AR</span>
+              <span class="tryon-subtitle">Mírate con esta prenda en vivo con tu cámara</span>
+            </div>
+          </div>
+          <span class="tryon-action-pill">Probar Ahora →</span>
+        </a>
 
         <p class="producto-descripcion" *ngIf="producto.descripcion">
           {{ producto.descripcion }}

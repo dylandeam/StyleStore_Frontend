@@ -320,6 +320,21 @@ export class ProductoDetalleComponent implements OnInit {
     }
   }
 
+  vistaFoto = signal<'frontal' | 'trasera'>('frontal');
+
+  getFotoActual(): string | undefined | null {
+    const prod = this.productoData();
+    if (this.vistaFoto() === 'trasera' && prod?.foto_trasera) {
+      return prod.foto_trasera;
+    }
+    return prod?.foto;
+  }
+
+  setVistaFoto(vista: 'frontal' | 'trasera'): void {
+    this.vistaFoto.set(vista);
+    this.cdr.markForCheck();
+  }
+
   getImageUrl(foto?: string | null): string {
     return this.uploadService.getImageUrl(foto, 'productos') || 'assets/images/placeholder.jpg';
   }

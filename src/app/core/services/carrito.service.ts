@@ -35,6 +35,10 @@ export interface CatalogoItem {
   nombre: string;
   descripcion?: string;
   foto?: string;
+  foto_trasera?: string;
+  foto_vestidor_frontal?: string;
+  foto_vestidor_trasera?: string;
+  tipo_prenda?: string;
   precio: number;
   categoria_id: number;
   categoria_nombre?: string;

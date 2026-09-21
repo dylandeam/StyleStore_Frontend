@@ -39,6 +39,7 @@ import { MisReservasComponent } from './features/cuenta/mis-reservas/mis-reserva
 import { CambiosListComponent } from './features/admin/cambios/cambios-list.component';
 import { ComprasListComponent } from './features/admin/compras/compras-list/compras-list.component';
 import { OutfitsComponent } from './features/outfits/outfits.component';
+import { VestidorVirtualComponent } from './features/vestidor-virtual/vestidor-virtual.component';
 import { ConductorTrackerComponent } from './features/delivery/conductor/conductor-tracker.component';
 import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tracker.component';
 
@@ -83,6 +84,15 @@ export const routes: Routes = [
       {
         path: 'outfits',
         component: OutfitsComponent,
+      },
+      {
+        path: 'vestidor-virtual',
+        component: VestidorVirtualComponent,
+      },
+      {
+        path: 'admin/vestidor-virtual',
+        redirectTo: 'vestidor-virtual',
+        pathMatch: 'full',
       },
       {
         path: 'cuenta/mis-outfits',

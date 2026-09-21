@@ -327,64 +327,205 @@
             <div class="alert alert-success">{{ modalSuccess() }}</div>
           }
 
-          <!-- Componente para Subir Imagen del Producto desde la PC -->
-          <div class="product-photo-upload-card">
-            <label class="photo-section-label">Imagen del Producto (PNG o JPG)</label>
-            <div class="product-photo-upload-row">
-              <div class="product-photo-preview-box">
-                @if (fotoPreview() || formData.foto) {
-                  <img [src]="fotoPreview() || getImageUrl(formData.foto)" alt="Vista previa del producto" />
-                } @else {
-                  <div class="product-photo-empty">
-                    <span class="empty-icon">🖼️</span>
-                    <span class="empty-text">Sin imagen</span>
-                  </div>
-                }
-              </div>
+          <!-- Tipo de Prenda para Clasificación Anatómica en Vestidor Virtual -->
+          <div class="form-group garment-type-card">
+            <label for="prod-tipo-prenda" class="photo-section-label">
+              🎯 Clasificación de Prenda para Vestidor Virtual *
+            </label>
+            <select id="prod-tipo-prenda" class="form-control" [(ngModel)]="formData.tipo_prenda" name="tipo_prenda" required>
+              <option value="superior">👕 Prenda Superior (Camisa, Polera, Blusa, Saco, Polerón, Top)</option>
+              <option value="inferior">👖 Prenda Inferior (Pantalón, Jean, Short, Bermuda, Falda)</option>
+              <option value="cuerpo_entero">👗 Prenda de Cuerpo Entero (Vestido, Enterizo, Mono)</option>
+              <option value="accesorio">🧢 Accesorio (Gorra, Sombrero, Lentes)</option>
+            </select>
+            <small class="form-hint">
+              💡 Define la zona exacta del cuerpo donde se superpondrá la prenda en el vestidor virtual AR para evitar que un pantalón aparezca en el torso o una camisa en las piernas.
+            </small>
+          </div>
 
-              <div class="product-photo-actions">
-                <input
-                  #prodFileInput
-                  type="file"
-                  accept="image/png, image/jpeg, image/jpg, image/webp"
-                  style="display: none"
-                  (change)="onFotoSelected($event)"
-                />
-                <div class="photo-buttons-group">
-                  <button
-                    type="button"
-                    class="btn btn-secondary btn-sm"
-                    (click)="prodFileInput.click()"
-                    [disabled]="isUploadingFoto()"
-                  >
-                    @if (isUploadingFoto()) {
-                      ⏳ Subiendo archivo...
-                    } @else {
-                      📁 Subir imagen
-                    }
-                  </button>
-                  @if (formData.foto || fotoPreview()) {
-                    <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFoto()">
-                      🗑️ Quitar imagen
-                    </button>
+          <!-- Cuadrícula de Fotos: Frontal y Trasera -->
+          <div class="photos-grid-two-col">
+            <!-- 1. FOTO FRONTAL -->
+            <div class="product-photo-upload-card">
+              <label class="photo-section-label">📸 Foto Frontal (Adelante) *</label>
+              <div class="product-photo-upload-row">
+                <div class="product-photo-preview-box">
+                  @if (fotoPreview() || formData.foto) {
+                    <img [src]="fotoPreview() || getImageUrl(formData.foto)" alt="Vista frontal" />
+                  } @else {
+                    <div class="product-photo-empty">
+                      <span class="empty-icon">👕</span>
+                      <span class="empty-text">Sin foto frontal</span>
+                    </div>
                   }
                 </div>
-                <small class="form-hint">Selecciona una imagen PNG o JPG (máx. 5 MB).</small>
 
-                <!-- Input opcional para pegar URL externa -->
-                <div class="manual-url-wrap">
-                  <label for="prod-foto-url" class="sublabel">O introduce una URL externa:</label>
+                <div class="product-photo-actions">
                   <input
-                    id="prod-foto-url"
-                    type="text"
-                    class="form-control form-control-sm"
-                    placeholder="https://..."
-                    [(ngModel)]="formData.foto"
-                    name="foto_url"
+                    #prodFileInput
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    style="display: none"
+                    (change)="onFotoSelected($event)"
                   />
+                  <div class="photo-buttons-group">
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      (click)="prodFileInput.click()"
+                      [disabled]="isUploadingFoto()"
+                    >
+                      @if (isUploadingFoto()) { ⏳ Subiendo... } @else { 📁 Subir Frontal }
+                    </button>
+                    @if (formData.foto || fotoPreview()) {
+                      <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFoto()">
+                        🗑️ Quitar
+                      </button>
+                    }
+                  </div>
+                  <div class="manual-url-wrap">
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="O URL frontal https://..."
+                      [(ngModel)]="formData.foto"
+                      name="foto_url"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+
+            <!-- 2. FOTO TRASERA -->
+            <div class="product-photo-upload-card">
+              <label class="photo-section-label">🔄 Foto Trasera (Espalda)</label>
+              <div class="product-photo-upload-row">
+                <div class="product-photo-preview-box">
+                  @if (fotoTraseraPreview() || formData.foto_trasera) {
+                    <img [src]="fotoTraseraPreview() || getImageUrl(formData.foto_trasera)" alt="Vista trasera" />
+                  } @else {
+                    <div class="product-photo-empty">
+                      <span class="empty-icon">🔄</span>
+                      <span class="empty-text">Sin foto trasera</span>
+                    </div>
+                  }
+                </div>
+
+                <div class="product-photo-actions">
+                  <input
+                    #prodFileTraseraInput
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    style="display: none"
+                    (change)="onFotoTraseraSelected($event)"
+                  />
+                  <div class="photo-buttons-group">
+                    <button
+                      type="button"
+                      class="btn btn-secondary btn-sm"
+                      (click)="prodFileTraseraInput.click()"
+                      [disabled]="isUploadingFotoTrasera()"
+                    >
+                      @if (isUploadingFotoTrasera()) { ⏳ Subiendo... } @else { 📁 Subir Trasera }
+                    </button>
+                    @if (formData.foto_trasera || fotoTraseraPreview()) {
+                      <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFotoTrasera()">
+                        🗑️ Quitar
+                      </button>
+                    }
+                  </div>
+                  <div class="manual-url-wrap">
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="O URL trasera https://..."
+                      [(ngModel)]="formData.foto_trasera"
+                      name="foto_trasera_url"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN DESPLEGABLE: Recortes Especiales para Vestidor Virtual (PNG Transparente) -->
+          <div class="vestidor-custom-card">
+            <button
+              type="button"
+              class="vestidor-toggle-btn"
+              (click)="showVestidorFotosSection.set(!showVestidorFotosSection())"
+            >
+              <span>✨ Recortes PNG para Probador Virtual AR (Opcional)</span>
+              <span>{{ showVestidorFotosSection() ? '▲ Ocultar' : '▼ Configurar' }}</span>
+            </button>
+
+            @if (showVestidorFotosSection()) {
+              <div class="vestidor-fotos-content">
+                <div class="vestidor-tip-alert">
+                  💡 <strong>Consejo para efecto TikTok:</strong> Si la foto de catálogo tiene modelo o fondo, sube aquí la prenda recortada en <strong>PNG con fondo transparente</strong> para que se acople perfectamente a la silueta en vivo.
+                </div>
+
+                <div class="photos-grid-two-col">
+                  <!-- Frontal Vestidor -->
+                  <div class="vestidor-subupload">
+                    <label class="photo-section-label">Recorte Frontal AR (PNG)</label>
+                    <div class="product-photo-upload-row">
+                      <div class="product-photo-preview-box bg-checkered">
+                        @if (fotoVestidorFrontalPreview() || formData.foto_vestidor_frontal) {
+                          <img [src]="fotoVestidorFrontalPreview() || getImageUrl(formData.foto_vestidor_frontal)" alt="Recorte frontal" />
+                        } @else {
+                          <div class="product-photo-empty"><span class="empty-icon">🪞</span></div>
+                        }
+                      </div>
+                      <div class="product-photo-actions">
+                        <input
+                          #vFrontInput
+                          type="file"
+                          accept="image/png, image/webp"
+                          style="display: none"
+                          (change)="onFotoVestidorFrontalSelected($event)"
+                        />
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="vFrontInput.click()" [disabled]="isUploadingFotoVestidorFrontal()">
+                          @if (isUploadingFotoVestidorFrontal()) { ⏳ Subiendo... } @else { 📁 Subir PNG Frontal }
+                        </button>
+                        @if (formData.foto_vestidor_frontal || fotoVestidorFrontalPreview()) {
+                          <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFotoVestidorFrontal()">🗑️ Quitar</button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Trasera Vestidor -->
+                  <div class="vestidor-subupload">
+                    <label class="photo-section-label">Recorte Trasero AR (PNG)</label>
+                    <div class="product-photo-upload-row">
+                      <div class="product-photo-preview-box bg-checkered">
+                        @if (fotoVestidorTraseraPreview() || formData.foto_vestidor_trasera) {
+                          <img [src]="fotoVestidorTraseraPreview() || getImageUrl(formData.foto_vestidor_trasera)" alt="Recorte trasero" />
+                        } @else {
+                          <div class="product-photo-empty"><span class="empty-icon">🪞</span></div>
+                        }
+                      </div>
+                      <div class="product-photo-actions">
+                        <input
+                          #vBackInput
+                          type="file"
+                          accept="image/png, image/webp"
+                          style="display: none"
+                          (change)="onFotoVestidorTraseraSelected($event)"
+                        />
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="vBackInput.click()" [disabled]="isUploadingFotoVestidorTrasera()">
+                          @if (isUploadingFotoVestidorTrasera()) { ⏳ Subiendo... } @else { 📁 Subir PNG Trasero }
+                        </button>
+                        @if (formData.foto_vestidor_trasera || fotoVestidorTraseraPreview()) {
+                          <button type="button" class="btn btn-danger-soft btn-sm" (click)="removeFotoVestidorTrasera()">🗑️ Quitar</button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
 
           <div class="form-grid">
