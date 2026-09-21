@@ -114,7 +114,7 @@
         <div class="qr-preview-box-empty">
           <div class="qr-preview-badge">📲 QR de Cobro Configurado en Mostrador</div>
           <div class="qr-image-wrapper-mini" *ngIf="qrConfig?.imagen_url">
-            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Mostrador" class="qr-mini-img" />
+            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Mostrador" class="qr-mini-img" (error)="onQRImgError($event)" />
           </div>
           <div class="qr-no-img-text" *ngIf="!qrConfig?.imagen_url">
             <span>📷 No se ha subido una imagen de QR de cobro</span>
@@ -214,7 +214,7 @@
 
           <div class="qr-display-container">
             <div class="qr-image-wrapper" *ngIf="qrConfig?.imagen_url">
-              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" />
+              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" (error)="onQRImgError($event)" />
               <div class="qr-scan-badge">Escanea para pagar</div>
             </div>
             <div class="qr-empty-placeholder" *ngIf="!qrConfig?.imagen_url">
@@ -583,7 +583,7 @@
           </div>
           <div class="qr-display-container">
             <div class="qr-image-wrapper" *ngIf="qrConfig?.imagen_url">
-              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" />
+              <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Simple Cobro" class="qr-image-pos" (error)="onQRImgError($event)" />
               <div class="qr-scan-badge">Escanea para pagar</div>
             </div>
             <div class="qr-empty-placeholder" *ngIf="!qrConfig?.imagen_url">
@@ -764,61 +764,81 @@
   <!-- ========================================================= -->
   <!-- MODAL: SUBIR / ACTUALIZAR QR DE COBRO EN MOSTRADOR        -->
   <!-- ========================================================= -->
-  <div class="modal-overlay" *ngIf="showModalUploadQR" (click)="cerrarModalUploadQR()">
-    <div class="modal-content qr-upload-modal" (click)="$event.stopPropagation()">
+  <div class="modal-backdrop" *ngIf="showModalUploadQR" (click)="cerrarModalUploadQR()">
+    <div class="modal-card qr-modal-card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>📱 Configurar QR de Cobro en Mostrador</h3>
-        <button type="button" class="btn-close-modal" (click)="cerrarModalUploadQR()">✕</button>
+        <button type="button" class="btn-close" (click)="cerrarModalUploadQR()">✕</button>
       </div>
 
       <div class="modal-body qr-upload-body">
         <p class="qr-upload-desc">
-          Sube la imagen del código QR que se mostrará al cliente para que pague por
-          <strong>QR Simple / Transferencia bancaria</strong> desde su app bancaria en el mostrador.
-          Puedes actualizar esta imagen en cualquier momento (los QR tienen fecha de expiración).
+          Sube o actualiza la imagen del código QR que escaneará el cliente en mostrador para pagar por <strong>QR Simple / Transferencia</strong>.
         </p>
 
-        <!-- QR Vigente Actual -->
-        <div class="qr-current-preview" *ngIf="qrConfig?.imagen_url">
-          <h4>QR Vigente Actual:</h4>
-          <div class="qr-preview-img-container">
-            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Vigente" class="qr-preview-img" />
+        <!-- Preview del QR Vigente -->
+        <div class="qr-vigente-card" *ngIf="qrConfig?.imagen_url">
+          <div class="qr-vigente-header">
+            <span class="badge-vigente">✓ QR Activo en Mostrador</span>
           </div>
-          <div class="qr-meta-row">
-            <span class="meta-label">Banco:</span>
-            <span class="meta-value">{{ qrConfig?.banco_destino }}</span>
-          </div>
-          <div class="qr-meta-row">
-            <span class="meta-label">Titular:</span>
-            <span class="meta-value">{{ qrConfig?.titular }}</span>
-          </div>
-          <div class="qr-meta-row" *ngIf="qrConfig?.updated_at">
-            <span class="meta-label">Última actualización:</span>
-            <span class="meta-value">{{ qrConfig?.updated_at }}</span>
+          <div class="qr-vigente-content">
+            <div class="qr-img-box">
+              <img 
+                [src]="getQRImageUrl(qrConfig?.imagen_url)" 
+                alt="QR Vigente" 
+                class="qr-img-preview" 
+                (error)="onQRImgError($event)"
+              />
+            </div>
+            <div class="qr-details-box">
+              <div class="detail-item">
+                <span class="d-label">Banco / Red:</span>
+                <span class="d-value">{{ qrConfig?.banco_destino || 'Red Enlace / Banco Unión' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="d-label">Titular:</span>
+                <span class="d-value">{{ qrConfig?.titular || 'StyleStore Bolivia' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="qrConfig?.updated_at">
+                <span class="d-label">Actualizado:</span>
+                <span class="d-value">{{ qrConfig?.updated_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="qr-no-preview" *ngIf="!qrConfig?.imagen_url">
+        <div class="qr-empty-card" *ngIf="!qrConfig?.imagen_url">
           <span class="empty-icon-lg">📷</span>
-          <p>No se ha cargado ninguna imagen de QR de cobro.</p>
+          <p>No se ha cargado ninguna imagen de QR todavía.</p>
         </div>
 
-        <!-- Campos de Información del QR -->
-        <div class="qr-form-fields">
-          <div class="form-group">
-            <label>Banco / Red Destino:</label>
-            <input type="text" [(ngModel)]="qrBancoDestino" class="form-input" placeholder="Ej: QR Simple BNB / BCP / Banco Unión" />
+        <!-- Formulario de Configuración -->
+        <div class="qr-form-section">
+          <div class="form-group-custom">
+            <label>Banco o Red Destino:</label>
+            <input 
+              type="text" 
+              [(ngModel)]="qrBancoDestino" 
+              class="form-control-custom" 
+              placeholder="Ej: Red Enlace / Banco Unión / BNB / BCP" 
+            />
           </div>
-          <div class="form-group">
-            <label>Titular / Nombre del Beneficiario:</label>
-            <input type="text" [(ngModel)]="qrTitular" class="form-input" placeholder="Ej: StyleStore Bolivia" />
+
+          <div class="form-group-custom">
+            <label>Titular o Nombre de la Cuenta:</label>
+            <input 
+              type="text" 
+              [(ngModel)]="qrTitular" 
+              class="form-control-custom" 
+              placeholder="Ej: StyleStore Bolivia" 
+            />
           </div>
         </div>
 
-        <!-- Input de Subida de Imagen -->
-        <div class="qr-upload-actions">
-          <label class="btn-upload-qr-file" [class.uploading]="subiendoQR">
-            <span *ngIf="!subiendoQR">📤 Seleccionar Nueva Imagen de QR</span>
+        <!-- Acciones de Carga y Guardado -->
+        <div class="qr-actions-row">
+          <label class="btn-subir-qr" [class.uploading]="subiendoQR">
+            <span *ngIf="!subiendoQR">📤 Subir Nueva Imagen QR</span>
             <span *ngIf="subiendoQR">⏳ Subiendo imagen...</span>
             <input
               type="file"
@@ -828,10 +848,10 @@
               style="display: none;"
             />
           </label>
+
           <button
             type="button"
-            class="btn-save-qr-data"
-            *ngIf="qrConfig?.imagen_url"
+            class="btn-guardar-datos-qr"
             [disabled]="subiendoQR"
             (click)="guardarDatosQR()"
           >

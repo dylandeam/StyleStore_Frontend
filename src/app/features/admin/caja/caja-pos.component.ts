@@ -724,13 +724,10 @@ export class CajaPosComponent implements OnInit {
   }
 
   guardarDatosQR(): void {
-    if (!this.qrConfig?.imagen_url) {
-      alert('Por favor selecciona o sube una imagen para el código QR.');
-      return;
-    }
+    const imgUrl = this.qrConfig?.imagen_url || '/uploads/qr/qr_mostrador_default.png';
     this.subiendoQR = true;
     this.pagosService.updateQRConfig({
-      imagen_url: this.qrConfig.imagen_url,
+      imagen_url: imgUrl,
       banco_destino: this.qrBancoDestino,
       titular: this.qrTitular,
       sucursal_id: this.selectedSucursalId,
@@ -757,5 +754,10 @@ export class CajaPosComponent implements OnInit {
   getQRImageUrl(url?: string | null): string {
     if (!url) return '';
     return this.uploadService.getFileUrl(url, 'qr');
+  }
+
+  onQRImgError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="%23f8fafc" rx="10"/><rect x="15" y="15" width="35" height="35" fill="%2314263D" rx="4"/><rect x="22" y="22" width="21" height="21" fill="%23fff" rx="2"/><rect x="27" y="27" width="11" height="11" fill="%2314263D" rx="1"/><rect x="70" y="15" width="35" height="35" fill="%2314263D" rx="4"/><rect x="77" y="22" width="21" height="21" fill="%23fff" rx="2"/><rect x="82" y="27" width="11" height="11" fill="%2314263D" rx="1"/><rect x="15" y="70" width="35" height="35" fill="%2314263D" rx="4"/><rect x="22" y="77" width="21" height="21" fill="%23fff" rx="2"/><rect x="27" y="82" width="11" height="11" fill="%2314263D" rx="1"/><rect x="56" y="20" width="8" height="8" fill="%2314263D" rx="1"/><rect x="56" y="38" width="8" height="8" fill="%2314263D" rx="1"/><rect x="30" y="56" width="8" height="8" fill="%2314263D" rx="1"/><rect x="52" y="52" width="16" height="16" fill="%230f766e" rx="3"/><rect x="75" y="56" width="8" height="8" fill="%2314263D" rx="1"/><rect x="90" y="56" width="8" height="8" fill="%2314263D" rx="1"/><rect x="56" y="75" width="8" height="12" fill="%2314263D" rx="1"/><rect x="72" y="75" width="16" height="8" fill="%2314263D" rx="1"/><rect x="72" y="90" width="8" height="15" fill="%2314263D" rx="1"/><rect x="88" y="85" width="17" height="20" fill="%2314263D" rx="2"/></svg>';
   }
 }

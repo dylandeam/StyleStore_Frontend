@@ -1656,60 +1656,255 @@
 .btn-qr-confirm { background: linear-gradient(135deg, #0f766e, #14b8a6) !important; margin-top: 14px; }
 .btn-qr-confirm:hover:not(:disabled) { background: linear-gradient(135deg, #0d6b63, #0ea5a5) !important; }
 
-/* QR Upload Modal */
-.qr-upload-modal { max-width: 520px; }
-.qr-upload-body { padding: 20px; }
-.qr-upload-desc { font-size: 0.88rem; color: #475569; line-height: 1.5; margin: 0 0 18px; }
+/* ==========================================
+   QR MODAL CARD & COMPONENT STYLES
+   ========================================== */
 
-.qr-current-preview { margin-bottom: 18px; }
-.qr-current-preview h4 { font-size: 0.92rem; color: #14263D; margin: 0 0 10px; }
-.qr-preview-img-container { text-align: center; margin-bottom: 12px; }
-.qr-preview-img { max-width: 220px; max-height: 220px; object-fit: contain; border-radius: 10px; border: 2px solid #e2e8f0; }
-
-.qr-meta-row { display: flex; gap: 8px; font-size: 0.82rem; margin-bottom: 4px; }
-.meta-label { color: #64748b; font-weight: 600; min-width: 100px; }
-.meta-value { color: #1e293b; }
-
-.qr-no-preview { text-align: center; padding: 30px; background: #f8fafc; border-radius: 12px; margin-bottom: 18px; }
-.empty-icon-lg { font-size: 3rem; display: block; margin-bottom: 8px; }
-.qr-no-preview p { color: #94a3b8; font-size: 0.88rem; }
-
-.qr-form-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
-.qr-form-fields .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 4px; }
-.qr-form-fields .form-input {
-  width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
-  font-size: 0.88rem; background: #f8fafc; transition: border-color 0.2s;
+.modal-card.qr-modal-card {
+  max-width: 520px;
+  width: 95%;
+  border-radius: 18px;
+  background: #ffffff !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-.qr-form-fields .form-input:focus { border-color: #14263D; outline: none; background: #fff; }
 
-.qr-upload-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-.btn-upload-qr-file {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #14263D, #1e3a5f); color: #fff;
-  border: none; border-radius: 10px; padding: 12px 20px;
-  font-size: 0.88rem; font-weight: 600; cursor: pointer;
-  transition: all 0.2s; flex: 1; min-width: 200px; text-align: center;
+.qr-upload-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 75vh;
+  overflow-y: auto;
+  background: #ffffff;
 }
-.btn-upload-qr-file:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(20,38,61,0.25); }
-.btn-upload-qr-file.uploading { opacity: 0.7; cursor: wait; }
 
-.btn-save-qr-data {
-  background: #22c55e; color: #fff; border: none; border-radius: 10px;
-  padding: 12px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+.qr-upload-desc {
+  font-size: 0.86rem;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border-left: 3px solid #0f766e;
+}
+
+/* Card del QR Vigente */
+.qr-vigente-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.qr-vigente-header {
+  margin-bottom: 10px;
+}
+
+.badge-vigente {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: #ccfbf1;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.qr-vigente-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.qr-img-box {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.qr-img-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.qr-details-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.d-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.d-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  word-break: break-word;
+}
+
+.qr-empty-card {
+  text-align: center;
+  padding: 20px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+
+.qr-empty-card .empty-icon-lg {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.qr-empty-card p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Formulario */
+.qr-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group-custom label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 5px;
+}
+
+.form-control-custom {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  background: #f8fafc;
+  color: #1e293b;
   transition: all 0.2s;
 }
-.btn-save-qr-data:hover { background: #16a34a; }
-.btn-save-qr-data:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.form-control-custom:focus {
+  outline: none;
+  border-color: #14263D;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(20, 38, 61, 0.1);
+}
+
+/* Acciones en Modal: 2 botones en fila con altura uniforme */
+.qr-actions-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.btn-subir-qr {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #14263D;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(20, 38, 61, 0.2);
+  margin: 0;
+}
+
+.btn-subir-qr:hover {
+  background: #1e3a5f;
+  transform: translateY(-1px);
+}
+
+.btn-subir-qr.uploading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.btn-guardar-datos-qr {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+  margin: 0;
+}
+
+.btn-guardar-datos-qr:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.btn-guardar-datos-qr:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* QR Preview Box en selección vacía */
 .qr-preview-box-empty {
   margin-top: 24px;
   padding: 20px;
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
-  border-radius: 14px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
+
 .qr-preview-badge {
   display: inline-block;
   font-size: 0.78rem;
@@ -1720,35 +1915,42 @@
   border-radius: 20px;
   margin-bottom: 12px;
 }
+
 .qr-image-wrapper-mini {
   display: flex;
   justify-content: center;
   margin: 10px 0;
 }
+
 .qr-mini-img {
   width: 130px;
   height: 130px;
   object-fit: contain;
   border-radius: 10px;
   border: 2px solid #e2e8f0;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  background: #f8fafc;
 }
+
 .qr-no-img-text {
   color: #94a3b8;
   font-size: 0.85rem;
   margin: 12px 0;
 }
+
 .qr-banco-sub {
   font-size: 0.85rem;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 2px;
 }
+
 .qr-titular-sub {
   font-size: 0.8rem;
   color: #64748b;
   margin-bottom: 12px;
 }
+
 .btn-config-qr-mini {
   display: inline-flex;
   align-items: center;
@@ -1763,15 +1965,19 @@
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .btn-config-qr-mini:hover {
   background: #1e3a5f;
   transform: translateY(-1px);
 }
+
 .btn-metodo.online {
   border-color: #6366f1;
   color: #4f46e5;
 }
+
 .btn-metodo.online.active {
   background: #4f46e5;
   color: #fff;
 }
+
