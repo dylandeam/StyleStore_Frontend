@@ -24,6 +24,20 @@ export class AdminLayoutComponent implements OnInit {
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly user = this.authService.currentUser;
 
+  // Categorías colapsables en la barra lateral
+  readonly collapsedCategories = signal<Record<string, boolean>>({});
+
+  toggleCategory(categoryKey: string): void {
+    this.collapsedCategories.update((prev) => ({
+      ...prev,
+      [categoryKey]: !prev[categoryKey],
+    }));
+  }
+
+  isCategoryCollapsed(categoryKey: string): boolean {
+    return !!this.collapsedCategories()[categoryKey];
+  }
+
   // Notificaciones In-App
   readonly notificaciones = signal<any[]>([]);
   readonly showNotificacionesDropdown = signal<boolean>(false);
