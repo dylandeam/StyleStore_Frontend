@@ -79,6 +79,11 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   opacityLevel = signal<number>(1.0);
   showSettingsPanel = signal<boolean>(false);
 
+  // Sensores de Profundidad y Ajuste a la Silueta
+  depthSensorDetected = signal<'hardware' | 'neural'>('neural');
+  conformalSilhouetteFit = signal<boolean>(true);
+  bodyFitTightness = signal<'slim' | 'regular' | 'loose'>('slim');
+
   // Snapshot / Captura
   snapshotUrl = signal<string>('');
   showSnapshotModal = signal<boolean>(false);
@@ -87,7 +92,7 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   isAddingToCart = signal<boolean>(false);
   toastMessage = signal<string | null>(null);
 
-  // Instancias de MediaPipe y Filtros Anti-Temblor
+  // Instancias de MediaPipe, Sensor de Profundidad y Filtros Anti-Temblor
   private pose: any = null;
   private camera: any = null;
   private isProcessingFrame = false;
@@ -95,6 +100,8 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   private animationFrameId: number | null = null;
   private smoothedPoints = new Map<number, { x: number; y: number; z: number }>();
   private backScoreCounter = 0;
+  private maskCanvas = document.createElement('canvas');
+  private maskCtx: CanvasRenderingContext2D | null = null;
 
   // Física de Inercia de Tela (Dynamic Cloth Spring-Damper)
   private hemClothPhysics = {
@@ -224,6 +231,8 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   private initPoseDetector(): void {
     if (!window.Pose) return;
 
+    this.maskCtx = this.maskCanvas.getContext('2d', { willReadFrequently: true });
+
     this.pose = new window.Pose({
       locateFile: (file: string) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
@@ -232,8 +241,8 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     this.pose.setOptions({
       modelComplexity: 1,
       smoothLandmarks: true,
-      enableSegmentation: false,
-      smoothSegmentation: false,
+      enableSegmentation: true,
+      smoothSegmentation: true,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
     });
@@ -247,6 +256,22 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
 
     if (this.camera) {
       this.camera.stop();
+    }
+
+    // Detectar si el teléfono/dispositivo tiene hardware ToF / LiDAR / TrueDepth
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasHwDepth = devices.some(
+        (d) =>
+          d.kind === 'videoinput' &&
+          (d.label.toLowerCase().includes('depth') ||
+            d.label.toLowerCase().includes('tof') ||
+            d.label.toLowerCase().includes('ir') ||
+            d.label.toLowerCase().includes('truedepth'))
+      );
+      this.depthSensorDetected.set(hasHwDepth ? 'hardware' : 'neural');
+    } catch {
+      this.depthSensorDetected.set('neural');
     }
 
     try {
@@ -509,6 +534,23 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       physics.right.y += physics.right.vy;
     }
 
+    // 3.5. ACTUALIZAR MÁSCARA NEURAL DE PROFUNDIDAD Y SILUETA (MediaPipe Neural Depth Mask)
+    if (results.segmentationMask && this.maskCtx) {
+      const maskW = 160;
+      const maskH = 120;
+      if (this.maskCanvas.width !== maskW || this.maskCanvas.height !== maskH) {
+        this.maskCanvas.width = maskW;
+        this.maskCanvas.height = maskH;
+      }
+      this.maskCtx.save();
+      if (isMirror) {
+        this.maskCtx.scale(-1, 1);
+        this.maskCtx.translate(-maskW, 0);
+      }
+      this.maskCtx.drawImage(results.segmentationMask, 0, 0, maskW, maskH);
+      this.maskCtx.restore();
+    }
+
     // 4. RENDERIZADO POR MALLA ANATÓMICA DEFORMABLE
     ctx.save();
     ctx.globalAlpha = this.opacityLevel();
@@ -564,6 +606,61 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     }
 
     ctx.restore();
+  }
+
+  // Lector de Silueta y Límites Físicos por Sensor de Profundidad Neuronal
+  private getBodyContourAtY(
+    normY: number,
+    centerX: number,
+    canvasWidth: number
+  ): { leftX: number; rightX: number; width: number } | null {
+    if (!this.maskCtx || !this.conformalSilhouetteFit()) return null;
+    const maskW = this.maskCanvas.width;
+    const maskH = this.maskCanvas.height;
+    if (maskW === 0 || maskH === 0) return null;
+
+    const my = Math.max(0, Math.min(maskH - 1, Math.round(normY * maskH)));
+    const cx = Math.max(
+      0,
+      Math.min(maskW - 1, Math.round((centerX / canvasWidth) * maskW))
+    );
+
+    try {
+      const row = this.maskCtx.getImageData(0, my, maskW, 1).data;
+      let minX = cx;
+      let maxX = cx;
+
+      // Buscar borde izquierdo desde el centro del cuerpo hacia afuera
+      for (let x = cx; x >= 0; x--) {
+        const val = row[x * 4 + 3] || row[x * 4];
+        if (val > 60) {
+          minX = x;
+        } else if (cx - x > 6) {
+          break;
+        }
+      }
+
+      // Buscar borde derecho desde el centro del cuerpo hacia afuera
+      for (let x = cx; x < maskW; x++) {
+        const val = row[x * 4 + 3] || row[x * 4];
+        if (val > 60) {
+          maxX = x;
+        } else if (x - cx > 6) {
+          break;
+        }
+      }
+
+      const detectedLeftX = (minX / maskW) * canvasWidth;
+      const detectedRightX = (maxX / maskW) * canvasWidth;
+      const detectedW = detectedRightX - detectedLeftX;
+
+      if (detectedW > 35) {
+        return { leftX: detectedLeftX, rightX: detectedRightX, width: detectedW };
+      }
+    } catch {
+      // Fallback
+    }
+    return null;
   }
 
   // 4. MOTOR DE DEFORMACIÓN POR TRIÁNGULOS AFINES (Piecewise Affine Texture Warper)
@@ -684,16 +781,6 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       y: rs.y + vOffset + latDy * (shDist * 0.08 * scale),
     };
 
-    // Axilas
-    const dArmpitL = {
-      x: ls.x + (lh.x - ls.x) * 0.32 - latDx * (shDist * 0.04 * scale),
-      y: ls.y + (lh.y - ls.y) * 0.32 + vOffset,
-    };
-    const dArmpitR = {
-      x: rs.x + (rh.x - rs.x) * 0.32 + latDx * (shDist * 0.04 * scale),
-      y: rs.y + (rh.y - rs.y) * 0.32 + vOffset,
-    };
-
     // Pecho
     const dChestMid = {
       x: midShX + spineDx * 0.4,
@@ -701,18 +788,54 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     };
 
     // Cintura
-    const dWaistL = {
+    const dWaistMid = {
+      x: (lh.x + rh.x) / 2,
+      y: (lh.y + rh.y) / 2 + vOffset,
+    };
+
+    // Factor de entalle al cuerpo (Fit)
+    const fitFactor =
+      this.bodyFitTightness() === 'slim'
+        ? 0.94
+        : this.bodyFitTightness() === 'regular'
+        ? 1.02
+        : 1.12;
+
+    // Axilas con anclaje al contorno real del sensor de profundidad
+    let dArmpitL = {
+      x: ls.x + (lh.x - ls.x) * 0.32 - latDx * (shDist * 0.04 * scale),
+      y: ls.y + (lh.y - ls.y) * 0.32 + vOffset,
+    };
+    let dArmpitR = {
+      x: rs.x + (rh.x - rs.x) * 0.32 + latDx * (shDist * 0.04 * scale),
+      y: rs.y + (rh.y - rs.y) * 0.32 + vOffset,
+    };
+
+    const chestContour = this.getBodyContourAtY(dChestMid.y / h, midShX, w);
+    if (chestContour) {
+      const cCenter = (chestContour.leftX + chestContour.rightX) / 2;
+      const halfW = (chestContour.width / 2) * fitFactor * scale;
+      dArmpitL.x = cCenter - halfW;
+      dArmpitR.x = cCenter + halfW;
+    }
+
+    // Cintura con anclaje al contorno real del sensor de profundidad
+    let dWaistL = {
       x: lh.x - latDx * (shDist * 0.05 * scale),
       y: lh.y + vOffset,
     };
-    const dWaistR = {
+    let dWaistR = {
       x: rh.x + latDx * (shDist * 0.05 * scale),
       y: rh.y + vOffset,
     };
-    const dWaistMid = {
-      x: (dWaistL.x + dWaistR.x) / 2,
-      y: (dWaistL.y + dWaistR.y) / 2,
-    };
+
+    const waistContour = this.getBodyContourAtY(dWaistMid.y / h, midHpX, w);
+    if (waistContour) {
+      const wCenter = (waistContour.leftX + waistContour.rightX) / 2;
+      const halfW = (waistContour.width / 2) * fitFactor * scale;
+      dWaistL.x = wCenter - halfW;
+      dWaistR.x = wCenter + halfW;
+    }
 
     // Mangas dinámicas orientadas según el brazo real (Hombro -> Codo)
     // Brazo Izquierdo
@@ -886,20 +1009,36 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
 
     const scale = this.scaleMultiplier();
     const vOffset = (this.verticalOffset() * h) / 100;
-
     const hipDist = Math.hypot(rh.x - lh.x, rh.y - lh.y);
-    const dWaistL = {
+
+    const dWaistMid = {
+      x: (lh.x + rh.x) / 2,
+      y: (lh.y + rh.y) / 2 + vOffset,
+    };
+
+    const fitFactor =
+      this.bodyFitTightness() === 'slim'
+        ? 0.94
+        : this.bodyFitTightness() === 'regular'
+        ? 1.02
+        : 1.12;
+
+    let dWaistL = {
       x: lh.x - (rh.x - lh.x) * 0.12 * scale,
       y: lh.y + vOffset,
     };
-    const dWaistR = {
+    let dWaistR = {
       x: rh.x + (rh.x - lh.x) * 0.12 * scale,
       y: rh.y + vOffset,
     };
-    const dWaistMid = {
-      x: (dWaistL.x + dWaistR.x) / 2,
-      y: (dWaistL.y + dWaistR.y) / 2,
-    };
+
+    const hipContour = this.getBodyContourAtY(dWaistMid.y / h, dWaistMid.x, w);
+    if (hipContour) {
+      const hCenter = (hipContour.leftX + hipContour.rightX) / 2;
+      const halfW = (hipContour.width / 2) * fitFactor * scale;
+      dWaistL.x = hCenter - halfW;
+      dWaistR.x = hCenter + halfW;
+    }
 
     // Tiro / Entrepierna
     const dCrotch = {

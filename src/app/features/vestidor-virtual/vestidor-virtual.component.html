@@ -183,6 +183,49 @@
             />
           </div>
 
+          <!-- Ajuste al Cuerpo (Pegado / Holgura) -->
+          <div class="setting-item">
+            <label>Pegado al Cuerpo (Fit):</label>
+            <div class="fit-selector-group">
+              <button
+                type="button"
+                class="btn-fit"
+                [class.active]="bodyFitTightness() === 'slim'"
+                (click)="bodyFitTightness.set('slim')"
+              >
+                Pegado (Slim)
+              </button>
+              <button
+                type="button"
+                class="btn-fit"
+                [class.active]="bodyFitTightness() === 'regular'"
+                (click)="bodyFitTightness.set('regular')"
+              >
+                Regular
+              </button>
+              <button
+                type="button"
+                class="btn-fit"
+                [class.active]="bodyFitTightness() === 'loose'"
+                (click)="bodyFitTightness.set('loose')"
+              >
+                Holgado
+              </button>
+            </div>
+          </div>
+
+          <!-- Toggle de Pegado a Silueta 3D -->
+          <div class="setting-toggle">
+            <label>Pegado a Silueta 3D:</label>
+            <button
+              class="btn-toggle"
+              [class.active]="conformalSilhouetteFit()"
+              (click)="conformalSilhouetteFit.set(!conformalSilhouetteFit())"
+            >
+              {{ conformalSilhouetteFit() ? 'Activado' : 'Desactivado' }}
+            </button>
+          </div>
+
           <div class="setting-toggle">
             <label>Efecto Espejo:</label>
             <button
@@ -201,10 +244,22 @@
         <span class="shutter-circle">📸</span>
       </button>
 
-      <!-- Badge Flotante de Detección Activa y Orientación 3D -->
+      <!-- Badge Flotante de Detección Activa, Sensor de Profundidad y Orientación 3D -->
       <div class="status-pill" [class.detected]="isUserDetected()">
         <span class="status-dot"></span>
-        <span>{{ isUserDetected() ? 'Malla Adaptativa Activa' : 'Buscando Silueta...' }}</span>
+        <span>{{ isUserDetected() ? 'Malla Adaptativa' : 'Buscando Silueta...' }}</span>
+
+        <!-- Indicador de Sensor de Profundidad -->
+        @if (depthSensorDetected() === 'hardware') {
+          <span class="badge-depth hw" title="Hardware ToF / LiDAR sensor activo">
+            🟢 ToF / LiDAR
+          </span>
+        } @else {
+          <span class="badge-depth neural" title="Sensor de profundidad neural AI activo">
+            ⚡ Profundidad IA
+          </span>
+        }
+
         @if (isUserDetected()) {
           <span
             class="badge-orientation"
