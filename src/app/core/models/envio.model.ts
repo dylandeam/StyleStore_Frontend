@@ -23,6 +23,8 @@ export interface Envio {
   repartidor_lon?: number;
   repartidor_nombre?: string;
   repartidor_actualizado_en?: string;
+  latitud_destino?: number;
+  longitud_destino?: number;
 }
 
 export interface EnvioCreate {
@@ -33,6 +35,8 @@ export interface EnvioCreate {
   ubicacion_url?: string;
   distancia_km?: number;
   costo?: number;
+  latitud_destino?: number;
+  longitud_destino?: number;
 }
 
 export interface EnvioUpdate {
@@ -43,6 +47,8 @@ export interface EnvioUpdate {
   costo?: number;
   estado?: string;
   delivery_conductor?: string;
+  latitud_destino?: number;
+  longitud_destino?: number;
 }
 
 export interface EnvioDeliveryUpdate {

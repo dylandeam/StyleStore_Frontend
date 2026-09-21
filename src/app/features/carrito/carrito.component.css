@@ -320,6 +320,43 @@
   background: #203a5c;
 }
 
+.btn-gps-auto {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-gps-auto:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+}
+
+.btn-gps-auto:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.gps-coords-badge {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #065f46;
+  background: #d1fae5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #a7f3d0;
+  display: inline-block;
+}
+
 .gps-helper-text {
   font-size: 0.78rem;
   color: #64748b;

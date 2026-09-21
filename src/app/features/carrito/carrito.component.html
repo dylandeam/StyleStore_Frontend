@@ -132,6 +132,16 @@
                   (blur)="recalcularTarifaEnvio()"
                   placeholder="https://maps.app.goo.gl/... o https://maps.google.com/..."
                 />
+                <button
+                  type="button"
+                  class="btn-gps-auto"
+                  (click)="obtenerUbicacionActualGPS()"
+                  [disabled]="obteniendoGps()"
+                  title="Capturar mi ubicación exacta por GPS del dispositivo"
+                >
+                  <span *ngIf="!obteniendoGps()">🎯 Mi GPS</span>
+                  <span *ngIf="obteniendoGps()">⏳ Buscando...</span>
+                </button>
                 <a
                   *ngIf="ubicacionUrl"
                   [href]="ubicacionUrl"
@@ -142,8 +152,11 @@
                   Probar ↗
                 </a>
               </div>
+              <div class="gps-coords-badge" *ngIf="latitudCliente() && longitudCliente()">
+                <span>✅ Coordenadas GPS fijadas: <strong>{{ latitudCliente() }}, {{ longitudCliente() }}</strong> (Casita 🏠 exacta en el mapa)</span>
+              </div>
               <p class="gps-helper-text">
-                💡 <em>En tu app de mapas (Google Maps o Apple Maps), marca tu domicilio, pulsa <strong>Compartir</strong> y copia el enlace aquí. Comparamos la ubicación de la sucursal con la tuya para calcular los kilómetros exactos.</em>
+                💡 <em>Pulsa <strong>🎯 Mi GPS</strong> para marcar tu domicilio en 1 segundo con tu sensor GPS, o pega tu enlace de Google Maps / Apple Maps.</em>
               </p>
             </div>
 

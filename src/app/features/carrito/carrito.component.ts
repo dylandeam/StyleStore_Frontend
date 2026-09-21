@@ -133,16 +133,78 @@ export class CarritoComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  latitudCliente = signal<number | null>(null);
+  longitudCliente = signal<number | null>(null);
+  obteniendoGps = signal<boolean>(false);
+
   extraerCoordsDeUrl(url?: string | null): { lat: number; lon: number } | null {
     if (!url) return null;
-    const str = String(url).trim();
-    const m1 = str.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (m1) return { lat: parseFloat(m1[1]), lon: parseFloat(m1[2]) };
-    const m2 = str.match(/[?&](?:q|ll|query|daddr|destination|saddr)=(-?\d+\.\d+),(-?\d+\.\d+)/);
-    if (m2) return { lat: parseFloat(m2[1]), lon: parseFloat(m2[2]) };
-    const m3 = str.match(/(-?\d{1,2}\.\d{3,}),\s*(-?\d{1,3}\.\d{3,})/);
-    if (m3) return { lat: parseFloat(m3[1]), lon: parseFloat(m3[2]) };
+    try {
+      const raw = String(url).trim();
+      const str = decodeURIComponent(raw);
+      const candidates = [str, raw];
+
+      for (const target of candidates) {
+        // Formato 1: /@-17.783321,-63.182134
+        const m1 = target.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (m1) return { lat: parseFloat(m1[1]), lon: parseFloat(m1[2]) };
+
+        // Formato 2: Google Maps embed o place (!3d-17.xxx!4d-63.xxx)
+        const m_embed = target.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+        if (m_embed) return { lat: parseFloat(m_embed[1]), lon: parseFloat(m_embed[2]) };
+
+        // Formato 3: Parámetros (?q=loc:-17.xxx,-63.xxx, ?q=-17.xxx,-63.xxx, ?ll=, ?sll=, ?query=, etc.)
+        const m2 = target.match(/[?&](?:q|ll|sll|query|center|daddr|destination|saddr)=(?:loc:)?(-?\d+\.\d+),(-?\d+\.\d+)/i);
+        if (m2) return { lat: parseFloat(m2[1]), lon: parseFloat(m2[2]) };
+
+        // Formato 4: /place/(-17.xxxx)[,+](-63.xxxx)
+        const m3 = target.match(/\/place\/(-?\d+\.\d+)[,+](-?\d+\.\d+)/);
+        if (m3) return { lat: parseFloat(m3[1]), lon: parseFloat(m3[2]) };
+
+        // Formato 5: Coordenadas explícitas consecutivas (ej: -17.783321, -63.182134)
+        const m4 = target.match(/(-?\d{1,2}\.\d{3,})\s*[,; ]\s*(-?\d{1,3}\.\d{3,})/);
+        if (m4) {
+          const lat = parseFloat(m4[1]);
+          const lon = parseFloat(m4[2]);
+          if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+            return { lat, lon };
+          }
+        }
+      }
+    } catch (_) {}
     return null;
+  }
+
+  obtenerUbicacionActualGPS(): void {
+    if (!navigator.geolocation) {
+      this.mostrarToast('Tu navegador o dispositivo no soporta geolocalización GPS.');
+      return;
+    }
+    this.obteniendoGps.set(true);
+    this.cdr.markForCheck();
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.obteniendoGps.set(false);
+        const lat = Number(pos.coords.latitude.toFixed(6));
+        const lon = Number(pos.coords.longitude.toFixed(6));
+        this.latitudCliente.set(lat);
+        this.longitudCliente.set(lon);
+        this.ubicacionUrlState.set(`https://www.google.com/maps?q=${lat},${lon}`);
+        this.mostrarToast('📍 ¡Ubicación GPS exacta capturada con éxito!');
+        this.recalcularTarifaEnvio();
+        this.cdr.markForCheck();
+        this.cdr.detectChanges();
+      },
+      (err) => {
+        this.obteniendoGps.set(false);
+        this.cdr.markForCheck();
+        let msg = 'No se pudo obtener la ubicación GPS.';
+        if (err.code === 1) msg = 'Permiso de ubicación denegado. Puedes pegar tu enlace de Google Maps.';
+        this.mostrarToast(msg);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
   }
 
   calcularHaversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -168,11 +230,20 @@ export class CarritoComponent implements OnInit {
     const cliMaps = this.ubicacionUrl.trim();
     const cliDir = this.direccion.trim();
 
-    // 1. Si ambas URLs tienen coordenadas visibles, calcular inmediatamente
+    // Actualizar coordenadas del cliente si se detectan en la URL ingresada
     const cCli = this.extraerCoordsDeUrl(cliMaps);
+    if (cCli) {
+      this.latitudCliente.set(cCli.lat);
+      this.longitudCliente.set(cCli.lon);
+    }
+
     const cSuc = this.extraerCoordsDeUrl(sucMaps);
-    if (cCli && cSuc) {
-      const d = this.calcularHaversineKm(cSuc.lat, cSuc.lon, cCli.lat, cCli.lon);
+    const latDest = this.latitudCliente() ?? (cCli ? cCli.lat : null);
+    const lonDest = this.longitudCliente() ?? (cCli ? cCli.lon : null);
+
+    // 1. Si ambas coordenadas están disponibles, calcular distancia Haversine inmediata
+    if (latDest !== null && lonDest !== null && cSuc) {
+      const d = this.calcularHaversineKm(cSuc.lat, cSuc.lon, latDest, lonDest);
       if (d >= 0.2) {
         this.distanciaKmState.set(d);
         this.costoEnvioState.set(Math.round((5.00 + d * 0.60) * 100) / 100);
@@ -384,6 +455,8 @@ export class CarritoComponent implements OnInit {
                 ubicacion_url: this.ubicacionUrl.trim() || undefined,
                 distancia_km: this.distanciaKm,
                 costo: costoDeliveryFinal,
+                latitud_destino: this.latitudCliente() ?? undefined,
+                longitud_destino: this.longitudCliente() ?? undefined,
               })
               .subscribe({
                 next: () => {
