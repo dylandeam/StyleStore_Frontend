@@ -51,7 +51,7 @@
         <div class="silhouette-guide">
           <div class="guide-box">
             <span class="guide-icon">🧍</span>
-            <p>Párate de cuerpo entero frente a la cámara (1.5 - 2 metros)</p>
+            <p>Aléjate un paso para enfocar hombros y torso (1.5 - 2 metros)</p>
           </div>
         </div>
       }
@@ -258,7 +258,7 @@
       <!-- Badge Flotante de Detección Activa, Sensor de Profundidad y Orientación 3D -->
       <div class="status-pill" [class.detected]="isUserDetected()">
         <span class="status-dot"></span>
-        <span>{{ isUserDetected() ? 'Malla Adaptativa' : 'Buscando Silueta...' }}</span>
+        <span>{{ isUserDetected() ? 'Malla Adaptativa' : 'Aléjate para enfocar torso' }}</span>
 
         <!-- Indicador de Sensor de Profundidad -->
         @if (depthSensorDetected() === 'hardware') {

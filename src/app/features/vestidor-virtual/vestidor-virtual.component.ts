@@ -167,12 +167,25 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       this.catalogItems.set(items);
       this.isLoadingCatalog.set(false);
 
+      let equipped = false;
       const targetCodigo = this.route.snapshot.queryParamMap.get('producto');
       if (targetCodigo) {
         const found = items.find((p: Producto) => p.codigo === targetCodigo);
         if (found) {
           this.equipProduct(found);
+          equipped = true;
         }
+      }
+
+      // Si no se especificó prenda en la URL y no hay nada equipado, equipar automáticamente la primera camisa/top
+      if (!equipped && !this.activeTop() && !this.activeDress() && items.length > 0) {
+        const defaultTop = items.find(
+          (p: Producto) =>
+            p.tipo_prenda === 'superior' ||
+            (p as any).categoria?.nombre?.toLowerCase().includes('camisa') ||
+            p.nombre?.toLowerCase().includes('camisa')
+        );
+        this.equipProduct(defaultTop || items[0]);
       }
     };
 
@@ -264,8 +277,9 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
         `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
     });
 
+    const isMobile = typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     this.pose.setOptions({
-      modelComplexity: 1,
+      modelComplexity: isMobile ? 0 : 1,
       smoothLandmarks: true,
       enableSegmentation: true,
       smoothSegmentation: true,
@@ -277,12 +291,12 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
   }
 
   async startCamera(): Promise<void> {
-    if (!this.videoRef?.nativeElement) return;
-    const video = this.videoRef.nativeElement;
+    const video = this.videoRef?.nativeElement;
+    if (!video) return;
 
-    if (this.camera) {
-      this.camera.stop();
-    }
+    // 1. Detener cualquier stream anterior y liberar el sensor de hardware
+    this.stopCamera();
+    await new Promise((r) => setTimeout(r, 150));
 
     // Detectar si el teléfono/dispositivo tiene hardware ToF / LiDAR / TrueDepth
     try {
@@ -300,44 +314,52 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       this.depthSensorDetected.set('neural');
     }
 
-    try {
-      const constraints = {
-        video: {
-          facingMode: this.facingMode(),
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      };
-
+    const targetFacing = this.facingMode();
+    const tryStream = async (constraints: MediaStreamConstraints) => {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       video.srcObject = stream;
+      video.muted = true;
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('webkit-playsinline', 'true');
       await video.play();
-
       this.isCameraRunning.set(true);
       this.cameraError.set('');
-
-      // Iniciar bucle de procesamiento continuo
       this.processVideoFrames();
-    } catch (err: any) {
-      console.warn('getUserMedia direct call failed, fallback to CameraUtils:', err);
-      // Fallback con CameraUtils de MediaPipe
-      this.camera = new window.Camera(video, {
-        onFrame: async () => {
-          if (this.isCameraRunning() && !this.isProcessingFrame && this.pose) {
-            this.isProcessingFrame = true;
-            try {
-              await this.pose.send({ image: video });
-            } finally {
-              this.isProcessingFrame = false;
-            }
-          }
+    };
+
+    try {
+      // 1. Intento con facingMode ideal y resolución 1280x720
+      await tryStream({
+        video: {
+          facingMode: { ideal: targetFacing },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
         },
-        width: 640,
-        height: 480,
+        audio: false,
       });
-      await this.camera.start();
-      this.isCameraRunning.set(true);
+    } catch (err: any) {
+      console.warn('getUserMedia con constraints ideales falló, probando con facingMode simple:', err);
+      try {
+        // 2. Fallback con facingMode simple
+        await tryStream({
+          video: { facingMode: targetFacing },
+          audio: false,
+        });
+      } catch (err2: any) {
+        console.warn('getUserMedia con facingMode simple falló, probando video básico:', err2);
+        try {
+          // 3. Fallback genérico a cualquier cámara
+          await tryStream({
+            video: true,
+            audio: false,
+          });
+        } catch (finalErr: any) {
+          console.error('Error definitivo al inicializar cámara:', finalErr);
+          this.cameraError.set(
+            'No se pudo acceder a la cámara. Por favor verifica que los permisos estén habilitados en tu navegador.'
+          );
+        }
+      }
     }
   }
 
@@ -361,6 +383,7 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
 
   stopCamera(): void {
     this.isCameraRunning.set(false);
+    this.isProcessingFrame = false;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -369,24 +392,26 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       try {
         this.camera.stop();
       } catch {}
+      this.camera = null;
     }
     const video = this.videoRef?.nativeElement;
     if (video && video.srcObject) {
       const stream = video.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
+      stream.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {}
+      });
       video.srcObject = null;
     }
   }
 
-  toggleCameraFacing(): void {
-    this.facingMode.set(this.facingMode() === 'user' ? 'environment' : 'user');
+  async toggleCameraFacing(): Promise<void> {
+    const nextFacing = this.facingMode() === 'user' ? 'environment' : 'user';
+    this.facingMode.set(nextFacing);
     // Si es cámara trasera, desactivar modo espejo por defecto
-    if (this.facingMode() === 'environment') {
-      this.isMirrorMode.set(false);
-    } else {
-      this.isMirrorMode.set(true);
-    }
-    this.startCamera();
+    this.isMirrorMode.set(nextFacing === 'user');
+    await this.startCamera();
   }
 
   // 3. RENDERIZADO DE RESULTADOS POSE SOBRE CANVAS
@@ -412,7 +437,17 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
       this.isUserDetected.set(false);
       return;
     }
-    this.isUserDetected.set(true);
+
+    const lsRaw = landmarks[11];
+    const rsRaw = landmarks[12];
+    const hasShoulders =
+      lsRaw &&
+      rsRaw &&
+      (lsRaw.visibility ?? 1) >= 0.20 &&
+      (rsRaw.visibility ?? 1) >= 0.20 &&
+      Math.hypot(rsRaw.x - lsRaw.x, rsRaw.y - lsRaw.y) > 0.04;
+
+    this.isUserDetected.set(hasShoulders);
 
     const isMirror = this.isMirrorMode();
 
@@ -2121,12 +2156,20 @@ export class VestidorVirtualComponent implements OnInit, OnDestroy {
     const fullUrl = this.uploadService.getImageUrl(url);
     if (this.imageCache.has(fullUrl)) {
       const img = this.imageCache.get(fullUrl)!;
-      return img.complete ? img : null;
+      return img.complete && img.naturalWidth > 0 ? img : null;
     }
-    // Si no está en caché, iniciar carga
+    // Si no está en caché, iniciar carga con fallback
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.src = fullUrl;
+    img.onerror = () => {
+      // Reintentar sin crossOrigin si las cabeceras CORS no fueron provistas
+      if (img.crossOrigin) {
+        const fallback = new Image();
+        fallback.src = fullUrl;
+        this.imageCache.set(fullUrl, fallback);
+      }
+    };
     this.imageCache.set(fullUrl, img);
     return null;
   }
