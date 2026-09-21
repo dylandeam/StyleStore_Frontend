@@ -201,12 +201,24 @@
         <span class="shutter-circle">📸</span>
       </button>
 
-      <!-- Badge Flotante de Detección Activa -->
+      <!-- Badge Flotante de Detección Activa y Orientación 3D -->
       <div class="status-pill" [class.detected]="isUserDetected()">
         <span class="status-dot"></span>
-        <span>{{ isUserDetected() ? 'Cuerpo Detectado' : 'Buscando Silueta...' }}</span>
-        @if (isBackDetected()) {
-          <span class="badge-back">Espalda</span>
+        <span>{{ isUserDetected() ? 'Malla Adaptativa Activa' : 'Buscando Silueta...' }}</span>
+        @if (isUserDetected()) {
+          <span
+            class="badge-orientation"
+            [class.back]="isBackDetected()"
+            [class.profile]="bodyOrientation() === 'perfil'"
+          >
+            @if (isBackDetected()) {
+              🔄 Espalda ({{ bodyYawAngle() }}°)
+            } @else if (bodyOrientation() === 'perfil') {
+              📐 Perfil ({{ bodyYawAngle() }}°)
+            } @else {
+              ✨ Frente ({{ bodyYawAngle() }}°)
+            }
+          </span>
         }
       </div>
     </div>
