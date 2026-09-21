@@ -38,7 +38,7 @@ export class CajaPosComponent implements OnInit {
   procesando: boolean = false;
   error: string | null = null;
   mensajeToast: string | null = null;
-  metodoCobroOrden: 'efectivo' | 'qr' = 'efectivo';
+  metodoCobroOrden: 'efectivo' | 'qr' | 'online' = 'efectivo';
 
   // Cobro
   efectivoRecibido: number = 0;
@@ -108,7 +108,14 @@ export class CajaPosComponent implements OnInit {
     this.efectivoRecibido = Number(orden.total);
     this.ticketEmitido = null;
     this.error = null;
-    this.metodoCobroOrden = (orden.metodo_pago || '').toLowerCase() === 'qr' ? 'qr' : 'efectivo';
+    const mPago = (orden.metodo_pago || '').toLowerCase();
+    if (mPago === 'qr') {
+      this.metodoCobroOrden = 'qr';
+    } else if (orden.tipo_venta === 'en linea' || mPago === 'paypal' || mPago === 'en linea') {
+      this.metodoCobroOrden = 'online';
+    } else {
+      this.metodoCobroOrden = 'efectivo';
+    }
     this.cdr.markForCheck();
   }
 

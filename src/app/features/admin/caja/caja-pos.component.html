@@ -109,6 +109,22 @@
         <div class="pos-icon">💵</div>
         <h3>Selecciona una orden</h3>
         <p>Haz clic en una orden pendiente para emitir su ticket de pago.</p>
+
+        <!-- Preview del QR Activo de la Tienda -->
+        <div class="qr-preview-box-empty">
+          <div class="qr-preview-badge">📲 QR de Cobro Configurado en Mostrador</div>
+          <div class="qr-image-wrapper-mini" *ngIf="qrConfig?.imagen_url">
+            <img [src]="getQRImageUrl(qrConfig?.imagen_url)" alt="QR Mostrador" class="qr-mini-img" />
+          </div>
+          <div class="qr-no-img-text" *ngIf="!qrConfig?.imagen_url">
+            <span>📷 No se ha subido una imagen de QR de cobro</span>
+          </div>
+          <div class="qr-banco-sub">{{ qrConfig?.banco_destino || 'Red Enlace / Banco Unión / BNB / BCP' }}</div>
+          <div class="qr-titular-sub">Titular: <strong>{{ qrConfig?.titular || 'StyleStore Bolivia' }}</strong></div>
+          <button type="button" class="btn-config-qr-mini" (click)="abrirModalUploadQR()">
+            ⚙️ Subir / Actualizar Imagen QR
+          </button>
+        </div>
       </div>
 
       <!-- Formulario de Cobro Activo -->
@@ -135,25 +151,9 @@
           {{ error }}
         </div>
 
-        <!-- ACCIÓN 1: Botón directo para Órdenes en Línea (Sin cálculo de vuelto) -->
-        <div class="online-confirm-section" *ngIf="ordenSeleccionada.tipo_venta === 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() !== 'efectivo'">
-          <div class="online-hint">
-            <span>ℹ️ Esta orden proviene de una <strong>compra en línea</strong>. No requiere cálculo de vuelto.</span>
-          </div>
-          <button
-            type="button"
-            class="btn-emitir-ticket btn-online-direct"
-            [disabled]="procesando"
-            (click)="confirmarCobroOnline(ordenSeleccionada)"
-          >
-            <span *ngIf="!procesando">✓ Confirmar y Emitir Ticket</span>
-            <span *ngIf="procesando">Emitiendo ticket...</span>
-          </button>
-        </div>
-
-        <!-- Selector de Modo de Cobro Presencial en Caja: Efectivo vs QR Simple -->
-        <div class="metodo-pago-selector tab1-selector" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea'">
-          <label>Selecciona Modo de Cobro en Mostrador:</label>
+        <!-- Selector de Modo de Cobro en Mostrador: Efectivo vs QR Simple vs Online -->
+        <div class="metodo-pago-selector tab1-selector">
+          <label>Selecciona Modo de Cobro:</label>
           <div class="metodo-buttons">
             <button 
               type="button" 
@@ -171,11 +171,36 @@
             >
               📱 QR Simple (Mostrador)
             </button>
+            <button 
+              type="button" 
+              class="btn-metodo online" 
+              *ngIf="ordenSeleccionada.tipo_venta === 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'paypal' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'en linea'"
+              [class.active]="metodoCobroOrden === 'online'"
+              (click)="metodoCobroOrden = 'online'"
+            >
+              🌐 Pagado Online
+            </button>
           </div>
         </div>
 
+        <!-- ACCIÓN 1: Botón directo para Órdenes en Línea (Sin cálculo de vuelto) -->
+        <div class="online-confirm-section" *ngIf="metodoCobroOrden === 'online'">
+          <div class="online-hint">
+            <span>ℹ️ Esta orden proviene de una <strong>compra en línea</strong>. No requiere cálculo de vuelto.</span>
+          </div>
+          <button
+            type="button"
+            class="btn-emitir-ticket btn-online-direct"
+            [disabled]="procesando"
+            (click)="confirmarCobroOnline(ordenSeleccionada)"
+          >
+            <span *ngIf="!procesando">✓ Confirmar y Emitir Ticket</span>
+            <span *ngIf="procesando">Emitiendo ticket...</span>
+          </button>
+        </div>
+
         <!-- Cobro con QR Simple (Orden Pendiente) -->
-        <div class="qr-pos-card" *ngIf="metodoCobroOrden === 'qr' && ordenSeleccionada.tipo_venta !== 'en linea'">
+        <div class="qr-pos-card" *ngIf="metodoCobroOrden === 'qr'">
           <div class="qr-pos-header">
             <div class="qr-info-left">
               <h4>📲 QR Simple de Cobro</h4>
@@ -218,7 +243,7 @@
         </div>
 
         <!-- ACCIÓN 2: Cobro en Efectivo con Vuelto -->
-        <div class="cash-checkout-box" *ngIf="metodoCobroOrden === 'efectivo' && (ordenSeleccionada.tipo_venta !== 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'efectivo')">
+        <div class="cash-checkout-box" *ngIf="metodoCobroOrden === 'efectivo'">
           <h4 class="section-title">Cobro en efectivo con cálculo de vuelto:</h4>
           <div class="cash-input-group">
             <label>Efectivo Recibido (Bs.)</label>
@@ -505,6 +530,29 @@
         <div class="summary-line total">
           <span>TOTAL:</span>
           <strong>Bs. {{ totalVentaDirecta | number:'1.2-2' }}</strong>
+        </div>
+
+        <!-- Selector de Método de Pago Venta Directa: Efectivo vs QR -->
+        <div class="metodo-pago-selector direct-selector" *ngIf="cartDirecto.length > 0">
+          <label>Selecciona Método de Pago:</label>
+          <div class="metodo-buttons">
+            <button 
+              type="button" 
+              class="btn-metodo" 
+              [class.active]="metodoPagoDirecto === 'efectivo'"
+              (click)="metodoPagoDirecto = 'efectivo'"
+            >
+              💵 Efectivo (con Vuelto)
+            </button>
+            <button 
+              type="button" 
+              class="btn-metodo" 
+              [class.active]="metodoPagoDirecto === 'qr'"
+              (click)="metodoPagoDirecto = 'qr'"
+            >
+              📱 QR Simple (Mostrador)
+            </button>
+          </div>
         </div>
 
         <!-- Si el método es EFECTIVO: mostrar billetes y cálculo de vuelto -->
