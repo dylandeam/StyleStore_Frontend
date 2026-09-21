@@ -1,7 +1,10 @@
 export interface DetalleCompraCreate {
   producto_codigo: string;
+  producto_nombre?: string;
   color_id: number;
+  color_nombre?: string;
   talla_id: number;
+  talla_nombre?: string;
   cantidad: number;
   costo_unitario: number;
 }

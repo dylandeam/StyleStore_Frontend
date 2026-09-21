@@ -131,7 +131,7 @@
           <div class="form-group">
             <label>Sucursal de Destino (*):</label>
             <select [(ngModel)]="nuevaCompra.sucursal_id" class="form-control">
-              <option *ngFor="let s of sucursales" [value]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
+              <option *ngFor="let s of sucursales" [ngValue]="s.id">{{ s.nombre }} — {{ s.ciudad }}</option>
             </select>
           </div>
         </div>
@@ -162,14 +162,14 @@
             <div class="builder-col">
               <label>Color:</label>
               <select [(ngModel)]="tempItem.color_id" class="form-control">
-                <option *ngFor="let c of colores" [value]="c.id">{{ c.nombre }}</option>
+                <option *ngFor="let c of colores" [ngValue]="c.id">{{ c.nombre }}</option>
               </select>
             </div>
 
             <div class="builder-col">
               <label>Talla:</label>
               <select [(ngModel)]="tempItem.talla_id" class="form-control">
-                <option *ngFor="let t of tallas" [value]="t.id">{{ t.nombre }}</option>
+                <option *ngFor="let t of tallas" [ngValue]="t.id">{{ t.nombre }}</option>
               </select>
             </div>
 
@@ -206,9 +206,9 @@
               </thead>
               <tbody>
                 <tr *ngFor="let it of nuevaCompra.items; let i = index">
-                  <td>{{ getNombreProducto(it.producto_codigo) }}</td>
-                  <td>{{ getNombreColor(it.color_id) }}</td>
-                  <td>{{ getNombreTalla(it.talla_id) }}</td>
+                  <td>{{ it.producto_nombre || getNombreProducto(it.producto_codigo) }}</td>
+                  <td>{{ it.color_nombre || getNombreColor(it.color_id) }}</td>
+                  <td>{{ it.talla_nombre || getNombreTalla(it.talla_id) }}</td>
                   <td><strong>{{ it.cantidad }}</strong></td>
                   <td>Bs. {{ it.costo_unitario | number:'1.2-2' }}</td>
                   <td><strong>Bs. {{ (it.cantidad * it.costo_unitario) | number:'1.2-2' }}</strong></td>
@@ -276,9 +276,9 @@
             </thead>
             <tbody>
               <tr *ngFor="let it of compraSeleccionada.detalles">
-                <td>{{ it.producto_nombre || it.producto_codigo }}</td>
-                <td>{{ it.color_nombre || it.color_id }}</td>
-                <td>{{ it.talla_nombre || it.talla_id }}</td>
+                <td>{{ it.producto_nombre || getNombreProducto(it.producto_codigo) }}</td>
+                <td>{{ it.color_nombre || getNombreColor(it.color_id) }}</td>
+                <td>{{ it.talla_nombre || getNombreTalla(it.talla_id) }}</td>
                 <td><strong>{{ it.cantidad }}</strong></td>
                 <td>Bs. {{ it.costo_unitario | number:'1.2-2' }}</td>
                 <td><strong>Bs. {{ it.subtotal | number:'1.2-2' }}</strong></td>

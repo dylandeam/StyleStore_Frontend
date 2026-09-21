@@ -160,11 +160,11 @@ export class ComprasListComponent implements OnInit {
       alert('Selecciona un producto.');
       return;
     }
-    if (!this.tempItem.color_id) {
+    if (!this.tempItem.color_id && Number(this.tempItem.color_id) <= 0) {
       alert('Selecciona un color.');
       return;
     }
-    if (!this.tempItem.talla_id) {
+    if (!this.tempItem.talla_id && Number(this.tempItem.talla_id) <= 0) {
       alert('Selecciona una talla.');
       return;
     }
@@ -177,7 +177,23 @@ export class ComprasListComponent implements OnInit {
       return;
     }
 
-    this.nuevaCompra.items.push({ ...this.tempItem });
+    const tallaIdNum = Number(this.tempItem.talla_id);
+    const colorIdNum = Number(this.tempItem.color_id);
+    const tallaObj = this.tallas.find((x) => Number(x.id) === tallaIdNum);
+    const colorObj = this.colores.find((x) => Number(x.id) === colorIdNum);
+    const prodObj = this.productos.find((x) => x.codigo === this.tempItem.producto_codigo);
+
+    this.nuevaCompra.items.push({
+      producto_codigo: this.tempItem.producto_codigo,
+      producto_nombre: prodObj ? prodObj.nombre : this.tempItem.producto_codigo,
+      color_id: colorIdNum,
+      color_nombre: colorObj ? colorObj.nombre : String(colorIdNum),
+      talla_id: tallaIdNum,
+      talla_nombre: tallaObj ? tallaObj.nombre : String(tallaIdNum),
+      cantidad: Number(this.tempItem.cantidad),
+      costo_unitario: Number(this.tempItem.costo_unitario),
+    });
+
     this.resetTempItem();
     this.cdr.markForCheck();
   }
@@ -209,7 +225,21 @@ export class ComprasListComponent implements OnInit {
     this.errorMsg = null;
     this.cdr.markForCheck();
 
-    this.compraService.createCompra(this.nuevaCompra).subscribe({
+    const payload: CompraCreate = {
+      proveedor_codigo: this.nuevaCompra.proveedor_codigo,
+      sucursal_id: Number(this.nuevaCompra.sucursal_id),
+      nro_factura: this.nuevaCompra.nro_factura?.trim() || undefined,
+      observaciones: this.nuevaCompra.observaciones?.trim() || undefined,
+      items: this.nuevaCompra.items.map((it) => ({
+        producto_codigo: it.producto_codigo,
+        color_id: Number(it.color_id),
+        talla_id: Number(it.talla_id),
+        cantidad: Number(it.cantidad),
+        costo_unitario: Number(it.costo_unitario),
+      })),
+    };
+
+    this.compraService.createCompra(payload).subscribe({
       next: (res) => {
         this.guardando = false;
         this.cerrarModalNueva();
@@ -266,13 +296,15 @@ export class ComprasListComponent implements OnInit {
     return p ? p.nombre : codigo;
   }
 
-  getNombreColor(id: number): string {
-    const c = this.colores.find((x) => x.id === id);
+  getNombreColor(id: number | string): string {
+    if (id === undefined || id === null) return '';
+    const c = this.colores.find((x) => Number(x.id) === Number(id));
     return c ? c.nombre : id.toString();
   }
 
-  getNombreTalla(id: number): string {
-    const t = this.tallas.find((x) => x.id === id);
+  getNombreTalla(id: number | string): string {
+    if (id === undefined || id === null) return '';
+    const t = this.tallas.find((x) => Number(x.id) === Number(id));
     return t ? t.nombre : id.toString();
   }
 }
