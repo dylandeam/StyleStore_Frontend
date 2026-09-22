@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PromocionesService } from '../../../core/services/promociones.service';
+import { ProductoService } from '../../../core/services/producto.service';
 import { Producto, PromocionUpdate } from '../../../core/models/producto.model';
 import { environment } from '../../../../environments/environment';
 
@@ -14,6 +15,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class PromocionesListComponent implements OnInit {
   private promocionesService = inject(PromocionesService);
+  private productoService = inject(ProductoService);
 
   productos = signal<Producto[]>([]);
   isLoading = signal<boolean>(true);
@@ -47,9 +49,18 @@ export class PromocionesListComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error al cargar lista de promociones:', err);
-        this.error.set('No se pudieron obtener los productos para gestionar promociones.');
-        this.isLoading.set(false);
+        console.warn('Invocando fallback a listado general de productos:', err);
+        this.productoService.getProductos().subscribe({
+          next: (data) => {
+            this.productos.set(data);
+            this.isLoading.set(false);
+          },
+          error: (fallbackErr) => {
+            console.error('Error al cargar lista de promociones:', fallbackErr);
+            this.error.set('No se pudieron obtener los productos para gestionar promociones.');
+            this.isLoading.set(false);
+          },
+        });
       },
     });
   }
