@@ -1,0 +1,107 @@
+<div class="p-6 max-w-6xl mx-auto text-slate-100">
+  <!-- Toast Notification -->
+  <div *ngIf="toast()" class="fixed top-5 right-5 z-50 bg-amber-500 text-slate-950 font-bold px-4 py-3 rounded-lg shadow-xl animate-bounce">
+    {{ toast() }}
+  </div>
+
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold flex items-center gap-2">
+        📐 Calibrador de Prendas para Realidad Aumentada (RA)
+      </h1>
+      <p class="text-slate-400 text-sm mt-1">
+        Haz clic sobre la prenda para ubicar los puntos clave de anclaje corporal según la especificación v8.
+      </p>
+    </div>
+    <a routerLink="/admin/productos" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition">
+      ← Volver a Productos
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Panel Izquierdo: Vista Previa y Clics -->
+    <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+      <div class="relative inline-block cursor-crosshair overflow-hidden rounded-xl border border-slate-700 shadow-2xl select-none" (click)="onImageClick($event)">
+        <img [src]="imageUrl()" alt="Prenda" class="max-h-[550px] w-auto object-contain block bg-slate-950/80" />
+
+        <!-- Renderizado de Puntos Calibrados sobre la Imagen -->
+        <ng-container *ngFor="let pt of landmarks(); let i = index">
+          <div
+            [style.left.%]="pt.x * 100"
+            [style.top.%]="pt.y * 100"
+            (click)="$event.stopPropagation(); selectPointIndex(i)"
+            [ngClass]="{
+              'ring-4 ring-amber-400 scale-125 z-30': currentPointIndex() === i,
+              'bg-amber-500 z-20': currentPointIndex() !== i
+            }"
+            class="absolute -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-slate-950 font-bold text-xs flex items-center justify-center shadow-lg transition-transform duration-150 cursor-pointer"
+          >
+            {{ i + 1 }}
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="mt-4 text-xs text-slate-400 text-center">
+        💡 <span class="text-amber-400 font-semibold">Consejo:</span> Haz clic en la posición exacta sugerida en la lista lateral para posicionar cada punto.
+      </div>
+    </div>
+
+    <!-- Panel Derecho: Lista de Puntos y Tipo AR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-amber-400">Puntos Clave (Landmarks)</h2>
+          <span *ngIf="isCalibrated()" class="px-2.5 py-1 bg-emerald-950 text-emerald-400 text-xs font-bold rounded-full border border-emerald-800">
+            ✓ Calibrado
+          </span>
+          <span *ngIf="!isCalibrated()" class="px-2.5 py-1 bg-amber-950 text-amber-400 text-xs font-bold rounded-full border border-amber-800">
+            Pendiente
+          </span>
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-xs text-slate-400 mb-1">Tipo de Anclaje RA (tipo_ar):</label>
+          <select [(ngModel)]="tipoAr" (change)="initLandmarkPoints(tipoAr())" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 font-medium focus:outline-none focus:border-amber-400">
+            <option value="superior">👕 Superior (Poleras, Camisas, Sacos)</option>
+            <option value="inferior">👖 Inferior (Pantalones, Faldas, Shorts)</option>
+            <option value="vestido_completo">👗 Vestido Completo / Enterizo</option>
+            <option value="accesorio">🧢 Accesorio (Gorras, Lentes)</option>
+          </select>
+        </div>
+
+        <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+          <div
+            *ngFor="let pt of landmarks(); let i = index"
+            (click)="selectPointIndex(i)"
+            [ngClass]="{
+              'border-amber-400 bg-amber-950/40 text-amber-200': currentPointIndex() === i,
+              'border-slate-800 bg-slate-950 hover:border-slate-700 text-slate-300': currentPointIndex() !== i
+            }"
+            class="p-3 rounded-xl border flex items-center justify-between cursor-pointer transition"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center">
+                {{ i + 1 }}
+              </span>
+              <span class="text-xs font-semibold">{{ pt.label }}</span>
+            </div>
+            <div class="text-[11px] font-mono text-slate-400">
+              ({{ (pt.x * 100).toFixed(1) }}%, {{ (pt.y * 100).toFixed(1) }}%)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button
+          (click)="saveCalibration()"
+          [disabled]="isSaving()"
+          class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <span *ngIf="isSaving()">Guardando...</span>
+          <span *ngIf="!isSaving()">💾 Guardar Calibración RA</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -40,6 +40,11 @@ export const ADMIN_ROUTES: Routes = [
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero', 'cliente'])],
       },
       {
+        path: 'productos/:codigo/calibrar',
+        loadComponent: () => import('./productos/calibrar-prenda/calibrar-prenda.component').then(m => m.CalibrarPrendaComponent),
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
         path: 'colecciones',
         component: ColeccionesComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],

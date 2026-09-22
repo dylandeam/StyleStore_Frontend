@@ -1,0 +1,4 @@
+/* Estilos específicos para el calibrador de prendas RA */
+:host {
+  display: block;
+}
