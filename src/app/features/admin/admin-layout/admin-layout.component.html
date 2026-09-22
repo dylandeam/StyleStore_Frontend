@@ -205,57 +205,59 @@
             </span>
           </div>
 
-          <div class="nav-group-items" [class.collapsed]="isCategoryCollapsed('tienda')">
-            <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">✨</span>
-              <span class="nav-label">Catálogo de Prendas</span>
-            </a>
+          @if (!isCategoryCollapsed('tienda')) {
+            <div class="nav-group-items">
+              <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">✨</span>
+                <span class="nav-label">Catálogo de Prendas</span>
+              </a>
 
-            <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">👗</span>
-              <span class="nav-label">Probador de Outfits</span>
-            </a>
+              <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">👗</span>
+                <span class="nav-label">Probador de Outfits</span>
+              </a>
 
-            <a routerLink="/vestidor-virtual" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🪞</span>
-              <span class="nav-label">Vestidor Virtual AR</span>
-            </a>
+              <a routerLink="/vestidor-virtual" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🪞</span>
+                <span class="nav-label">Vestidor Virtual AR</span>
+              </a>
 
-            <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">⏳</span>
-              <span class="nav-label">Próximamente</span>
-            </a>
+              <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">⏳</span>
+                <span class="nav-label">Próximamente</span>
+              </a>
 
-            <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'todas' }" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🛍️</span>
-              <span class="nav-label">Mis Compras Realizadas</span>
-            </a>
+              <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'todas' }" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🛍️</span>
+                <span class="nav-label">Mis Compras Realizadas</span>
+              </a>
 
-            <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🔄</span>
-              <span class="nav-label">Cambios y Devoluciones</span>
-            </a>
+              <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-label">Cambios y Devoluciones</span>
+              </a>
 
-            <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🏬</span>
-              <span class="nav-label">Nuestras Sucursales</span>
-            </a>
+              <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🏬</span>
+                <span class="nav-label">Nuestras Sucursales</span>
+              </a>
 
-            <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">💳</span>
-              <span class="nav-label">Mis Pagos y Recibos</span>
-            </a>
+              <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">💳</span>
+                <span class="nav-label">Mis Pagos y Recibos</span>
+              </a>
 
-            <a routerLink="/cuenta/mis-reservas" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🔖</span>
-              <span class="nav-label">Mis Reservas</span>
-            </a>
+              <a routerLink="/cuenta/mis-reservas" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🔖</span>
+                <span class="nav-label">Mis Reservas</span>
+              </a>
 
-            <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🛒</span>
-              <span class="nav-label">Bolsa de Compras</span>
-            </a>
-          </div>
+              <a routerLink="/carrito" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🛒</span>
+                <span class="nav-label">Bolsa de Compras</span>
+              </a>
+            </div>
+          }
         } @else {
           <!-- NAVEGACIÓN STAFF Y ADMINISTRACIÓN -->
           <!-- Sección: CATÁLOGO -->
@@ -266,64 +268,66 @@
             </span>
           </div>
 
-          <div class="nav-group-items" [class.collapsed]="isCategoryCollapsed('catalogo')">
-            <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">✨</span>
-              <span class="nav-label">Vista Catálogo Tienda</span>
-            </a>
-
-            <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">👗</span>
-              <span class="nav-label">Probador de Outfits</span>
-            </a>
-
-            <a routerLink="/vestidor-virtual" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🪞</span>
-              <span class="nav-label">Vestidor Virtual AR</span>
-            </a>
-
-            <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">👕</span>
-              <span class="nav-label">Gestión de Productos</span>
-            </a>
-
-            <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🧵</span>
-              <span class="nav-label">Colecciones</span>
-            </a>
-
-            <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">⏳</span>
-              <span class="nav-label">Próximamente</span>
-            </a>
-
-            <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">📦</span>
-              <span class="nav-label">Control de Inventario</span>
-            </a>
-
-            @if (canManageStore) {
-              <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">📁</span>
-                <span class="nav-label">Categorías</span>
+          @if (!isCategoryCollapsed('catalogo')) {
+            <div class="nav-group-items">
+              <a routerLink="/catalogo" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">✨</span>
+                <span class="nav-label">Vista Catálogo Tienda</span>
               </a>
 
-              <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">🎨</span>
-                <span class="nav-label">Colores</span>
+              <a routerLink="/outfits" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">👗</span>
+                <span class="nav-label">Probador de Outfits</span>
               </a>
 
-              <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">📏</span>
-                <span class="nav-label">Tallas</span>
+              <a routerLink="/vestidor-virtual" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🪞</span>
+                <span class="nav-label">Vestidor Virtual AR</span>
               </a>
 
-              <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">🗓️</span>
-                <span class="nav-label">Temporadas</span>
+              <a routerLink="/admin/productos" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">👕</span>
+                <span class="nav-label">Gestión de Productos</span>
               </a>
-            }
-          </div>
+
+              <a routerLink="/admin/colecciones" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🧵</span>
+                <span class="nav-label">Colecciones</span>
+              </a>
+
+              <a routerLink="/admin/proximamente" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">⏳</span>
+                <span class="nav-label">Próximamente</span>
+              </a>
+
+              <a routerLink="/admin/inventario" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📦</span>
+                <span class="nav-label">Control de Inventario</span>
+              </a>
+
+              @if (canManageStore) {
+                <a routerLink="/admin/categorias" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">📁</span>
+                  <span class="nav-label">Categorías</span>
+                </a>
+
+                <a routerLink="/admin/colores" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">🎨</span>
+                  <span class="nav-label">Colores</span>
+                </a>
+
+                <a routerLink="/admin/tallas" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">📏</span>
+                  <span class="nav-label">Tallas</span>
+                </a>
+
+                <a routerLink="/admin/temporadas" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">🗓️</span>
+                  <span class="nav-label">Temporadas</span>
+                </a>
+              }
+            </div>
+          }
 
           <!-- Sección: VENTAS Y OPERACIONES -->
           <div class="nav-group-header mt-group" (click)="toggleCategory('ventas')">
@@ -333,37 +337,39 @@
             </span>
           </div>
 
-          <div class="nav-group-items" [class.collapsed]="isCategoryCollapsed('ventas')">
-            <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">💵</span>
-              <span class="nav-label">Gestionar Pagos</span>
-            </a>
+          @if (!isCategoryCollapsed('ventas')) {
+            <div class="nav-group-items">
+              <a routerLink="/admin/caja" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">💵</span>
+                <span class="nav-label">Gestionar Pagos</span>
+              </a>
 
-            <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🔄</span>
-              <span class="nav-label">Cambios y Devoluciones</span>
-            </a>
+              <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-label">Cambios y Devoluciones</span>
+              </a>
 
-            <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">📊</span>
-              <span class="nav-label">Suite de Reportes</span>
-            </a>
+              <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Suite de Reportes</span>
+              </a>
 
-            <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">💼</span>
-              <span class="nav-label">Gestión de Ventas</span>
-            </a>
+              <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">💼</span>
+                <span class="nav-label">Gestión de Ventas</span>
+              </a>
 
-            <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🔖</span>
-              <span class="nav-label">Reservas y Tickets</span>
-            </a>
+              <a routerLink="/admin/reservas" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🔖</span>
+                <span class="nav-label">Reservas y Tickets</span>
+              </a>
 
-            <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🚚</span>
-              <span class="nav-label">Despachos y Envíos (Delivery)</span>
-            </a>
-          </div>
+              <a routerLink="/admin/envios" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🚚</span>
+                <span class="nav-label">Despachos y Envíos (Delivery)</span>
+              </a>
+            </div>
+          }
 
           <!-- Sección: ADMINISTRACIÓN (Solo Staff) -->
           @if (isStaff) {
@@ -374,51 +380,53 @@
               </span>
             </div>
 
-            <div class="nav-group-items" [class.collapsed]="isCategoryCollapsed('administracion')">
-              <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">🏢</span>
-                <span class="nav-label">Sucursales</span>
-              </a>
-
-              <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">🛍️</span>
-                <span class="nav-label">Clientes</span>
-              </a>
-
-              @if (canManageStore) {
-                <a routerLink="/admin/empleados" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">👥</span>
-                  <span class="nav-label">Empleados</span>
+            @if (!isCategoryCollapsed('administracion')) {
+              <div class="nav-group-items">
+                <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">🏢</span>
+                  <span class="nav-label">Sucursales</span>
                 </a>
 
-                <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">🏭</span>
-                  <span class="nav-label">Proveedores</span>
+                <a routerLink="/admin/clientes" routerLinkActive="active" class="nav-item">
+                  <span class="nav-icon">🛍️</span>
+                  <span class="nav-label">Clientes</span>
                 </a>
 
-                <a routerLink="/admin/compras" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">📥</span>
-                  <span class="nav-label">Compras a Proveedores</span>
-                </a>
-              }
+                @if (canManageStore) {
+                  <a routerLink="/admin/empleados" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Empleados</span>
+                  </a>
 
-              @if (isAdmin) {
-                <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">👤</span>
-                  <span class="nav-label">Usuarios</span>
-                </a>
+                  <a routerLink="/admin/proveedores" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">🏭</span>
+                    <span class="nav-label">Proveedores</span>
+                  </a>
 
-                <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">🛡️</span>
-                  <span class="nav-label">Roles y Permisos</span>
-                </a>
+                  <a routerLink="/admin/compras" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">📥</span>
+                    <span class="nav-label">Compras a Proveedores</span>
+                  </a>
+                }
 
-                <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">💾</span>
-                  <span class="nav-label">Backups (SHA-256)</span>
-                </a>
-              }
-            </div>
+                @if (isAdmin) {
+                  <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">👤</span>
+                    <span class="nav-label">Usuarios</span>
+                  </a>
+
+                  <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">Roles y Permisos</span>
+                  </a>
+
+                  <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">💾</span>
+                    <span class="nav-label">Backups (SHA-256)</span>
+                  </a>
+                }
+              </div>
+            }
           }
         }
 
@@ -430,25 +438,27 @@
           </span>
         </div>
 
-        <div class="nav-group-items" [class.collapsed]="isCategoryCollapsed('sistema')">
-          <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
-          @if (!isCliente) {
-            <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">📒</span>
-              <span class="nav-label">Bitácora de Auditoría</span>
+        @if (!isCategoryCollapsed('sistema')) {
+          <div class="nav-group-items">
+            <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
+            @if (!isCliente) {
+              <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📒</span>
+                <span class="nav-label">Bitácora de Auditoría</span>
+              </a>
+            }
+
+            <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">👤</span>
+              <span class="nav-label">Mi Perfil</span>
             </a>
-          }
 
-          <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">👤</span>
-            <span class="nav-label">Mi Perfil</span>
-          </a>
-
-          <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
-            <span class="nav-icon">🔑</span>
-            <span class="nav-label">Cambiar Contraseña</span>
-          </a>
-        </div>
+            <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🔑</span>
+              <span class="nav-label">Cambiar Contraseña</span>
+            </a>
+          </div>
+        }
       </nav>
     }
 
