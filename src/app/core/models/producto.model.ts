@@ -19,6 +19,10 @@ export interface Producto {
   coleccion_nombre?: string | null;
   visible_en_catalogo?: boolean;
   active: boolean;
+  en_promocion?: boolean;
+  porcentaje_descuento?: number;
+  precio_descuento?: number | null;
+  titulo_promocion?: string | null;
   colores?: Color[];
   stock_total?: number;
   created_at?: string;
@@ -42,6 +46,10 @@ export interface ProductoCreate {
   visible_en_catalogo?: boolean;
   color_ids?: number[];
   active?: boolean;
+  en_promocion?: boolean;
+  porcentaje_descuento?: number;
+  precio_descuento?: number | null;
+  titulo_promocion?: string | null;
 }
 
 export interface ProductoUpdate {
@@ -60,4 +68,15 @@ export interface ProductoUpdate {
   visible_en_catalogo?: boolean;
   color_ids?: number[];
   active?: boolean;
+  en_promocion?: boolean;
+  porcentaje_descuento?: number;
+  precio_descuento?: number | null;
+  titulo_promocion?: string | null;
 }
+
+export interface PromocionUpdate {
+  en_promocion: boolean;
+  porcentaje_descuento: number;
+  titulo_promocion?: string | null;
+}
+

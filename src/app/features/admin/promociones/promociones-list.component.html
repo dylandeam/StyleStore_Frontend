@@ -1,0 +1,231 @@
+<div class="admin-promos-container">
+  <!-- Header de Gestión de Promociones -->
+  <header class="admin-header">
+    <div>
+      <h1 class="page-title">🏷️ Gestión de Promociones y Descuentos</h1>
+      <p class="page-subtitle">
+        Asigna descuentos especiales, etiquetas de oferta y ofertas de temporada a las prendas de tu catálogo StyleStore.
+      </p>
+    </div>
+  </header>
+
+  <!-- Mensaje de Éxito -->
+  <div *ngIf="successMsg()" class="alert-success">
+    <span>✅</span>
+    <span>{{ successMsg() }}</span>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <section class="filter-card">
+    <div class="search-input-wrap">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Buscar por código, nombre o categoría..."
+        class="search-field"
+      />
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        class="tab-btn"
+        [class.active]="filterEstado === 'todos'"
+        (click)="filterEstado = 'todos'"
+      >
+        Todas las Prendas
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="filterEstado === 'promocion'"
+        (click)="filterEstado = 'promocion'"
+      >
+        🔥 En Promoción
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="filterEstado === 'normal'"
+        (click)="filterEstado = 'normal'"
+      >
+        Preprecio Regular
+      </button>
+    </div>
+  </section>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="state-card">
+    <div class="spinner"></div>
+    <p>Cargando inventario para gestión de descuentos...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error()" class="alert-error">
+    <span>⚠️</span>
+    <p>{{ error() }}</p>
+    <button (click)="cargarProductos()" class="btn-retry">Reintentar</button>
+  </div>
+
+  <!-- Tabla de Gestión de Promociones -->
+  <section *ngIf="!isLoading() && !error()" class="table-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Prenda</th>
+          <th>Categoría</th>
+          <th>Precio Base</th>
+          <th>Estado Promoción</th>
+          <th>% Descuento</th>
+          <th>Precio Final</th>
+          <th class="text-center">Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of productosFiltrados">
+          <td>
+            <div class="product-cell">
+              <img [src]="getImageUrl(p.foto)" [alt]="p.nombre" class="thumb-img" />
+              <div>
+                <strong class="prod-name">{{ p.nombre }}</strong>
+                <span class="prod-code">Ref: {{ p.codigo }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ p.categoria_nombre || 'General' }}</td>
+          <td>
+            <strong>Bs. {{ p.precio | number:'1.2-2' }}</strong>
+          </td>
+          <td>
+            <span *ngIf="p.en_promocion" class="badge-active">
+              🔥 {{ p.porcentaje_descuento }}% OFF
+            </span>
+            <span *ngIf="!p.en_promocion" class="badge-inactive">
+              Sin Descuento
+            </span>
+          </td>
+          <td>
+            <span *ngIf="p.en_promocion" class="pct-text">-{{ p.porcentaje_descuento }}%</span>
+            <span *ngIf="!p.en_promocion" class="text-muted">0%</span>
+          </td>
+          <td>
+            <div *ngIf="p.en_promocion && p.precio_descuento" class="price-calc">
+              <span class="old-price-line">Bs. {{ p.precio | number:'1.2-2' }}</span>
+              <strong class="discount-price-highlight">Bs. {{ p.precio_descuento | number:'1.2-2' }}</strong>
+            </div>
+            <span *ngIf="!p.en_promocion" class="regular-price">Bs. {{ p.precio | number:'1.2-2' }}</span>
+          </td>
+          <td class="text-center">
+            <button
+              class="btn-edit-promo"
+              (click)="abrirModalPromocion(p)"
+              [class.btn-edit-active]="p.en_promocion"
+            >
+              ⚙️ {{ p.en_promocion ? 'Editar Promo' : 'Asignar Descuento' }}
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="productosFiltrados.length === 0">
+          <td colspan="7" class="empty-cell">
+            No se encontraron prendas con los filtros seleccionados.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- MODAL DE CONFIGURACIÓN DE PROMOCIÓN -->
+  <div *ngIf="modalVisible()" class="modal-backdrop" (click)="cerrarModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>⚙️ Configurar Descuento y Promoción</h3>
+        <button class="btn-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedProduct">
+        <!-- Preview Prenda -->
+        <div class="product-preview-bar">
+          <img [src]="getImageUrl(selectedProduct.foto)" [alt]="selectedProduct.nombre" class="modal-thumb" />
+          <div>
+            <h4 class="modal-prod-title">{{ selectedProduct.nombre }}</h4>
+            <span class="modal-prod-meta">Ref: {{ selectedProduct.codigo }} | Precio Lista: Bs. {{ selectedProduct.precio | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <form (ngSubmit)="guardarPromocion()" class="modal-form">
+          <!-- Toggle Activar Promoción -->
+          <div class="form-toggle-row">
+            <label class="toggle-label">
+              <input type="checkbox" [(ngModel)]="formEnPromocion" name="enPromocion" class="toggle-checkbox" />
+              <span class="toggle-text">Activar Promoción / Descuento</span>
+            </label>
+          </div>
+
+          <!-- Campos de Promoción si está activa -->
+          <div *ngIf="formEnPromocion" class="promo-fields-box">
+            <!-- Botones de % rápido -->
+            <div class="quick-pct-section">
+              <label class="field-label">Porcentaje de Descuento Rápido:</label>
+              <div class="pct-btn-grid">
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 10" (click)="setPorcentajeRapido(10)">10% OFF</button>
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 15" (click)="setPorcentajeRapido(15)">15% OFF</button>
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 20" (click)="setPorcentajeRapido(20)">20% OFF</button>
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 30" (click)="setPorcentajeRapido(30)">30% OFF</button>
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 50" (click)="setPorcentajeRapido(50)">50% OFF</button>
+                <button type="button" class="pct-chip" [class.pct-chip-active]="formPorcentaje === 70" (click)="setPorcentajeRapido(70)">70% OFF</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">% Descuento Personalizado (1 - 90%):</label>
+              <div class="input-pct-wrap">
+                <input
+                  type="number"
+                  [(ngModel)]="formPorcentaje"
+                  name="porcentaje"
+                  min="1"
+                  max="90"
+                  class="input-pct"
+                />
+                <span class="pct-suffix">% OFF</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="field-label">Título / Etiqueta de la Promoción (Opcional):</label>
+              <input
+                type="text"
+                [(ngModel)]="formTitulo"
+                name="titulo"
+                placeholder="Ej. Oferta de Verano, Black Friday, Especial de Gala..."
+                class="input-title"
+                maxlength="100"
+              />
+            </div>
+
+            <!-- Calculadora en Tiempo Real -->
+            <div class="calc-preview-card">
+              <div class="calc-row">
+                <span>Precio Original:</span>
+                <span>Bs. {{ selectedProduct.precio | number:'1.2-2' }}</span>
+              </div>
+              <div class="calc-row">
+                <span>Descuento aplicado ({{ formPorcentaje }}%):</span>
+                <span class="calc-minus">- Bs. {{ ((selectedProduct.precio * formPorcentaje) / 100) | number:'1.2-2' }}</span>
+              </div>
+              <div class="calc-row calc-total">
+                <span>Precio Final para Clientes:</span>
+                <strong class="calc-final-price">Bs. {{ precioCalculado | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn-cancel" (click)="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn-save" [disabled]="saving()">
+              {{ saving() ? 'Guardando...' : 'Guardar Promoción' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

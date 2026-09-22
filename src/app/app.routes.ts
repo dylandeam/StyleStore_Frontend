@@ -33,6 +33,8 @@ import { BackupsComponent } from './features/admin/backups/backups.component';
 import { ReportesComponent } from './features/admin/reportes/reportes.component';
 
 import { CatalogoListComponent } from './features/catalogo/catalogo-list/catalogo-list.component';
+import { PromocionesClienteComponent } from './features/promociones/promociones-cliente.component';
+import { PromocionesListComponent } from './features/admin/promociones/promociones-list.component';
 import { MisComprasComponent } from './features/cuenta/mis-compras/mis-compras.component';
 import { MisPagosComponent } from './features/cuenta/mis-pagos/mis-pagos.component';
 import { MisReservasComponent } from './features/cuenta/mis-reservas/mis-reservas.component';
@@ -80,6 +82,10 @@ export const routes: Routes = [
       {
         path: 'catalogo',
         component: CatalogoListComponent,
+      },
+      {
+        path: 'promociones',
+        component: PromocionesClienteComponent,
       },
       {
         path: 'outfits',
@@ -147,6 +153,11 @@ export const routes: Routes = [
       {
         path: 'admin/productos',
         component: ProductosListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'admin/promociones',
+        component: PromocionesListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       {

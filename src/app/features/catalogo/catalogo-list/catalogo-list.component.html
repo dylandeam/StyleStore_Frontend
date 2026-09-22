@@ -173,6 +173,9 @@
             class="product-image"
             loading="lazy"
           />
+          <span *ngIf="p.en_promocion" class="discount-badge">
+            🏷️ {{ p.porcentaje_descuento }}% OFF
+          </span>
           <span class="category-tag">{{ p.categoria_nombre || 'Exclusivo' }}</span>
           <span *ngIf="p.coleccion_nombre" class="coleccion-tag">{{ p.coleccion_nombre }}</span>
         </div>
@@ -184,12 +187,22 @@
           </div>
 
           <h3 class="product-name">{{ p.nombre }}</h3>
+          <span *ngIf="p.en_promocion && p.titulo_promocion" class="promo-title-tag">
+            ✨ {{ p.titulo_promocion }}
+          </span>
           <p class="product-desc" *ngIf="p.descripcion">{{ p.descripcion }}</p>
 
           <div class="card-footer-info">
             <div class="price-box">
-              <span class="price-currency">Bs.</span>
-              <span class="price-amount">{{ p.precio | number:'1.2-2' }}</span>
+              <ng-container *ngIf="p.en_promocion && p.precio_descuento; else normalPrice">
+                <span class="price-old">Bs. {{ p.precio | number:'1.2-2' }}</span>
+                <span class="price-currency discount-currency">Bs.</span>
+                <span class="price-amount discount-amount">{{ p.precio_descuento | number:'1.2-2' }}</span>
+              </ng-container>
+              <ng-template #normalPrice>
+                <span class="price-currency">Bs.</span>
+                <span class="price-amount">{{ p.precio | number:'1.2-2' }}</span>
+              </ng-template>
             </div>
 
             <button

@@ -1,0 +1,121 @@
+<div class="promociones-container">
+  <!-- Hero / Header Banner Promocional -->
+  <header class="promo-hero">
+    <div class="promo-hero-content">
+      <div class="promo-badge-tag">🔥 OFERTAS Y PROMOCIONES DE TEMPORADA</div>
+      <h1 class="promo-hero-title">Grandes Descuentos StyleStore</h1>
+      <p class="promo-hero-subtitle">
+        Descubre prendas exclusivas de alta costura con precios especiales por tiempo limitado.
+        ¡Renueva tu estilo con hasta 90% OFF!
+      </p>
+
+      <div class="promo-stats-bar">
+        <div class="stat-pill">
+          <span class="stat-icon">⚡</span>
+          <span class="stat-text">Precios Exclusivos</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-icon">🛍️</span>
+          <span class="stat-text">Stock Limitado</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-icon">🚚</span>
+          <span class="stat-text">Envío Garantizado</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Filtros y Búsqueda de Promociones -->
+  <section class="promo-controls-card">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        placeholder="Buscar en promociones..."
+        class="promo-search-input"
+      />
+      <button *ngIf="searchTerm" (click)="searchTerm = ''" class="btn-clear">✕</button>
+    </div>
+
+    <div class="sort-wrap">
+      <label>Ordenar por:</label>
+      <select [(ngModel)]="selectedSort" class="promo-sort-select">
+        <option value="descuento_desc">Mayor Descuento (% OFF)</option>
+        <option value="precio_asc">Precio: Menor a Mayor</option>
+        <option value="precio_desc">Precio: Mayor a Menor</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Estado de Carga -->
+  <div *ngIf="isLoading()" class="loading-card">
+    <div class="spinner"></div>
+    <p>Cargando ofertas exclusivas...</p>
+  </div>
+
+  <!-- Estado de Error -->
+  <div *ngIf="error()" class="error-banner">
+    <span>⚠️</span>
+    <p>{{ error() }}</p>
+    <button (click)="cargarPromociones()" class="btn-retry">Reintentar</button>
+  </div>
+
+  <!-- Grid de Productos en Promoción -->
+  <main *ngIf="!isLoading() && !error()" class="promo-grid-wrapper">
+    <div class="results-bar">
+      <p>Encontramos <strong>{{ promocionesFiltradas.length }}</strong> prendas con descuento disponible</p>
+    </div>
+
+    <div *ngIf="promocionesFiltradas.length === 0" class="empty-promos">
+      <span class="empty-icon">🏷️</span>
+      <h3>No hay ofertas que coincidan con tu búsqueda</h3>
+      <p>Explora nuestro catálogo general para ver toda la colección disponible.</p>
+      <button (click)="searchTerm = ''" class="btn-primary">Ver todas las ofertas</button>
+    </div>
+
+    <div class="promos-grid">
+      <article
+        *ngFor="let p of promocionesFiltradas"
+        class="promo-card"
+        (click)="verDetalle(p.codigo)"
+      >
+        <div class="promo-image-box">
+          <img [src]="getImageUrl(p.foto)" [alt]="p.nombre" class="promo-image" loading="lazy" />
+          <span class="promo-badge-sale">🏷️ {{ p.porcentaje_descuento }}% OFF</span>
+          <span *ngIf="p.categoria_nombre" class="promo-cat-tag">{{ p.categoria_nombre }}</span>
+        </div>
+
+        <div class="promo-card-body">
+          <div class="promo-meta">
+            <span class="promo-code">Ref: {{ p.codigo }}</span>
+            <span *ngIf="p.temporada_nombre" class="promo-season">{{ p.temporada_nombre }}</span>
+          </div>
+
+          <h3 class="promo-item-name">{{ p.nombre }}</h3>
+
+          <div *ngIf="p.titulo_promocion" class="promo-title-banner">
+            ✨ {{ p.titulo_promocion }}
+          </div>
+
+          <p class="promo-item-desc" *ngIf="p.descripcion">{{ p.descripcion }}</p>
+
+          <div class="promo-footer">
+            <div class="price-container">
+              <span class="price-original">Bs. {{ p.precio | number:'1.2-2' }}</span>
+              <div class="price-final">
+                <span class="currency">Bs.</span>
+                <span class="amount">{{ (p.precio_descuento || p.precio) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <button type="button" class="btn-buy-promo" (click)="$event.stopPropagation(); verDetalle(p.codigo)">
+              Aprovechar Oferta →
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+</div>

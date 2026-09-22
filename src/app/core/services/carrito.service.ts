@@ -46,6 +46,10 @@ export interface CatalogoItem {
   temporada_nombre?: string;
   coleccion_id?: number;
   coleccion_nombre?: string;
+  en_promocion?: boolean;
+  porcentaje_descuento?: number;
+  precio_descuento?: number | null;
+  titulo_promocion?: string | null;
   variantes: Array<{
     producto_color_id: number;
     color_id: number;

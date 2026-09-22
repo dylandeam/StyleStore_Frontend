@@ -596,3 +596,62 @@
   color: #14263D;
   transform: translateY(-1px);
 }
+
+/* Promociones y Descuentos */
+.discount-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #E63946 0%, #D62828 100%);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.4);
+  letter-spacing: 0.4px;
+  z-index: 2;
+  animation: pulse-promo 2s infinite;
+}
+
+@keyframes pulse-promo {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.promo-title-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #D62828;
+  background: #FFEAEA;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  border: 1px dashed rgba(214, 40, 40, 0.3);
+}
+
+.price-box {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.price-old {
+  font-size: 12px;
+  color: #94A3B8;
+  text-decoration: line-through;
+  font-weight: 600;
+}
+
+.discount-currency {
+  color: #E63946 !important;
+}
+
+.discount-amount {
+  color: #E63946 !important;
+  font-size: 22px !important;
+}
+
