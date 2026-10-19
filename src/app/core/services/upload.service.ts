@@ -42,9 +42,9 @@ export class UploadService {
         .replace('https://127.0.0.1:8000', baseUrl);
     }
 
-    // 2. Si la URL es HTTP hacia Railway, forzar HTTPS para evitar que Safari en iPhone la bloquee por Mixed Content
-    if (trimmed.startsWith('http://stylestorebackend-production.up.railway.app')) {
-      trimmed = trimmed.replace('http://', 'https://');
+    // 2. Reescribir archivos guardados con el dominio anterior de Railway hacia el backend actual
+    if (/^https?:\/\/stylestorebackend-production\.up\.railway\.app/i.test(trimmed)) {
+      trimmed = trimmed.replace(/^https?:\/\/stylestorebackend-production\.up\.railway\.app/i, baseUrl);
     }
 
     // 3. Si ya es data URI o URL absoluta HTTPS

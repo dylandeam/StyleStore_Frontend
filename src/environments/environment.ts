@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://stylestorebackend-production.up.railway.app/api/v1',
+  apiUrl: 'https://web-production-07e73.up.railway.app/api/v1',
 };
