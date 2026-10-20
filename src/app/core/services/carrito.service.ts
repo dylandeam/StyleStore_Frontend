@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, from, map, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
+import { OfflineDbService } from './offline-db.service';
+import { OfflineStateService } from './offline-state.service';
 
 export interface CarritoItem {
   id: number;
@@ -73,6 +76,9 @@ export interface CatalogoItem {
 })
 export class CarritoService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
+  private offlineDb = inject(OfflineDbService);
+  private offlineState = inject(OfflineStateService);
   private apiUrl = `${environment.apiUrl}/carrito`;
   private catalogoUrl = `${environment.apiUrl}/catalogo`;
 
@@ -123,7 +129,40 @@ export class CarritoService {
     if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id);
     if (filters?.search) params = params.set('search', filters.search);
 
-    return this.http.get<CatalogoItem[]>(this.catalogoUrl, { params });
+    const scope = this.offlineScope();
+    const filterKey = this.catalogFilterKey(filters);
+    return this.http.get<CatalogoItem[]>(this.catalogoUrl, { params }).pipe(
+      tap((data) => {
+        this.offlineState.usingCachedCatalog.set(false);
+        void this.offlineDb
+          .putCatalog(scope, filterKey, data)
+          .then((snapshot) => this.offlineState.lastCatalogSync.set(snapshot.syncedAt))
+          .catch(() => undefined);
+      }),
+      catchError((requestError) =>
+        from(this.offlineDb.getCatalog<CatalogoItem[]>(scope, filterKey)).pipe(
+          switchMap((snapshot) => snapshot ? from([snapshot]) : throwError(() => requestError)),
+          tap((snapshot) => {
+            this.offlineState.usingCachedCatalog.set(true);
+            this.offlineState.lastCatalogSync.set(snapshot.syncedAt);
+          }),
+          map((snapshot) => snapshot.data)
+        )
+      )
+    );
+  }
+
+  private offlineScope(): string {
+    const user = this.auth.currentUser();
+    return user ? `empresa-${user.empresa_id ?? 'plataforma'}:usuario-${user.id}` : 'publico';
+  }
+
+  private catalogFilterKey(filters?: Record<string, number | string | undefined>): string {
+    return Object.entries(filters ?? {})
+      .filter(([, value]) => value !== undefined && value !== '')
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, value]) => `${key}=${String(value).toLowerCase()}`)
+      .join('&') || 'todos';
   }
 
   getProductoDetalle(codigo: string, sucursalId?: number): Observable<CatalogoItem> {

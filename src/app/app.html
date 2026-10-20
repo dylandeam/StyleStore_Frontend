@@ -1,1 +1,18 @@
+@if (offlineState.showStatus()) {
+  <aside class="connectivity-banner" role="status" aria-live="polite">
+    @if (!offlineState.online()) {
+      <span><strong>Sin conexión.</strong> Mostramos los datos guardados en este dispositivo.</span>
+    } @else if (offlineState.usingCachedCatalog()) {
+      <span>
+        <strong>Catálogo guardado.</strong>
+        Última sincronización: {{ formatSyncDate(offlineState.lastCatalogSync()) }}.
+      </span>
+    } @else if (offlineState.pendingOperations() > 0) {
+      <span>{{ offlineState.pendingOperations() }} operación(es) pendientes de sincronización.</span>
+    }
+    @if (offlineState.updateAvailable()) {
+      <button type="button" (click)="applyUpdate()">Actualizar aplicación</button>
+    }
+  </aside>
+}
 <router-outlet></router-outlet>

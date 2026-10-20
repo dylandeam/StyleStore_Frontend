@@ -1,0 +1,26 @@
+.connectivity-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 42px;
+  padding: 0.55rem 1rem;
+  color: #fff;
+  background: linear-gradient(90deg, #5b21b6, #7c3aed);
+  box-shadow: 0 3px 12px rgb(15 23 42 / 20%);
+  font-size: 0.9rem;
+}
+
+.connectivity-banner button {
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  color: #4c1d95;
+  background: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
