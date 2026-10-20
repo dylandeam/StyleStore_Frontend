@@ -44,6 +44,7 @@ import { OutfitsComponent } from './features/outfits/outfits.component';
 import { VestidorVirtualComponent } from './features/vestidor-virtual/vestidor-virtual.component';
 import { ConductorTrackerComponent } from './features/delivery/conductor/conductor-tracker.component';
 import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tracker.component';
+import { PlanesComponent } from './features/planes/planes.component';
 
 export const routes: Routes = [
   {
@@ -86,6 +87,10 @@ export const routes: Routes = [
       {
         path: 'promociones',
         component: PromocionesClienteComponent,
+      },
+      {
+        path: 'planes',
+        component: PlanesComponent,
       },
       {
         path: 'outfits',
@@ -246,6 +251,11 @@ export const routes: Routes = [
       {
         path: 'admin/usuarios',
         component: UsuariosListComponent,
+        canActivate: [roleGuard(['administrador'])],
+      },
+      {
+        path: 'admin/planes',
+        component: PlanesComponent,
         canActivate: [roleGuard(['administrador'])],
       },
       {

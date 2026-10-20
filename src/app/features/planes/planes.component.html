@@ -1,0 +1,84 @@
+<section class="plans-shell">
+  <header class="hero">
+    <span class="eyebrow">{{ isAdminView ? 'CONFIGURACIÓN COMERCIAL' : 'MEMBRESÍAS STYLESTORE' }}</span>
+    <h1>{{ isAdminView ? 'Diseña tus planes de suscripción' : 'Elige una experiencia a tu medida' }}</h1>
+    <p>{{ isAdminView ? 'Configura precio, moneda, beneficios y apariencia sin afectar a otras empresas.' : 'Tres opciones transparentes, configuradas especialmente para tu tienda.' }}</p>
+
+    @if (isPlatformAdmin && isAdminView) {
+      <label class="tenant-picker">
+        <span>Ámbito del administrador maestro</span>
+        <select [(ngModel)]="selectedEmpresaId" (change)="loadPlans()">
+          <option [ngValue]="undefined">Plantillas globales</option>
+          @for (company of companies(); track company.id) {
+            <option [ngValue]="company.id">{{ company.nombre }} · {{ company.codigo }}</option>
+          }
+        </select>
+      </label>
+    }
+  </header>
+
+  @if (message()) { <div class="notice success">{{ message() }}</div> }
+  @if (error()) { <div class="notice error">{{ error() }}</div> }
+
+  @if (!isAdminView && myContract(); as contract) {
+    <div class="current-plan">
+      <span>Plan activo</span>
+      <strong>{{ contract.plan_nombre }}</strong>
+      <small>Vigente hasta {{ contract.fecha_fin | date:'dd/MM/yyyy' }}</small>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="loading">Preparando tus planes…</div>
+  } @else {
+    <div class="plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <article class="plan-card" [class.featured]="plan.estilo['destacado'] || plan.codigo === 'profesional'" [style.--plan-color]="planColor(plan)">
+          <div class="glow"></div>
+          <div class="plan-head">
+            <span class="plan-code">{{ plan.codigo }}</span>
+            @if (plan.estilo['destacado'] || plan.codigo === 'profesional') { <span class="popular">Destacado</span> }
+          </div>
+          <h2>{{ plan.nombre }}</h2>
+          <p class="description">{{ plan.descripcion || 'Configura este plan con la propuesta ideal para tus clientes.' }}</p>
+          <div class="price"><span>{{ plan.moneda }}</span><strong>{{ plan.precio_mensual | number:'1.2-2' }}</strong><small>/ mes</small></div>
+          <div class="limits">
+            <span>{{ plan.max_sucursales ? ('Hasta ' + plan.max_sucursales + ' sucursales') : 'Alcance configurable' }}</span>
+            <span>{{ plan.ia_generativa ? 'IA generativa incluida' : 'Sin IA generativa' }}</span>
+          </div>
+          <ul>
+            @for (benefit of plan.beneficios; track benefit) { <li><span>✓</span>{{ benefit }}</li> }
+            @if (!plan.beneficios.length) { <li class="muted">Contenido pendiente de configuración</li> }
+          </ul>
+          @if (isAdminView) {
+            <button class="primary" (click)="edit(plan)">Configurar plan</button>
+          } @else {
+            <button class="primary" [disabled]="saving() || myContract()?.plan_codigo === plan.codigo" (click)="contract(plan)">
+              {{ myContract()?.plan_codigo === plan.codigo ? 'Plan actual' : 'Contratar plan' }}
+            </button>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (editing(); as plan) {
+  <div class="modal-backdrop" (click)="closeEditor()">
+    <form class="editor" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+      <header><div><span class="eyebrow">{{ plan.codigo }}</span><h2>Configurar {{ plan.nombre }}</h2></div><button type="button" class="close" (click)="closeEditor()">×</button></header>
+      <div class="form-grid">
+        <label>Nombre<input name="name" [(ngModel)]="plan.nombre" required maxlength="80"></label>
+        <label>Moneda<select name="currency" [(ngModel)]="plan.moneda"><option>BOB</option><option>USD</option><option>EUR</option></select></label>
+        <label>Precio mensual<input name="price" type="number" min="0" step="0.01" [(ngModel)]="plan.precio_mensual" required></label>
+        <label>Sucursales máximas<input name="branches" type="number" min="1" [(ngModel)]="plan.max_sucursales" [disabled]="plan.codigo === 'personalizado'"></label>
+        <label class="wide">Descripción<textarea name="description" rows="3" [(ngModel)]="plan.descripcion" maxlength="1200"></textarea></label>
+        <label class="wide">Beneficios <small>Uno por línea</small><textarea name="benefits" rows="5" [(ngModel)]="benefitsText"></textarea></label>
+        <label>Color principal<input name="primary" type="color" [(ngModel)]="primaryColor"></label>
+        <label>Color de acento<input name="accent" type="color" [(ngModel)]="accentColor"></label>
+      </div>
+      <div class="checks"><label><input type="checkbox" name="featured" [(ngModel)]="featured"> Mostrar como destacado</label><label><input type="checkbox" name="active" [(ngModel)]="plan.active"> Plan visible</label></div>
+      <footer><button type="button" class="secondary" (click)="closeEditor()">Cancelar</button><button class="primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar configuración' }}</button></footer>
+    </form>
+  </div>
+}

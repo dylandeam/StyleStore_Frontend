@@ -104,6 +104,12 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/cuenta/mis-reservas')) {
       this.currentTitle.set('Mis Reservas');
       this.currentSubtitle.set('Consulta tus prendas apartadas, fechas de retiro, tickets y cancelaciones');
+    } else if (url.includes('/admin/planes')) {
+      this.currentTitle.set('Configuración de Planes');
+      this.currentSubtitle.set('Precios, moneda, beneficios y presentación por empresa');
+    } else if (url.includes('/planes')) {
+      this.currentTitle.set('Planes de Suscripción');
+      this.currentSubtitle.set('Compara y contrata el plan ideal para ti');
     } else if (url.includes('/admin/cambios')) {
       this.currentTitle.set('Cambios y Devoluciones');
       this.currentSubtitle.set('Revisión de solicitudes (plazo 7 días) y canje en caja POS con stock');
