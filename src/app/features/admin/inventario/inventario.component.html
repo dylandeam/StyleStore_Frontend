@@ -110,7 +110,10 @@
                     }
                   </td>
                 }
-                <td class="cell-price font-semibold">Bs {{ (item.precio || 0) | number:'1.2-2' }}</td>
+                <td class="cell-price font-semibold">
+                  Bs {{ (item.precio || 0) | number:'1.2-2' }}
+                  @if (item.precio_variante != null) { <small class="variant-label">Precio de variante</small> }
+                </td>
                 <td>
                   <span
                     class="badge-stock"
@@ -167,6 +170,24 @@
               required
             />
             <small class="text-muted">Ajuste directo en unidades para auditoría física de almacén.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Precio de esta variante (Bs) <span class="req">*</span></label>
+            <input type="number" min="0" step="0.01" class="form-control" [ngModel]="nuevoPrecio()" (ngModelChange)="nuevoPrecio.set(+$event)" required />
+            <small class="text-muted">Se aplicará a esta combinación de talla, color y sucursal durante carrito, venta y sincronización.</small>
+          </div>
+
+          <div class="form-group">
+            <label>Medidas de la prenda en centímetros</label>
+            <div class="measure-grid">
+              @for (measure of ['pecho', 'cintura', 'cadera', 'largo', 'manga']; track measure) {
+                <label class="measure-field">
+                  <span>{{ measure | titlecase }}</span>
+                  <input type="number" min="0.1" max="1000" step="0.1" class="form-control" [ngModel]="medidas()[measure]" (ngModelChange)="setMedida(measure, $event)" />
+                </label>
+              }
+            </div>
           </div>
         </div>
 

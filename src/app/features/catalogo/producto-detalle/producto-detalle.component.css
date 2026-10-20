@@ -1086,4 +1086,20 @@
 }
 
 
+.variant-price-note {
+  display: block;
+  color: #9a6b27;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
 
+.measurement-card {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+
+.measurement-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.65rem; }
+.measurement-list span { padding: 0.4rem 0.65rem; border-radius: 999px; background: #eee7d8; color: #14263d; font-size: 0.78rem; }

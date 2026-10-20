@@ -66,6 +66,9 @@ export interface CatalogoItem {
       sucursal_nombre?: string;
       sucursal_ciudad?: string;
       cantidad: number;
+      precio: number;
+      precio_variante?: number | null;
+      medidas?: Record<string, number>;
     }>;
   }>;
   stock_total: number;

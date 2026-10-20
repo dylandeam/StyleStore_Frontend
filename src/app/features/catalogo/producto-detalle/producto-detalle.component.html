@@ -79,7 +79,15 @@
 
         <div class="precio-block">
           <span class="moneda">Bs.</span>
-          <span class="precio-valor">{{ producto.precio | number:'1.2-2' }}</span>
+          <span class="precio-valor">{{ precioSeleccionado | number:'1.2-2' }}</span>
+          <small class="variant-price-note" *ngIf="existenciaSeleccionada?.precio_variante != null">Precio de la talla seleccionada</small>
+        </div>
+
+        <div class="measurement-card" *ngIf="medidasSeleccionadas.length > 0">
+          <strong>Medidas de la prenda</strong>
+          <div class="measurement-list">
+            <span *ngFor="let medida of medidasSeleccionadas">{{ medida.nombre | titlecase }}: {{ medida.valor }} cm</span>
+          </div>
         </div>
 
         <!-- Botón Destacado: Probar en Vestidor Virtual (AR) -->
@@ -336,7 +344,7 @@
                 <span class="pill-talla">Talla: <strong>{{ existenciaSeleccionada?.talla_nombre || 'Única' }}</strong></span>
                 <span class="pill-qty">Cantidad: <strong>{{ cantidad }}</strong></span>
               </div>
-              <div class="reserva-price-tag">Precio: <strong>Bs. {{ producto?.precio | number:'1.2-2' }}</strong></div>
+              <div class="reserva-price-tag">Precio: <strong>Bs. {{ precioSeleccionado | number:'1.2-2' }}</strong></div>
             </div>
           </div>
 

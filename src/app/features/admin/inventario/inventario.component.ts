@@ -34,6 +34,8 @@ export class InventarioComponent implements OnInit {
   isAdjustModalOpen = signal<boolean>(false);
   selectedItem = signal<InventarioItem | null>(null);
   nuevaCantidad = signal<number>(0);
+  nuevoPrecio = signal<number | null>(null);
+  medidas = signal<Record<string, number | null>>({ pecho: null, cintura: null, cadera: null, largo: null, manga: null });
 
   ngOnInit(): void {
     this.loadSucursales();
@@ -115,6 +117,14 @@ export class InventarioComponent implements OnInit {
   openAdjustModal(item: InventarioItem): void {
     this.selectedItem.set(item);
     this.nuevaCantidad.set(item.cantidad);
+    this.nuevoPrecio.set(item.precio_variante ?? item.precio ?? null);
+    this.medidas.set({
+      pecho: item.medidas?.['pecho'] ?? null,
+      cintura: item.medidas?.['cintura'] ?? null,
+      cadera: item.medidas?.['cadera'] ?? null,
+      largo: item.medidas?.['largo'] ?? null,
+      manga: item.medidas?.['manga'] ?? null,
+    });
     this.errorMessage.set(null);
     this.isAdjustModalOpen.set(true);
   }
@@ -137,6 +147,10 @@ export class InventarioComponent implements OnInit {
     const req: StockAdjustRequest = {
       stock_inventario_id: item.stock_inventario_id,
       cantidad: this.nuevaCantidad(),
+      precio_variante: this.nuevoPrecio(),
+      medidas: Object.fromEntries(
+        Object.entries(this.medidas()).filter(([, value]) => value !== null && Number(value) > 0)
+      ) as Record<string, number>,
     };
 
     this.inventarioService.ajustarStock(req).subscribe({
@@ -156,5 +170,9 @@ export class InventarioComponent implements OnInit {
   getImagenUrl(foto?: string): string {
     return this.uploadService.getImageUrl(foto, 'productos');
   }
-}
 
+  setMedida(key: string, value: string | number): void {
+    const parsed = value === '' || value === null ? null : Number(value);
+    this.medidas.update((current) => ({ ...current, [key]: parsed }));
+  }
+}

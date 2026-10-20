@@ -6,6 +6,8 @@ export interface InventarioItem {
   foto?: string;
   precio?: number;
   precio_unitario?: number;
+  precio_variante?: number | null;
+  medidas?: Record<string, number>;
   categoria?: string;
   categoria_nombre?: string;
   categoria_id?: number;
@@ -29,4 +31,6 @@ export interface StockAdjustRequest {
   talla_id?: number;
   sucursal_id?: number;
   cantidad: number;
+  precio_variante?: number | null;
+  medidas?: Record<string, number>;
 }

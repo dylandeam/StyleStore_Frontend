@@ -93,6 +93,14 @@ export class ProductoDetalleComponent implements OnInit {
   get cantidad(): number { return this.cantidadValue(); }
   get agregando(): boolean { return this.isAgregando(); }
   get mensajeToast(): string | null { return this.toastMessage(); }
+  get precioSeleccionado(): number {
+    return Number(this.existencia()?.precio_variante ?? this.productoData()?.precio ?? 0);
+  }
+
+  get medidasSeleccionadas(): Array<{ nombre: string; valor: number }> {
+    const medidas = this.existencia()?.medidas || {};
+    return Object.entries(medidas).map(([nombre, valor]) => ({ nombre: nombre.replaceAll('_', ' '), valor: Number(valor) }));
+  }
 
   ngOnInit(): void {
     const hoy = new Date();

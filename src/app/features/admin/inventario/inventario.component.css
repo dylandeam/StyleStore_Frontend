@@ -350,3 +350,29 @@
   justify-content: flex-end;
   gap: 10px;
 }
+.variant-label {
+  display: block;
+  margin-top: 0.2rem;
+  color: #9a6b27;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.measure-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.measure-field span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 640px) {
+  .measure-grid { grid-template-columns: repeat(2, 1fr); }
+}
