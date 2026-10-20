@@ -1,0 +1,44 @@
+<main class="offline-page">
+  <header class="offline-hero">
+    <div>
+      <span class="eyebrow">Operación intermitente</span>
+      <h1>Cola de sincronización</h1>
+      <p>Las operaciones locales son provisionales hasta que el servidor valide horario, permisos y stock.</p>
+    </div>
+    <button type="button" (click)="load()" [disabled]="loading()">Actualizar estado</button>
+  </header>
+
+  @if (error()) {
+    <div class="notice error">{{ error() }}</div>
+  } @else if (loading()) {
+    <div class="notice">Leyendo operaciones guardadas…</div>
+  } @else if (!operations().length) {
+    <section class="empty-state">
+      <span>✓</span>
+      <h2>No hay operaciones locales</h2>
+      <p>Las reservas y ventas confirmadas en línea siguen disponibles en sus módulos habituales.</p>
+    </section>
+  } @else {
+    <section class="operation-grid">
+      @for (operation of operations(); track operation.id) {
+        <article class="operation-card" [attr.data-status]="operation.status">
+          <div class="card-top">
+            <div>
+              <span class="type">{{ title(operation) }}</span>
+              <h2>{{ branch(operation) }}</h2>
+            </div>
+            <span class="status">{{ operation.status }}</span>
+          </div>
+          <dl>
+            <div><dt>Comprobante</dt><dd>{{ operation.id.slice(0, 8).toUpperCase() }}</dd></div>
+            <div><dt>Registrada</dt><dd>{{ operation.clientCreatedAt | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+            <div><dt>Versión</dt><dd>v{{ operation.payloadVersion }}</dd></div>
+          </dl>
+          @if (operation.reason) {
+            <p class="reason"><strong>Resultado:</strong> {{ operation.reason }}</p>
+          }
+        </article>
+      }
+    </section>
+  }
+</main>

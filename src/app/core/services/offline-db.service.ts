@@ -41,10 +41,13 @@ interface StyleStoreOfflineSchema extends DBSchema {
 
 @Injectable({ providedIn: 'root' })
 export class OfflineDbService {
-  private readonly database: Promise<IDBPDatabase<StyleStoreOfflineSchema>>;
+  private databasePromise?: Promise<IDBPDatabase<StyleStoreOfflineSchema>>;
 
-  constructor() {
-    this.database = openDB<StyleStoreOfflineSchema>('stylestore-offline', 1, {
+  private database(): Promise<IDBPDatabase<StyleStoreOfflineSchema>> {
+    if (typeof indexedDB === 'undefined') {
+      return Promise.reject(new Error('IndexedDB no está disponible en este navegador.'));
+    }
+    this.databasePromise ??= openDB<StyleStoreOfflineSchema>('stylestore-offline', 1, {
       upgrade(db) {
         const catalog = db.createObjectStore('catalog', { keyPath: 'key' });
         catalog.createIndex('scope', 'scope');
@@ -54,6 +57,7 @@ export class OfflineDbService {
         operations.createIndex('type', 'type');
       },
     });
+    return this.databasePromise;
   }
 
   async putCatalog<T>(scope: string, filterKey: string, data: T): Promise<CatalogSnapshot<T>> {
@@ -64,12 +68,12 @@ export class OfflineDbService {
       data,
       syncedAt: new Date().toISOString(),
     };
-    await (await this.database).put('catalog', snapshot as CatalogSnapshot);
+    await (await this.database()).put('catalog', snapshot as CatalogSnapshot);
     return snapshot;
   }
 
   async getCatalog<T>(scope: string, filterKey: string): Promise<CatalogSnapshot<T> | undefined> {
-    return (await this.database).get('catalog', `${scope}:${filterKey}`) as Promise<CatalogSnapshot<T> | undefined>;
+    return (await this.database()).get('catalog', `${scope}:${filterKey}`) as Promise<CatalogSnapshot<T> | undefined>;
   }
 
   async enqueue<T>(operation: Omit<OfflineOperation<T>, 'id' | 'clientCreatedAt' | 'status'>): Promise<OfflineOperation<T>> {
@@ -79,17 +83,22 @@ export class OfflineDbService {
       clientCreatedAt: new Date().toISOString(),
       status: 'pendiente',
     };
-    await (await this.database).put('operations', queued as OfflineOperation);
+    await (await this.database()).put('operations', queued as OfflineOperation);
     return queued;
   }
 
   async pending(scope: string): Promise<OfflineOperation[]> {
-    const records = await (await this.database).getAllFromIndex('operations', 'scope', scope);
+    const records = await (await this.database()).getAllFromIndex('operations', 'scope', scope);
     return records.filter((record) => record.status === 'pendiente' || record.status === 'conflicto');
   }
 
+  async list(scope: string): Promise<OfflineOperation[]> {
+    const records = await (await this.database()).getAllFromIndex('operations', 'scope', scope);
+    return records.sort((left, right) => right.clientCreatedAt.localeCompare(left.clientCreatedAt));
+  }
+
   async updateOperation(id: string, changes: Partial<OfflineOperation>): Promise<void> {
-    const db = await this.database;
+    const db = await this.database();
     const current = await db.get('operations', id);
     if (current) await db.put('operations', { ...current, ...changes });
   }

@@ -45,6 +45,7 @@ import { VestidorVirtualComponent } from './features/vestidor-virtual/vestidor-v
 import { ConductorTrackerComponent } from './features/delivery/conductor/conductor-tracker.component';
 import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tracker.component';
 import { PlanesComponent } from './features/planes/planes.component';
+import { OfflineOperationsComponent } from './features/offline/offline-operations.component';
 
 export const routes: Routes = [
   {
@@ -138,6 +139,10 @@ export const routes: Routes = [
         path: 'cuenta/mis-reservas',
         component: MisReservasComponent,
         canActivate: [roleGuard(['cliente', 'administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'cuenta/operaciones-pendientes',
+        component: OfflineOperationsComponent,
       },
       {
         path: 'reservas',

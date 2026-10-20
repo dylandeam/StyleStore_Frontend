@@ -1,14 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, defer, from, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Reserva, ReservaCreate } from '../models/reserva.model';
+import { OfflineOperationsService, OfflineQueuedResult } from './offline-operations.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReservaService {
   private http = inject(HttpClient);
+  private offlineOperations = inject(OfflineOperationsService);
   private apiUrl = `${environment.apiUrl}/reservas`;
 
   getReservas(filters?: { sucursal_id?: number | null; estado?: string | null }): Observable<Reserva[]> {
@@ -26,8 +28,15 @@ export class ReservaService {
     return this.http.get<Reserva[]>(`${this.apiUrl}/mias`);
   }
 
-  createReserva(data: ReservaCreate): Observable<Reserva> {
-    return this.http.post<Reserva>(this.apiUrl, data);
+  createReserva(data: ReservaCreate): Observable<Reserva | OfflineQueuedResult> {
+    return defer(() => {
+      if (!navigator.onLine) return from(this.offlineOperations.queueReservation(data));
+      return this.http.post<Reserva>(this.apiUrl, data).pipe(
+        catchError((error) => error?.status === 0
+          ? from(this.offlineOperations.queueReservation(data))
+          : throwError(() => error))
+      );
+    });
   }
 
   cancelarReserva(reservaId: number): Observable<Reserva> {
@@ -48,4 +57,3 @@ export class ReservaService {
     );
   }
 }
-

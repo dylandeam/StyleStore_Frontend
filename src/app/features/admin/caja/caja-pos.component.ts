@@ -467,9 +467,39 @@ export class CajaPosComponent implements OnInit {
       })),
     };
 
-    this.ventaService.createVentaPresencial(payload).subscribe({
+    const snapshot = {
+      total: this.totalVentaDirecta,
+      efectivo_recibido: this.efectivoRecibidoDirecto,
+      cambio_devuelto: this.cambioDirecto,
+      items: this.cartDirecto.map((ci) => ({
+        stock_inventario_id: ci.item.stock_inventario_id || ci.item.id || 0,
+        nombre: ci.item.producto_nombre,
+        talla: ci.item.talla_nombre,
+        color: ci.item.color_nombre,
+        cantidad: ci.cantidad,
+        subtotal: ci.subtotal,
+      })),
+    };
+
+    this.ventaService.createVentaPresencial(payload, snapshot).subscribe({
       next: (ordenCreada) => {
         this.procesando = false;
+        if ('queued' in ordenCreada) {
+          this.ticketEmitido = {
+            pago_id: 0,
+            orden_venta_id: 0,
+            total: snapshot.total,
+            efectivo_recibido: snapshot.efectivo_recibido,
+            cambio_devuelto: snapshot.cambio_devuelto,
+            ticket_numero: `LOCAL-${ordenCreada.operationId.slice(0, 8).toUpperCase()}`,
+            fecha: ordenCreada.clientCreatedAt,
+          };
+          this.ordenSeleccionada = { estado: 'pendiente_sincronizacion', detalles: snapshot.items };
+          this.cartDirecto = [];
+          this.mostrarToast('Venta de contado guardada. El ticket es provisional hasta validar stock al reconectar.');
+          this.cdr.markForCheck();
+          return;
+        }
         this.ticketEmitido = {
           pago_id: ordenCreada.id,
           orden_venta_id: ordenCreada.id,
@@ -488,7 +518,7 @@ export class CajaPosComponent implements OnInit {
       },
       error: (err) => {
         this.procesando = false;
-        this.error = err.error?.detail || 'Error al procesar la venta directa en mostrador.';
+        this.error = err.error?.detail || err.message || 'Error al procesar la venta directa en mostrador.';
         this.cdr.markForCheck();
       },
     });

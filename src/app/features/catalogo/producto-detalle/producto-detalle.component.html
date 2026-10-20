@@ -409,6 +409,25 @@
           </button>
         </div>
       } @else {
+        @if (reservaExitosa().queued) {
+          <div class="modal-body reserva-success-view">
+            <div class="success-icon-big">⏳</div>
+            <h3>Reserva guardada en este dispositivo</h3>
+            <div class="ticket-badge-box">
+              <span>Comprobante provisional:</span>
+              <strong class="ticket-num">{{ reservaExitosa().operationId.slice(0, 8).toUpperCase() }}</strong>
+            </div>
+            <p class="success-location-text">
+              Aún no está confirmada. StyleStore validará el horario y el stock central cuando vuelva la conexión.
+            </p>
+            <p class="success-notice-muted">
+              Conservaremos la operación si se cierra la aplicación. Si otra persona obtiene la última prenda, verás el conflicto y su motivo.
+            </p>
+            <div class="success-btn-group">
+              <button type="button" class="btn btn-secondary" (click)="cerrarModalReserva()">Continuar en Catálogo</button>
+            </div>
+          </div>
+        } @else {
         <!-- Estado de Confirmación Exitosa -->
         <div class="modal-body reserva-success-view">
           <div class="success-icon-big">🎉</div>
@@ -432,6 +451,7 @@
             </button>
           </div>
         </div>
+        }
       }
     </div>
   </div>

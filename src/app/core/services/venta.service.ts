@@ -1,14 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, defer, from, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { OrdenVenta, VentaPresencialCreate, PagoResponse } from '../models/venta.model';
+import { OfflineOperationsService, OfflineQueuedResult } from './offline-operations.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VentaService {
   private http = inject(HttpClient);
+  private offlineOperations = inject(OfflineOperationsService);
   private apiUrl = `${environment.apiUrl}/ventas`;
   private pagosUrl = `${environment.apiUrl}/pagos`;
 
@@ -26,8 +28,16 @@ export class VentaService {
     return this.http.get<OrdenVenta>(`${this.apiUrl}/${id}`);
   }
 
-  createVentaPresencial(data: VentaPresencialCreate): Observable<OrdenVenta> {
-    return this.http.post<OrdenVenta>(`${this.apiUrl}/presencial`, data);
+  createVentaPresencial(data: VentaPresencialCreate, snapshot?: unknown): Observable<OrdenVenta | OfflineQueuedResult> {
+    const localPayload = { ...data, snapshot };
+    return defer(() => {
+      if (!navigator.onLine) return from(this.offlineOperations.queueCashSale(localPayload));
+      return this.http.post<OrdenVenta>(`${this.apiUrl}/presencial`, data).pipe(
+        catchError((error) => error?.status === 0
+          ? from(this.offlineOperations.queueCashSale(localPayload))
+          : throwError(() => error))
+      );
+    });
   }
 
   deleteVenta(id: number): Observable<{ message: string }> {

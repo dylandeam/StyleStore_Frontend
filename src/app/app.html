@@ -13,6 +13,9 @@
     @if (offlineState.updateAvailable()) {
       <button type="button" (click)="applyUpdate()">Actualizar aplicación</button>
     }
+    @if (offlineState.pendingOperations() > 0) {
+      <a routerLink="/cuenta/operaciones-pendientes">Ver cola</a>
+    }
   </aside>
 }
 <router-outlet></router-outlet>
