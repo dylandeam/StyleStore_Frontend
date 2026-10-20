@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { platformAdminGuard } from './core/guards/platform-admin.guard';
 import { AdminLayoutComponent } from './features/admin/admin-layout/admin-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { UsuariosListComponent } from './features/admin/usuarios/usuarios-list/usuarios-list.component';
@@ -46,6 +47,7 @@ import { ConductorTrackerComponent } from './features/delivery/conductor/conduct
 import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tracker.component';
 import { PlanesComponent } from './features/planes/planes.component';
 import { OfflineOperationsComponent } from './features/offline/offline-operations.component';
+import { TenantsComponent } from './features/admin/tenants/tenants.component';
 
 export const routes: Routes = [
   {
@@ -252,6 +254,11 @@ export const routes: Routes = [
         path: 'admin/compras',
         component: ComprasListComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
+      },
+      {
+        path: 'admin/tenants',
+        component: TenantsComponent,
+        canActivate: [platformAdminGuard],
       },
       {
         path: 'admin/usuarios',

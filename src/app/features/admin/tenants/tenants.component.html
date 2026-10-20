@@ -1,0 +1,155 @@
+<section class="tenant-page">
+  <div class="page-heading">
+    <div>
+      <div class="breadcrumb"><a routerLink="/dashboard">Inicio</a> / Administración SaaS</div>
+      <span class="eyebrow">CONSOLA DEL ADMINISTRADOR MAESTRO</span>
+      <h1>Empresas y suscripciones</h1>
+      <p>Administra cada tenant, su responsable, plan contratado y acceso a la plataforma.</p>
+    </div>
+    <button class="btn primary" type="button" (click)="openCreate()">＋ Nuevo tenant</button>
+  </div>
+
+  @if (success()) { <div class="alert success">{{ success() }}</div> }
+  @if (error()) { <div class="alert error">{{ error() }}</div> }
+
+  <div class="stats-grid">
+    <article><span>Tenants activos</span><strong>{{ activeCount() }}</strong><small>de {{ tenants().length }} registrados</small></article>
+    <article><span>Sucursales</span><strong>{{ branchCount() }}</strong><small>en toda la plataforma</small></article>
+    <article><span>Usuarios</span><strong>{{ userCount() }}</strong><small>cuentas asociadas</small></article>
+  </div>
+
+  <div class="toolbar">
+    <label class="search-field">
+      <span>⌕</span>
+      <input type="search" placeholder="Buscar empresa, código o administrador" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </label>
+    <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <option value="all">Todos los estados</option>
+      <option value="active">Activos</option>
+      <option value="suspended">Suspendidos</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><span></span> Cargando empresas…</div>
+  } @else if (!filteredTenants().length) {
+    <div class="empty-state"><strong>No hay tenants para mostrar</strong><p>Ajusta los filtros o registra una nueva empresa.</p></div>
+  } @else {
+    <div class="tenant-grid">
+      @for (tenant of filteredTenants(); track tenant.id) {
+        <article class="tenant-card" [class.suspended]="!tenant.active">
+          <div class="tenant-card-head">
+            <div class="tenant-identity">
+              <span class="tenant-avatar">{{ tenant.nombre.charAt(0).toUpperCase() }}</span>
+              <div><h2>{{ tenant.nombre }}</h2><code>{{ tenant.codigo }}</code></div>
+            </div>
+            <span class="status" [class.active]="tenant.active">{{ tenant.active ? 'Activo' : 'Suspendido' }}</span>
+          </div>
+
+          <div class="plan-panel">
+            <div>
+              <span>Plan actual</span>
+              <strong>{{ tenant.suscripcion?.plan_nombre || 'Sin plan' }}</strong>
+            </div>
+            <span class="plan-state" [class.ok]="subscriptionClass(tenant) === 'success'">
+              {{ tenant.suscripcion?.estado || 'No asignado' }}
+            </span>
+            <small>Vence: {{ tenant.suscripcion?.fecha_fin ? (tenant.suscripcion?.fecha_fin | date:'dd/MM/yyyy') : 'Sin fecha' }}</small>
+          </div>
+
+          <dl class="tenant-metrics">
+            <div><dt>Sucursales</dt><dd>{{ tenant.sucursales_count }}</dd></div>
+            <div><dt>Usuarios</dt><dd>{{ tenant.usuarios_count }}</dd></div>
+          </dl>
+
+          <div class="admin-block">
+            <span>Administrador del tenant</span>
+            <strong>{{ tenant.admin?.name || 'Sin administrador' }}</strong>
+            <small>{{ tenant.admin?.email || 'Requiere asignación' }}</small>
+          </div>
+
+          <div class="actions">
+            <button type="button" (click)="openCompany(tenant)">Empresa</button>
+            <button type="button" (click)="openAdmin(tenant)">Administrador</button>
+            <button type="button" (click)="openSubscription(tenant)">Plan y renovación</button>
+            <button type="button" class="state-action" [class.activate]="!tenant.active" (click)="toggleActive(tenant)">
+              {{ tenant.active ? 'Suspender' : 'Reactivar' }}
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>
+
+@if (modalMode()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <form class="modal" (submit)="$event.preventDefault(); save()" (click)="$event.stopPropagation()">
+      <header>
+        <div>
+          <span class="eyebrow">ADMINISTRACIÓN SAAS</span>
+          <h2>
+            @switch (modalMode()) {
+              @case ('create') { Registrar nuevo tenant }
+              @case ('company') { Editar empresa }
+              @case ('admin') { Administrador del tenant }
+              @case ('subscription') { Plan y renovación }
+            }
+          </h2>
+        </div>
+        <button type="button" class="close" (click)="closeModal()">×</button>
+      </header>
+
+      <div class="modal-body">
+        @if (modalMode() === 'create') {
+          <div class="form-grid">
+            <label>Nombre de la empresa<input required minlength="2" name="nombre" [(ngModel)]="createForm.nombre" /></label>
+            <label>Código tenant<input required pattern="[a-z0-9][a-z0-9_-]*" name="codigo" [(ngModel)]="createForm.codigo" placeholder="mi-boutique" /></label>
+            <label>Nombre del administrador<input required minlength="2" name="admin_name" [(ngModel)]="createForm.admin_name" /></label>
+            <label>Correo del administrador<input required type="email" name="admin_email" [(ngModel)]="createForm.admin_email" /></label>
+            <label>Contraseña temporal<input required minlength="8" type="password" name="admin_password" [(ngModel)]="createForm.admin_password" /></label>
+            <label>Plan inicial
+              <select name="plan_codigo" [(ngModel)]="createForm.plan_codigo">
+                <option value="basico">Básico</option><option value="profesional">Profesional</option><option value="personalizado">Personalizado</option>
+              </select>
+            </label>
+          </div>
+          <p class="form-note">Se creará una cuenta de administrador tenant y una suscripción inicial de 30 días.</p>
+        } @else if (modalMode() === 'company') {
+          <div class="form-grid">
+            <label>Nombre de la empresa<input required minlength="2" name="company_name" [(ngModel)]="companyForm.nombre" /></label>
+            <label>Código tenant<input required pattern="[a-z0-9][a-z0-9_-]*" name="company_code" [(ngModel)]="companyForm.codigo" /></label>
+          </div>
+        } @else if (modalMode() === 'admin') {
+          <div class="form-grid">
+            <label>Nombre completo<input required minlength="2" name="owner_name" [(ngModel)]="adminForm.name" /></label>
+            <label>Correo electrónico<input required type="email" name="owner_email" [(ngModel)]="adminForm.email" /></label>
+            <label class="wide">Nueva contraseña <small>Déjala vacía para conservar la actual</small><input minlength="8" type="password" name="owner_password" [(ngModel)]="adminForm.password" /></label>
+            <label class="check wide"><input type="checkbox" name="owner_active" [(ngModel)]="adminForm.is_active" /> Cuenta habilitada</label>
+          </div>
+        } @else if (modalMode() === 'subscription') {
+          <div class="form-grid">
+            <label>Plan
+              <select name="subscription_plan" [(ngModel)]="subscriptionForm.plan_codigo">
+                <option value="basico">Básico</option><option value="profesional">Profesional</option><option value="personalizado">Personalizado</option>
+              </select>
+            </label>
+            <label>Estado
+              <select name="subscription_status" [(ngModel)]="subscriptionForm.estado">
+                <option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="vencida">Vencida</option><option value="cancelada">Cancelada</option>
+              </select>
+            </label>
+            <label>Fecha de inicio<input required type="date" name="start_date" [(ngModel)]="subscriptionForm.fecha_inicio" /></label>
+            <label>Fecha de vencimiento<input required type="date" name="end_date" [(ngModel)]="subscriptionForm.fecha_fin" /></label>
+          </div>
+          <p class="form-note">Guardar genera una nueva contratación auditable y conserva el historial anterior.</p>
+        }
+      </div>
+
+      <footer>
+        <button type="button" class="btn secondary" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar cambios' }}</button>
+      </footer>
+    </form>
+  </div>
+}

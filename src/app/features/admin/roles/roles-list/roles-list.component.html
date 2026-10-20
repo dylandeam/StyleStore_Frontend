@@ -35,8 +35,8 @@
             </span>
           </div>
 
-          <h3 class="role-title">{{ item.nombre || item.role }}</h3>
-          <p class="role-desc">{{ item.descripcion || getRoleDescription(item.role) }}</p>
+          <h3 class="role-title">{{ getRoleTitle(item) }}</h3>
+          <p class="role-desc">{{ item.role === 'administrador' ? getRoleDescription(item.role) : (item.descripcion || getRoleDescription(item.role)) }}</p>
 
           <div class="card-footer">
             <a [routerLink]="['/admin/roles', item.role, 'permisos']" class="btn btn-outline" title="Configurar Permisos">

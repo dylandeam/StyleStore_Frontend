@@ -140,7 +140,7 @@ export class RolesListComponent implements OnInit {
   getRoleDescription(role: string): string {
     switch (role) {
       case 'administrador':
-        return 'Acceso total y sin restricciones a todos los módulos del sistema y auditoría.';
+        return 'Administra usuarios, sucursales, catálogo y operaciones únicamente dentro de su empresa tenant.';
       case 'encargado_sucursal':
         return 'Gestión de productos, catálogo y operaciones de inventario.';
       case 'cajero':
@@ -150,6 +150,10 @@ export class RolesListComponent implements OnInit {
       default:
         return 'Rol personalizado del sistema.';
     }
+  }
+
+  getRoleTitle(item: RoleItem): string {
+    return item.role === 'administrador' ? 'Administrador de tenant' : (item.nombre || item.role);
   }
 
   getRoleIcon(role: string): string {

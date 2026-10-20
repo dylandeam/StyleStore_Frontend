@@ -36,6 +36,11 @@
     <!-- MODO COLAPSADO: Solo íconos centrados -->
     @if (isSidebarCollapsed()) {
       <nav class="sidebar-nav collapsed-nav">
+        @if (isPlatformAdmin) {
+          <a routerLink="/admin/tenants" routerLinkActive="active" class="nav-item icon-only" title="Gestión de Tenants">
+            <span class="nav-icon">🏢</span>
+          </a>
+        }
         <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item icon-only" title="Dashboard">
           <span class="nav-icon">📊</span>
         </a>
@@ -202,6 +207,24 @@
     } @else {
       <!-- MODO DESPLEGADO: Agrupación en CATÁLOGO, VENTAS, ADMINISTRACIÓN y SISTEMA -->
       <nav class="sidebar-nav">
+        @if (isPlatformAdmin) {
+          <div class="nav-group-header" (click)="toggleCategory('saas')">
+            <span class="nav-group-title">PLATAFORMA SAAS</span>
+            <span class="nav-group-chevron" [class.collapsed]="isCategoryCollapsed('saas')">⌄</span>
+          </div>
+          @if (!isCategoryCollapsed('saas')) {
+            <div class="nav-group-items">
+              <a routerLink="/admin/tenants" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">🏢</span>
+                <span class="nav-label">Gestión de Tenants</span>
+              </a>
+              <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">💎</span>
+                <span class="nav-label">Planes Globales</span>
+              </a>
+            </div>
+          }
+        }
         <!-- Dashboard general -->
         <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
           <span class="nav-icon">📊</span>

@@ -104,6 +104,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/cuenta/mis-reservas')) {
       this.currentTitle.set('Mis Reservas');
       this.currentSubtitle.set('Consulta tus prendas apartadas, fechas de retiro, tickets y cancelaciones');
+    } else if (url.includes('/admin/tenants')) {
+      this.currentTitle.set('Administración SaaS');
+      this.currentSubtitle.set('Tenants, administradores, suscripciones y límites de la plataforma');
     } else if (url.includes('/admin/planes')) {
       this.currentTitle.set('Configuración de Planes');
       this.currentSubtitle.set('Precios, moneda, beneficios y presentación por empresa');
