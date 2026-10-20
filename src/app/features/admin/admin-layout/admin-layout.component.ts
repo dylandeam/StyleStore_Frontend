@@ -196,6 +196,21 @@ export class AdminLayoutComponent implements OnInit {
     return role.includes('admin');
   }
 
+  get isPlatformAdmin(): boolean {
+    return !!this.user()?.is_platform_admin;
+  }
+
+  get userRoleLabel(): string {
+    if (this.isPlatformAdmin) return 'Administrador Maestro';
+
+    const role = (this.user()?.role || '').toLowerCase();
+    if (role === 'administrador') return 'Administrador del tenant';
+    if (role === 'encargado_sucursal') return 'Encargado de sucursal';
+    if (role === 'cajero') return 'Cajero';
+    if (role === 'cliente') return 'Cliente';
+    return role || 'Usuario';
+  }
+
   get isStaff(): boolean {
     const role = (this.user()?.role || '').toLowerCase();
     return role.includes('admin') || role.includes('encargado') || role.includes('cajero');

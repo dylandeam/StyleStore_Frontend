@@ -504,6 +504,7 @@
           <div class="user-info-text">
             <span class="user-name-text">{{ user()?.name }}</span>
             <span class="user-email-text">{{ user()?.email }}</span>
+            <span class="user-role-text" [class.platform-admin]="isPlatformAdmin">{{ userRoleLabel }}</span>
           </div>
         </div>
       }
@@ -604,7 +605,7 @@
             </div>
             <div class="top-chip-info">
               <span class="top-chip-name">{{ user()?.name }}</span>
-              <span class="top-chip-role">{{ user()?.role }}</span>
+              <span class="top-chip-role" [class.platform-admin]="isPlatformAdmin">{{ userRoleLabel }}</span>
             </div>
           </div>
         }

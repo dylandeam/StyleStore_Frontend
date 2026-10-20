@@ -264,6 +264,19 @@
   overflow: hidden;
 }
 
+.user-role-text {
+  margin-top: 0.2rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.user-role-text.platform-admin {
+  color: #f5cf79;
+}
+
 .btn-logout {
   width: 100%;
   display: flex;
@@ -382,6 +395,10 @@
   color: var(--accent-link);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.top-chip-role.platform-admin {
+  color: #9a6700;
 }
 
 /* Content Body */
@@ -751,5 +768,4 @@
   color: #2563eb;
   font-weight: 600;
 }
-
 
