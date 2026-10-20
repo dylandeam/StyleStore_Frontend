@@ -5,7 +5,9 @@
       <h1>Cola de sincronización</h1>
       <p>Las operaciones locales son provisionales hasta que el servidor valide horario, permisos y stock.</p>
     </div>
-    <button type="button" (click)="load()" [disabled]="loading()">Actualizar estado</button>
+    <button type="button" (click)="synchronize()" [disabled]="loading() || syncing()">
+      {{ syncing() ? 'Sincronizando…' : 'Sincronizar ahora' }}
+    </button>
   </header>
 
   @if (error()) {

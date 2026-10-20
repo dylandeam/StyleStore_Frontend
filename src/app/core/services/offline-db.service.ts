@@ -89,7 +89,7 @@ export class OfflineDbService {
 
   async pending(scope: string): Promise<OfflineOperation[]> {
     const records = await (await this.database()).getAllFromIndex('operations', 'scope', scope);
-    return records.filter((record) => record.status === 'pendiente' || record.status === 'conflicto');
+    return records.filter((record) => record.status === 'pendiente');
   }
 
   async list(scope: string): Promise<OfflineOperation[]> {

@@ -18,6 +18,7 @@ export class App {
   constructor() {
     this.pwaUpdates.initialize();
     void this.offlineOperations.refreshPendingCount().catch(() => undefined);
+    if (this.offlineState.online()) void this.offlineOperations.syncPending().catch(() => undefined);
   }
 
   applyUpdate(): void {

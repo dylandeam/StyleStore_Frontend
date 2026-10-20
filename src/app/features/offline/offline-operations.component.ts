@@ -15,6 +15,7 @@ export class OfflineOperationsComponent implements OnInit {
   readonly operations = signal<OfflineOperation[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly syncing = signal(false);
 
   ngOnInit(): void {
     void this.load();
@@ -29,6 +30,16 @@ export class OfflineOperationsComponent implements OnInit {
       this.error.set(error instanceof Error ? error.message : 'No se pudo abrir la cola local.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  async synchronize(): Promise<void> {
+    this.syncing.set(true);
+    try {
+      await this.offlineOperations.syncPending();
+      await this.load();
+    } finally {
+      this.syncing.set(false);
     }
   }
 
