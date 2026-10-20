@@ -251,7 +251,8 @@ export class ReportesComponent implements OnInit {
       error: (err) => {
         this.ngZone.run(() => {
           this.isLoadingIA = false;
-          this.respuestaIA = 'Ocurrió un error al procesar tu consulta con el asistente de IA. Por favor intenta nuevamente.';
+          this.respuestaIA = err?.error?.detail
+            || 'Ocurrió un error al procesar tu consulta con el asistente de IA. Por favor intenta nuevamente.';
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         });
@@ -715,4 +716,3 @@ export class ReportesComponent implements OnInit {
     }, 3500);
   }
 }
-
