@@ -17,6 +17,7 @@ export interface TenantSubscription {
   moneda: string;
   fecha_inicio: string;
   fecha_fin?: string | null;
+  max_sucursales?: number | null;
 }
 
 export interface TenantSummary {

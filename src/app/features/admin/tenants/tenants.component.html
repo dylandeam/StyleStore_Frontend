@@ -58,7 +58,7 @@
           </div>
 
           <dl class="tenant-metrics">
-            <div><dt>Sucursales</dt><dd>{{ tenant.sucursales_count }}</dd></div>
+            <div><dt>Sucursales</dt><dd>{{ tenant.sucursales_count }} / {{ tenant.suscripcion?.max_sucursales ?? '∞' }}</dd></div>
             <div><dt>Usuarios</dt><dd>{{ tenant.usuarios_count }}</dd></div>
           </dl>
 
