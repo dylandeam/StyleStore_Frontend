@@ -23,6 +23,25 @@
     }
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="reg-empresa" class="form-label">Código de empresa</label>
+        <div class="input-wrapper">
+          <input
+            id="reg-empresa"
+            type="text"
+            class="form-control"
+            placeholder="Déjalo vacío si usas StyleStore"
+            formControlName="empresa_codigo"
+            autocomplete="organization"
+            [class.is-invalid]="registerForm.get('empresa_codigo')?.touched && registerForm.get('empresa_codigo')?.invalid"
+          />
+        </div>
+        <span class="foto-help-text">Tu empresa te proporcionará este código cuando corresponda.</span>
+        @if (registerForm.get('empresa_codigo')?.touched && registerForm.get('empresa_codigo')?.invalid) {
+          <span class="form-error">Usa únicamente letras, números, guion o guion bajo.</span>
+        }
+      </div>
+
       <!-- Nombres y Apellidos en dos columnas -->
       <div class="form-row-2col">
         <div class="form-group">

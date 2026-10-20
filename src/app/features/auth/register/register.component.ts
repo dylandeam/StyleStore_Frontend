@@ -54,6 +54,7 @@ export class RegisterComponent {
       ci: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(20)]],
       telefono: ['', [Validators.required, Validators.minLength(7), Validators.maxLength(20)]],
       direccion: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(255)]],
+      empresa_codigo: ['', [Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_-]*$/)]],
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
@@ -126,6 +127,7 @@ export class RegisterComponent {
         foto: this.fotoUrl() || null,
         email: val.email!.trim(),
         password: val.password!,
+        empresa_codigo: val.empresa_codigo?.trim().toLowerCase() || undefined,
       })
       .subscribe({
         next: () => {

@@ -1,5 +1,6 @@
 export interface User {
   id: number;
+  empresa_id?: number;
   email: string;
   name: string;
   nombre?: string;
@@ -12,6 +13,7 @@ export interface User {
   sucursal_id?: number;
   role: string;
   is_active: boolean;
+  is_platform_admin?: boolean;
   created_at: string;
 }
 
