@@ -41,6 +41,8 @@ export class SucursalesListComponent implements OnInit {
     phone: '',
     maps_url: '',
     active: true,
+    hora_apertura: '09:00',
+    hora_cierre: '18:00',
   };
 
   ngOnInit(): void {
@@ -79,6 +81,8 @@ export class SucursalesListComponent implements OnInit {
       phone: '',
       maps_url: '',
       active: true,
+      hora_apertura: '09:00',
+      hora_cierre: '18:00',
     };
     this.modalError.set('');
     this.modalSuccess.set('');
@@ -95,6 +99,8 @@ export class SucursalesListComponent implements OnInit {
       phone: s.phone,
       maps_url: s.maps_url || s.ubicacion_url || '',
       active: s.active,
+      hora_apertura: s.hora_apertura || '09:00',
+      hora_cierre: s.hora_cierre || '18:00',
     };
     this.modalError.set('');
     this.modalSuccess.set('');
@@ -108,6 +114,10 @@ export class SucursalesListComponent implements OnInit {
   submitSucursal(): void {
     if (!this.formData.name || !this.formData.city || !this.formData.address || !this.formData.phone) {
       this.modalError.set('Todos los campos son obligatorios.');
+      return;
+    }
+    if (!this.formData.hora_apertura || !this.formData.hora_cierre || this.formData.hora_apertura >= this.formData.hora_cierre) {
+      this.modalError.set('El horario de apertura debe ser anterior al horario de cierre.');
       return;
     }
 

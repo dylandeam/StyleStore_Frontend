@@ -51,6 +51,7 @@ export class ProductoDetalleComponent implements OnInit {
   minFechaReserva = '';
   maxFechaReserva = '';
   fechaLimiteReserva = '';
+  horaRetiroReserva = '';
 
   // Selección de variantes
   varianteColor = signal<any>(null);
@@ -97,7 +98,7 @@ export class ProductoDetalleComponent implements OnInit {
     const hoy = new Date();
     this.minFechaReserva = hoy.toISOString().split('T')[0];
     const max = new Date();
-    max.setDate(max.getDate() + 7);
+    max.setDate(max.getDate() + 3);
     this.maxFechaReserva = max.toISOString().split('T')[0];
     this.fechaLimiteReserva = this.maxFechaReserva;
 
@@ -420,9 +421,21 @@ export class ProductoDetalleComponent implements OnInit {
     }
 
     this.sucursalReservaId.set(targetSucursalId || 1);
+    this.actualizarHorarioReserva(targetSucursalId || 1);
     this.reservaExitosa.set(null);
     this.isReservaModalOpen.set(true);
     this.cdr.markForCheck();
+  }
+
+  actualizarHorarioReserva(sucursalId: number | string): void {
+    const id = Number(sucursalId);
+    this.sucursalReservaId.set(id);
+    const sucursal = this.sucursalesList().find((item) => item.id === id);
+    this.horaRetiroReserva = (sucursal?.hora_apertura || '09:00').slice(0, 5);
+  }
+
+  get sucursalReservaSeleccionada(): Sucursal | undefined {
+    return this.sucursalesList().find((item) => item.id === this.sucursalReservaId());
   }
 
   cerrarModalReserva(): void {
@@ -443,6 +456,10 @@ export class ProductoDetalleComponent implements OnInit {
       this.mostrarToast('Por favor selecciona la sucursal donde recogerás tu reserva.');
       return;
     }
+    if (!this.fechaLimiteReserva || !this.horaRetiroReserva) {
+      this.mostrarToast('Selecciona la fecha y hora en que recogerás tu reserva.');
+      return;
+    }
 
     this.isProcesandoReserva.set(true);
     this.cdr.markForCheck();
@@ -452,6 +469,7 @@ export class ProductoDetalleComponent implements OnInit {
       .createReserva({
         sucursal_id: sucId,
         fecha_limite: this.fechaLimiteReserva || undefined,
+        hora_retiro: this.horaRetiroReserva,
         items: [
           {
             stock_inventario_id: ex.stock_inventario_id,
@@ -481,4 +499,3 @@ export class ProductoDetalleComponent implements OnInit {
     this.router.navigate(['/cuenta/mis-reservas']);
   }
 }
-

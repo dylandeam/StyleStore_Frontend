@@ -13,6 +13,8 @@ export interface Sucursal {
   direccion?: string;
   telefono?: string;
   active: boolean;
+  hora_apertura?: string;
+  hora_cierre?: string;
   created_at: string;
   updated_at: string;
 }
@@ -27,4 +29,6 @@ export interface SucursalCreate {
   latitud?: number;
   longitud?: number;
   active?: boolean;
+  hora_apertura?: string;
+  hora_cierre?: string;
 }

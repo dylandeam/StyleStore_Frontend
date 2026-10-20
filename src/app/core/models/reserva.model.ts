@@ -31,5 +31,6 @@ export interface ReservaCreateItem {
 export interface ReservaCreate {
   sucursal_id: number;
   fecha_limite?: string;
+  hora_retiro?: string;
   items: ReservaCreateItem[];
 }

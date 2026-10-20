@@ -290,6 +290,12 @@ h1 {
   border-color: var(--accent-link);
 }
 
+.business-hours-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 .form-checkbox {
   margin-bottom: 1.5rem;
 }

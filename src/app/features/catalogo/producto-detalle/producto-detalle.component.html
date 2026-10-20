@@ -348,7 +348,7 @@
             <select
               class="form-control select-sucursal-reserva"
               [ngModel]="sucursalReservaId()"
-              (ngModelChange)="sucursalReservaId.set($event)"
+              (ngModelChange)="actualizarHorarioReserva($event)"
             >
               @for (s of sucursalesList(); track s.id) {
                 <option [value]="s.id">
@@ -361,10 +361,10 @@
             </small>
           </div>
 
-          <!-- Selección de Fecha Límite (Máximo 7 días) -->
+          <!-- Selección de fecha y hora de recogida (máximo 3 días) -->
           <div class="form-group sucursal-picker-box">
             <label class="sucursal-picker-label">
-              <strong>📅 Fecha límite para retirar en tienda (Máx. 7 días): *</strong>
+              <strong>📅 Fecha para retirar en tienda (Máx. 3 días): *</strong>
             </label>
             <input
               type="date"
@@ -377,6 +377,23 @@
               ℹ️ Tu prenda estará reservada hasta esta fecha para que puedas pasar a probártela y abonar en caja física.
             </small>
           </div>
+
+          <div class="form-group sucursal-picker-box">
+            <label class="sucursal-picker-label">
+              <strong>🕘 Hora de recogida: *</strong>
+            </label>
+            <input
+              type="time"
+              class="form-control select-sucursal-reserva"
+              [min]="(sucursalReservaSeleccionada?.hora_apertura || '09:00').slice(0, 5)"
+              [max]="(sucursalReservaSeleccionada?.hora_cierre || '18:00').slice(0, 5)"
+              [(ngModel)]="horaRetiroReserva"
+              required
+            />
+            <small class="help-desc-text">
+              Atención: {{ sucursalReservaSeleccionada?.hora_apertura || '09:00' }} – {{ sucursalReservaSeleccionada?.hora_cierre || '18:00' }}.
+            </small>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -384,7 +401,7 @@
           <button
             type="button"
             class="btn btn-primary btn-submit-reserva"
-            [disabled]="isProcesandoReserva() || !sucursalReservaId()"
+            [disabled]="isProcesandoReserva() || !sucursalReservaId() || !fechaLimiteReserva || !horaRetiroReserva"
             (click)="confirmarReserva()"
           >
             <span *ngIf="!isProcesandoReserva()">✓ Confirmar Reserva</span>
