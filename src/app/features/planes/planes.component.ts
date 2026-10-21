@@ -33,6 +33,13 @@ export class PlanesComponent implements OnInit {
   primaryColor = '#7c3aed';
   accentColor = '#f59e0b';
   featured = false;
+  readonly capabilityOptions = [
+    { key: 'productos', label: 'Productos e inventario' },
+    { key: 'ventas', label: 'Ventas y cobros' },
+    { key: 'reservas', label: 'Reservas' },
+    { key: 'offline', label: 'Operación offline' },
+    { key: 'reportes', label: 'Reportes convencionales' },
+  ];
 
   get isAdminView(): boolean {
     return this.router.url.startsWith('/admin/planes');
@@ -40,6 +47,10 @@ export class PlanesComponent implements OnInit {
 
   get isPlatformAdmin(): boolean {
     return !!this.authService.currentUser()?.is_platform_admin;
+  }
+
+  get canContract(): boolean {
+    return this.authService.currentUser()?.role === 'administrador';
   }
 
   ngOnInit(): void {

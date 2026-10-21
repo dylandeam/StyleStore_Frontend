@@ -52,10 +52,12 @@
           </ul>
           @if (isAdminView) {
             <button class="primary" (click)="edit(plan)">Configurar plan</button>
-          } @else {
+          } @else if (canContract) {
             <button class="primary" [disabled]="saving() || myContract()?.plan_codigo === plan.codigo" (click)="contract(plan)">
               {{ myContract()?.plan_codigo === plan.codigo ? 'Plan actual' : 'Contratar plan' }}
             </button>
+          } @else {
+            <span class="client-note">Plan administrado por tu tienda</span>
           }
         </article>
       }
@@ -71,12 +73,21 @@
         <label>Nombre<input name="name" [(ngModel)]="plan.nombre" required maxlength="80"></label>
         <label>Moneda<select name="currency" [(ngModel)]="plan.moneda"><option>BOB</option><option>USD</option><option>EUR</option></select></label>
         <label>Precio mensual<input name="price" type="number" min="0" step="0.01" [(ngModel)]="plan.precio_mensual" required></label>
-        <label>Sucursales máximas<input name="branches" type="number" min="1" [(ngModel)]="plan.max_sucursales" [disabled]="plan.codigo === 'personalizado'"></label>
+        <label>Sucursales máximas<input name="branches" type="number" min="1" [(ngModel)]="plan.max_sucursales" [disabled]="plan.codigo !== 'personalizado'"></label>
         <label class="wide">Descripción<textarea name="description" rows="3" [(ngModel)]="plan.descripcion" maxlength="1200"></textarea></label>
         <label class="wide">Beneficios <small>Uno por línea</small><textarea name="benefits" rows="5" [(ngModel)]="benefitsText"></textarea></label>
         <label>Color principal<input name="primary" type="color" [(ngModel)]="primaryColor"></label>
         <label>Color de acento<input name="accent" type="color" [(ngModel)]="accentColor"></label>
       </div>
+      <section class="capability-editor">
+        <div><strong>Capacidades operativas</strong><small>{{ plan.codigo === 'personalizado' ? 'Define qué módulos habilita este plan.' : 'Mínimos oficiales protegidos por el sistema.' }}</small></div>
+        <div class="capability-grid">
+          @for (capability of capabilityOptions; track capability.key) {
+            <label><input type="checkbox" [name]="'cap-' + capability.key" [(ngModel)]="plan.capacidades[capability.key]" [disabled]="plan.codigo !== 'personalizado'"> {{ capability.label }}</label>
+          }
+          <label><input type="checkbox" name="cap-ai" [(ngModel)]="plan.ia_generativa" [disabled]="plan.codigo !== 'personalizado'"> IA generativa</label>
+        </div>
+      </section>
       <div class="checks"><label><input type="checkbox" name="featured" [(ngModel)]="featured"> Mostrar como destacado</label><label><input type="checkbox" name="active" [(ngModel)]="plan.active"> Plan visible</label></div>
       <footer><button type="button" class="secondary" (click)="closeEditor()">Cancelar</button><button class="primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar configuración' }}</button></footer>
     </form>
