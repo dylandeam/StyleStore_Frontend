@@ -68,6 +68,7 @@
           <tr>
             <th>ID</th>
             <th>Cliente</th>
+            <th>Tenant</th>
             <th>Orden / Ticket</th>
             <th>Tipo / Prenda</th>
             <th>Sucursal / Fecha Cita</th>
@@ -83,6 +84,7 @@
               <strong>{{ sol.cliente_nombre || 'Cliente' }}</strong>
               <div class="small text-muted">{{ sol.cliente_email }}</div>
             </td>
+            <td>{{ sol.empresa_nombre || '—' }}</td>
             <td>
               <div>Orden #{{ sol.orden_venta_id }}</div>
               <div class="small text-muted font-mono" *ngIf="sol.ticket_numero">{{ sol.ticket_numero }}</div>

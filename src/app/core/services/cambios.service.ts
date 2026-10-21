@@ -13,6 +13,8 @@ export interface SolicitudCambioDevolucion {
   motivo: string;
   sucursal_id?: number;
   sucursal_nombre: string;
+  empresa_id?: number;
+  empresa_nombre?: string;
   fecha_programada: string;
   hora_programada?: string;
   descripcion_problema: string;
