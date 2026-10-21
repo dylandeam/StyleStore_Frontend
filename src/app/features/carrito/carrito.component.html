@@ -287,6 +287,33 @@
               </div>
             </div>
           </div>
+
+          <div class="envio-form" *ngIf="!conEnvio">
+            <div class="aviso-tarifa-delivery">
+              <div class="aviso-delivery-header">
+                <span class="aviso-icono">🏬</span>
+                <strong>Recojo programado en {{ sucursalDespacho?.nombre || 'sucursal' }}</strong>
+              </div>
+              <p class="aviso-delivery-desc">Elige un bloque de una hora antes de continuar al pago.</p>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Fecha de recojo</label>
+                  <input type="date" class="form-control" [min]="minFechaRecojo" [max]="maxFechaRecojo" [ngModel]="fechaRecojo" (ngModelChange)="cambiarFechaRecojo($event)" />
+                </div>
+                <div class="form-group">
+                  <label>Bloque horario</label>
+                  <select class="form-control" [(ngModel)]="horaRecojo" [disabled]="cargandoBloquesRecojo()">
+                    <option value="" disabled>{{ cargandoBloquesRecojo() ? 'Consultando...' : 'Selecciona un bloque' }}</option>
+                    @for (bloque of bloquesRecojo(); track bloque.inicio) {
+                      <option [value]="bloque.inicio" [disabled]="!bloque.disponible">
+                        {{ bloque.inicio }}–{{ bloque.fin }} {{ bloque.disponible ? 'Disponible' : 'Ocupado' }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Método de Pago Online Oficial: Exclusivo PayPal v2 -->

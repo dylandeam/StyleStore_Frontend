@@ -43,7 +43,7 @@
               <span class="tenant-avatar">{{ tenant.nombre.charAt(0).toUpperCase() }}</span>
               <div><h2>{{ tenant.nombre }}</h2><code>{{ tenant.codigo }}</code></div>
             </div>
-            <span class="status" [class.active]="tenant.active">{{ tenant.active ? 'Activo' : 'Suspendido' }}</span>
+            <span class="status" [class.active]="tenant.active">{{ tenantStatusLabel(tenant) }}</span>
           </div>
 
           <div class="plan-panel">
@@ -55,6 +55,7 @@
               {{ tenant.suscripcion?.estado || 'No asignado' }}
             </span>
             <small>Vence: {{ tenant.suscripcion?.fecha_fin ? (tenant.suscripcion?.fecha_fin | date:'dd/MM/yyyy') : 'Sin fecha' }}</small>
+            <small>Pago: {{ tenant.suscripcion?.estado_pago || 'No registrado' }}</small>
           </div>
 
           <dl class="tenant-metrics">
@@ -110,7 +111,7 @@
             <label>Contraseña temporal<input required minlength="8" type="password" name="admin_password" [(ngModel)]="createForm.admin_password" /></label>
             <label>Plan inicial
               <select name="plan_codigo" [(ngModel)]="createForm.plan_codigo">
-                <option value="basico">Básico</option><option value="profesional">Profesional</option><option value="personalizado">Personalizado</option>
+                <option value="basico">Básico</option><option value="intermedio">Intermedio</option><option value="profesional">Profesional</option>
               </select>
             </label>
           </div>
@@ -131,7 +132,7 @@
           <div class="form-grid">
             <label>Plan
               <select name="subscription_plan" [(ngModel)]="subscriptionForm.plan_codigo">
-                <option value="basico">Básico</option><option value="profesional">Profesional</option><option value="personalizado">Personalizado</option>
+                <option value="basico">Básico</option><option value="intermedio">Intermedio</option><option value="profesional">Profesional</option>
               </select>
             </label>
             <label>Estado
@@ -141,6 +142,8 @@
             </label>
             <label>Fecha de inicio<input required type="date" name="start_date" [(ngModel)]="subscriptionForm.fecha_inicio" /></label>
             <label>Fecha de vencimiento<input required type="date" name="end_date" [(ngModel)]="subscriptionForm.fecha_fin" /></label>
+            <label class="check wide"><input type="checkbox" name="payment_confirmed" [(ngModel)]="subscriptionForm.pago_confirmado" /> Pago de renovación confirmado</label>
+            <label class="wide">Referencia de pago <small>Opcional; se genera automáticamente si queda vacía</small><input name="payment_reference" [(ngModel)]="subscriptionForm.referencia_pago" /></label>
           </div>
           <p class="form-note">Guardar genera una nueva contratación auditable y conserva el historial anterior.</p>
         }

@@ -34,3 +34,17 @@ export interface ReservaCreate {
   hora_retiro?: string;
   items: ReservaCreateItem[];
 }
+
+export interface BloqueHorario {
+  inicio: string;
+  fin: string;
+  disponible: boolean;
+}
+
+export interface DisponibilidadReserva {
+  sucursal_id: number;
+  fecha: string;
+  hora_apertura: string;
+  hora_cierre: string;
+  bloques: BloqueHorario[];
+}

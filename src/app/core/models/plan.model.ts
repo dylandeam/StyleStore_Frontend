@@ -1,4 +1,4 @@
-export type PlanCode = 'basico' | 'profesional' | 'personalizado';
+export type PlanCode = 'basico' | 'intermedio' | 'profesional';
 
 export interface SubscriptionPlan {
   id: number;
@@ -22,6 +22,9 @@ export interface PlanContract {
   plan_codigo: PlanCode;
   plan_nombre: string;
   estado: string;
+  estado_pago: string;
+  referencia_pago?: string | null;
+  pagado_en?: string | null;
   precio: string;
   moneda: string;
   fecha_inicio: string;

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, defer, from, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Reserva, ReservaCreate } from '../models/reserva.model';
+import { DisponibilidadReserva, Reserva, ReservaCreate } from '../models/reserva.model';
 import { OfflineOperationsService, OfflineQueuedResult } from './offline-operations.service';
 
 @Injectable({
@@ -55,5 +55,12 @@ export class ReservaService {
     return this.http.get<{ puede_reservar: boolean; compras_previas: number; mensaje: string }>(
       `${this.apiUrl}/elegibilidad`
     );
+  }
+
+  getDisponibilidad(sucursalId: number, fecha: string): Observable<DisponibilidadReserva> {
+    const params = new HttpParams()
+      .set('sucursal_id', sucursalId.toString())
+      .set('fecha', fecha);
+    return this.http.get<DisponibilidadReserva>(`${this.apiUrl}/disponibilidad`, { params });
   }
 }

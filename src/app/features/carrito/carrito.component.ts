@@ -7,6 +7,8 @@ import { PagosService } from '../../core/services/pagos.service';
 import { EnvioService } from '../../core/services/envio.service';
 import { UploadService } from '../../core/services/upload.service';
 import { BranchSelectionService } from '../../core/services/branch-selection.service';
+import { ReservaService } from '../../core/services/reserva.service';
+import { BloqueHorario } from '../../core/models/reserva.model';
 
 @Component({
   selector: 'app-carrito',
@@ -22,6 +24,7 @@ export class CarritoComponent implements OnInit {
   private envioService = inject(EnvioService);
   private uploadService = inject(UploadService);
   private cdr = inject(ChangeDetectorRef);
+  private reservaService = inject(ReservaService);
   public branchService = inject(BranchSelectionService);
 
   // Estados Reactivos
@@ -38,6 +41,12 @@ export class CarritoComponent implements OnInit {
   referenciaState = signal<string>('');
   distanciaKmState = signal<number>(4.5);
   costoEnvioState = signal<number>(0);
+  fechaRecojo = '';
+  minFechaRecojo = '';
+  maxFechaRecojo = '';
+  horaRecojo = '';
+  bloquesRecojo = signal<BloqueHorario[]>([]);
+  cargandoBloquesRecojo = signal(false);
 
   // Método de pago elegido
   metodoPagoState = signal<'paypal' | 'efectivo'>('paypal');
@@ -72,6 +81,7 @@ export class CarritoComponent implements OnInit {
       this.recalcularTarifaEnvio();
     } else {
       this.costoEnvioState.set(0);
+      this.cargarBloquesRecojo();
     }
   }
 
@@ -123,7 +133,41 @@ export class CarritoComponent implements OnInit {
   set ticketCobro(val: any) { this.ticketCobroState.set(val); }
 
   ngOnInit(): void {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const max = new Date();
+    max.setDate(max.getDate() + 3);
+    this.minFechaRecojo = today.toISOString().slice(0, 10);
+    this.maxFechaRecojo = max.toISOString().slice(0, 10);
+    this.fechaRecojo = tomorrow.toISOString().slice(0, 10);
     this.cargarCarrito();
+  }
+
+  cargarBloquesRecojo(): void {
+    const sucursalId = this.sucursalDespacho?.id || this.branchService.getSucursalId();
+    if (!sucursalId || !this.fechaRecojo) return;
+    this.cargandoBloquesRecojo.set(true);
+    this.reservaService.getDisponibilidad(sucursalId, this.fechaRecojo).subscribe({
+      next: (response) => {
+        this.bloquesRecojo.set(response.bloques);
+        this.horaRecojo = response.bloques.find((block) => block.disponible)?.inicio || '';
+        this.cargandoBloquesRecojo.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.bloquesRecojo.set([]);
+        this.horaRecojo = '';
+        this.cargandoBloquesRecojo.set(false);
+        this.mostrarToast('No se pudo consultar la agenda de recojo.');
+      },
+    });
+  }
+
+  cambiarFechaRecojo(fecha: string): void {
+    this.fechaRecojo = fecha;
+    this.horaRecojo = '';
+    this.cargarBloquesRecojo();
   }
 
   onSliderChange(): void {
@@ -300,6 +344,7 @@ export class CarritoComponent implements OnInit {
       next: (data) => {
         this.carritoData.set(data);
         this.isLoading.set(false);
+        if (!this.conEnvio) this.cargarBloquesRecojo();
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },
@@ -411,6 +456,9 @@ export class CarritoComponent implements OnInit {
         this.mostrarToast('Por favor indica la ciudad de entrega.');
         return;
       }
+    } else if (!this.fechaRecojo || !this.horaRecojo) {
+      this.mostrarToast('Selecciona la fecha y un bloque disponible para recoger tu compra.');
+      return;
     }
 
     this.isProcesando.set(true);
@@ -437,6 +485,9 @@ export class CarritoComponent implements OnInit {
         direccion_envio: dirFinal,
         despacho_delivery: this.conEnvio,
         despacho_yango: this.conEnvio,
+        tipo_entrega: this.conEnvio ? 'delivery' : 'recojo',
+        fecha_recojo: this.conEnvio ? undefined : this.fechaRecojo,
+        hora_recojo: this.conEnvio ? undefined : this.horaRecojo,
       })
       .subscribe({
         next: (res) => {

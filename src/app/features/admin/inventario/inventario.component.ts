@@ -4,7 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { InventarioService } from '../../../core/services/inventario.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { UploadService } from '../../../core/services/upload.service';
-import { InventarioItem, StockAdjustRequest } from '../../../core/models/inventario.model';
+import { AuthService } from '../../../core/services/auth.service';
+import {
+  InventarioItem,
+  StockAdjustRequest,
+  TraspasoCreateRequest,
+  TraspasoInventario,
+} from '../../../core/models/inventario.model';
 import { Sucursal } from '../../../core/models/sucursal.model';
 
 @Component({
@@ -18,9 +24,10 @@ export class InventarioComponent implements OnInit {
   private inventarioService = inject(InventarioService);
   private sucursalService = inject(SucursalService);
   private uploadService = inject(UploadService);
+  private authService = inject(AuthService);
 
   // States
-  vista = signal<'global' | 'sucursal'>('global');
+  vista = signal<'global' | 'sucursal' | 'traspasos'>('global');
   sucursales = signal<Sucursal[]>([]);
   selectedSucursalId = signal<number | null>(null);
 
@@ -29,6 +36,7 @@ export class InventarioComponent implements OnInit {
   isLoading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  traspasos = signal<TraspasoInventario[]>([]);
 
   // Modal Ajuste de Stock
   isAdjustModalOpen = signal<boolean>(false);
@@ -36,6 +44,18 @@ export class InventarioComponent implements OnInit {
   nuevaCantidad = signal<number>(0);
   nuevoPrecio = signal<number | null>(null);
   medidas = signal<Record<string, number | null>>({ pecho: null, cintura: null, cadera: null, largo: null, manga: null });
+
+  // Modal de traspaso
+  isTransferModalOpen = signal(false);
+  transferItem = signal<InventarioItem | null>(null);
+  transferDestinationId = signal<number | null>(null);
+  transferQuantity = signal(1);
+  transferObservation = signal('');
+
+  canEdit(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal';
+  }
 
   ngOnInit(): void {
     this.loadSucursales();
@@ -57,6 +77,11 @@ export class InventarioComponent implements OnInit {
   loadInventario(): void {
     this.isLoading.set(true);
     this.errorMessage.set(null);
+
+    if (this.vista() === 'traspasos') {
+      this.loadTraspasos();
+      return;
+    }
 
     if (this.vista() === 'global') {
       this.inventarioService.getInventarioGlobal({ search: this.searchTerm().trim() || undefined }).subscribe({
@@ -100,9 +125,91 @@ export class InventarioComponent implements OnInit {
     }
   }
 
-  setVista(v: 'global' | 'sucursal'): void {
+  setVista(v: 'global' | 'sucursal' | 'traspasos'): void {
     this.vista.set(v);
     this.loadInventario();
+  }
+
+  loadTraspasos(): void {
+    this.isLoading.set(true);
+    this.inventarioService.getTraspasos().subscribe({
+      next: (data) => {
+        this.traspasos.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Error al cargar los traspasos.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  openTransferModal(item: InventarioItem): void {
+    const candidates = this.sucursales().filter((branch) => branch.id !== item.sucursal_id);
+    if (!item.producto_color_id || !item.talla_id || !item.sucursal_id || candidates.length === 0) {
+      this.errorMessage.set('Se requiere otra sucursal activa y una variante completa para realizar el traspaso.');
+      return;
+    }
+    this.transferItem.set(item);
+    this.transferDestinationId.set(candidates[0].id);
+    this.transferQuantity.set(1);
+    this.transferObservation.set('');
+    this.isTransferModalOpen.set(true);
+  }
+
+  closeTransferModal(): void {
+    this.isTransferModalOpen.set(false);
+    this.transferItem.set(null);
+  }
+
+  crearTraspaso(): void {
+    const item = this.transferItem();
+    const destination = this.transferDestinationId();
+    if (!item?.sucursal_id || !item.producto_color_id || !item.talla_id || !destination) return;
+    if (this.transferQuantity() < 1 || this.transferQuantity() > item.cantidad) {
+      this.errorMessage.set(`La cantidad debe estar entre 1 y ${item.cantidad}.`);
+      return;
+    }
+    const request: TraspasoCreateRequest = {
+      sucursal_origen_id: item.sucursal_id,
+      sucursal_destino_id: destination,
+      producto_color_id: item.producto_color_id,
+      talla_id: item.talla_id,
+      cantidad: this.transferQuantity(),
+      idempotency_key: this.newIdempotencyKey(),
+      observacion: this.transferObservation().trim() || undefined,
+    };
+    this.isLoading.set(true);
+    this.inventarioService.crearTraspaso(request).subscribe({
+      next: () => {
+        this.successMessage.set('Traspaso solicitado; queda pendiente de aprobación.');
+        this.closeTransferModal();
+        this.setVista('traspasos');
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'No se pudo solicitar el traspaso.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  decidirTraspaso(item: TraspasoInventario, accion: 'aprobar' | 'rechazar' | 'cancelar'): void {
+    if (!confirm(`¿Deseas ${accion} el traspaso #${item.id}?`)) return;
+    this.isLoading.set(true);
+    this.inventarioService.decidirTraspaso(item.id, accion).subscribe({
+      next: () => {
+        this.successMessage.set(`Traspaso ${accion === 'aprobar' ? 'aprobado' : accion === 'rechazar' ? 'rechazado' : 'cancelado'} correctamente.`);
+        this.loadTraspasos();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'No se pudo procesar el traspaso.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  private newIdempotencyKey(): string {
+    return globalThis.crypto?.randomUUID?.() ?? `transfer-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
   onSucursalChange(id: number): void {

@@ -32,7 +32,10 @@ export class TenantsComponent implements OnInit {
   createForm: TenantCreate = this.emptyCreateForm();
   companyForm = { codigo: '', nombre: '' };
   adminForm = { name: '', email: '', password: '', is_active: true };
-  subscriptionForm = { plan_codigo: 'basico' as PlanCode, estado: 'activa', fecha_inicio: '', fecha_fin: '' };
+  subscriptionForm = {
+    plan_codigo: 'basico' as PlanCode, estado: 'activa', fecha_inicio: '', fecha_fin: '',
+    pago_confirmado: true, referencia_pago: '',
+  };
 
   readonly filteredTenants = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -90,6 +93,8 @@ export class TenantsComponent implements OnInit {
       estado: tenant.suscripcion?.estado || 'activa',
       fecha_inicio: start,
       fecha_fin: tenant.suscripcion?.fecha_fin || this.dateOffset(30),
+      pago_confirmado: true,
+      referencia_pago: '',
     };
     this.modalMode.set('subscription');
   }
@@ -144,6 +149,13 @@ export class TenantsComponent implements OnInit {
     if (!tenant.active || tenant.suscripcion?.estado !== 'activa') return 'danger';
     if (end && new Date(`${end}T23:59:59`) < new Date()) return 'danger';
     return 'success';
+  }
+
+  tenantStatusLabel(tenant: TenantSummary): string {
+    if (tenant.active) return 'Activo';
+    if (tenant.inactive_reason === 'subscription_expired') return 'Inactivo por vencimiento';
+    if (tenant.inactive_reason === 'payment_pending') return 'Pago pendiente';
+    return 'Suspendido';
   }
 
   private emptyCreateForm(): TenantCreate {

@@ -116,10 +116,10 @@ export class PlanesComponent implements OnInit {
   }
 
   contract(plan: SubscriptionPlan): void {
-    if (!confirm(`¿Deseas contratar el plan ${plan.nombre} por ${plan.moneda} ${plan.precio_mensual}?`)) return;
+    if (!confirm(`¿Confirmas el pago simulado de ${plan.moneda} ${plan.precio_mensual} para activar o renovar el plan ${plan.nombre}?`)) return;
     this.saving.set(true);
     this.plansService.contractPlan(plan.codigo).subscribe({
-      next: (contract) => { this.myContract.set(contract); this.saving.set(false); this.message.set(`Plan ${plan.nombre} contratado correctamente.`); },
+      next: (contract) => { this.myContract.set(contract); this.saving.set(false); this.message.set(`Pago confirmado y plan ${plan.nombre} activado correctamente.`); },
       error: (err) => { this.saving.set(false); this.error.set(err?.error?.detail || 'No se pudo contratar el plan.'); },
     });
   }

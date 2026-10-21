@@ -13,6 +13,9 @@ export interface TenantSubscription {
   plan_codigo: PlanCode;
   plan_nombre: string;
   estado: string;
+  estado_pago: string;
+  referencia_pago?: string | null;
+  pagado_en?: string | null;
   precio: number;
   moneda: string;
   fecha_inicio: string;
@@ -25,6 +28,7 @@ export interface TenantSummary {
   codigo: string;
   nombre: string;
   active: boolean;
+  inactive_reason?: string | null;
   created_at: string;
   updated_at: string;
   admin?: TenantAdmin | null;

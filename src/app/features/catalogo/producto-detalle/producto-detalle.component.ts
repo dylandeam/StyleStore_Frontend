@@ -6,6 +6,7 @@ import { CarritoService, CatalogoItem } from '../../../core/services/carrito.ser
 import { ProductoService } from '../../../core/services/producto.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { ReservaService } from '../../../core/services/reserva.service';
+import { BloqueHorario } from '../../../core/models/reserva.model';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { BranchSelectionService } from '../../../core/services/branch-selection.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
@@ -52,6 +53,8 @@ export class ProductoDetalleComponent implements OnInit {
   maxFechaReserva = '';
   fechaLimiteReserva = '';
   horaRetiroReserva = '';
+  bloquesReserva = signal<BloqueHorario[]>([]);
+  cargandoBloques = signal(false);
 
   // Selección de variantes
   varianteColor = signal<any>(null);
@@ -438,8 +441,38 @@ export class ProductoDetalleComponent implements OnInit {
   actualizarHorarioReserva(sucursalId: number | string): void {
     const id = Number(sucursalId);
     this.sucursalReservaId.set(id);
-    const sucursal = this.sucursalesList().find((item) => item.id === id);
-    this.horaRetiroReserva = (sucursal?.hora_apertura || '09:00').slice(0, 5);
+    this.horaRetiroReserva = '';
+    this.cargarBloquesReserva();
+  }
+
+  actualizarFechaReserva(fecha: string): void {
+    this.fechaLimiteReserva = fecha;
+    this.horaRetiroReserva = '';
+    this.cargarBloquesReserva();
+  }
+
+  cargarBloquesReserva(): void {
+    const sucursalId = this.sucursalReservaId();
+    if (!sucursalId || !this.fechaLimiteReserva) {
+      this.bloquesReserva.set([]);
+      return;
+    }
+    this.cargandoBloques.set(true);
+    this.reservaService.getDisponibilidad(sucursalId, this.fechaLimiteReserva).subscribe({
+      next: (response) => {
+        this.bloquesReserva.set(response.bloques);
+        this.horaRetiroReserva = response.bloques.find((block) => block.disponible)?.inicio || '';
+        this.cargandoBloques.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.bloquesReserva.set([]);
+        this.horaRetiroReserva = '';
+        this.cargandoBloques.set(false);
+        this.mostrarToast(err?.error?.detail || 'No se pudo consultar la disponibilidad horaria.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   get sucursalReservaSeleccionada(): Sucursal | undefined {

@@ -20,6 +20,13 @@
         >
           🏢 Por Sucursal
         </button>
+        <button
+          class="btn-segment"
+          [class.active]="vista() === 'traspasos'"
+          (click)="setVista('traspasos')"
+        >
+          ⇄ Traspasos
+        </button>
       </div>
     </div>
   </div>
@@ -32,6 +39,7 @@
   }
 
   <!-- BARRA DE FILTROS -->
+  @if (vista() !== 'traspasos') {
   <div class="filter-bar">
     @if (vista() === 'sucursal') {
       <div class="filter-group">
@@ -60,10 +68,62 @@
       <button class="btn btn-secondary" (click)="onSearch()">🔍 Buscar</button>
     </div>
   </div>
+  }
 
   <!-- TABLA DE INVENTARIO -->
   <div class="table-card">
-    @if (isLoading()) {
+    @if (vista() === 'traspasos') {
+      @if (isLoading()) {
+        <div class="loading-state">Consultando traspasos de inventario...</div>
+      } @else if (traspasos().length === 0) {
+        <div class="empty-state">No existen traspasos registrados para este tenant.</div>
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table transfer-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Ruta</th>
+                <th>Cantidad</th>
+                <th>Estado</th>
+                <th>Solicitado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (transfer of traspasos(); track transfer.id) {
+                <tr>
+                  <td>
+                    <strong>{{ transfer.producto_nombre }}</strong>
+                    <div class="text-muted text-xs">{{ transfer.producto_codigo }} · {{ transfer.color }} · {{ transfer.talla }}</div>
+                  </td>
+                  <td>
+                    <div>{{ transfer.sucursal_origen }}</div>
+                    <div class="transfer-arrow">↓</div>
+                    <div>{{ transfer.sucursal_destino }}</div>
+                  </td>
+                  <td><strong>{{ transfer.cantidad }} un.</strong></td>
+                  <td><span class="status-badge status-{{ transfer.estado }}">{{ transfer.estado | titlecase }}</span></td>
+                  <td>
+                    <div>{{ transfer.solicitado_por }}</div>
+                    <div class="text-muted text-xs">{{ transfer.created_at | date:'short' }}</div>
+                  </td>
+                  <td class="cell-actions">
+                    @if (transfer.estado === 'pendiente' && canEdit()) {
+                      <button class="btn btn-sm btn-primary" (click)="decidirTraspaso(transfer, 'aprobar')">Aprobar</button>
+                      <button class="btn btn-sm btn-danger" (click)="decidirTraspaso(transfer, 'rechazar')">Rechazar</button>
+                      <button class="btn btn-sm btn-secondary" (click)="decidirTraspaso(transfer, 'cancelar')">Cancelar</button>
+                    } @else {
+                      <span class="text-muted text-xs">{{ transfer.procesado_por || 'Sin acciones' }}</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    } @else if (isLoading()) {
       <div class="loading-state">Consultando existencias de inventario...</div>
     } @else if (items().length === 0) {
       <div class="empty-state">
@@ -125,9 +185,14 @@
                   </span>
                 </td>
                 <td class="cell-actions">
-                  <button class="btn btn-sm btn-outline" (click)="openAdjustModal(item)">
-                    ✏️ Ajustar
-                  </button>
+                  @if (canEdit()) {
+                    <button class="btn btn-sm btn-outline" (click)="openAdjustModal(item)">✏️ Ajustar</button>
+                    @if (item.cantidad > 0 && sucursales().length > 1) {
+                      <button class="btn btn-sm btn-transfer" (click)="openTransferModal(item)">⇄ Traspasar</button>
+                    }
+                  } @else {
+                    <span class="text-muted text-xs">Solo lectura</span>
+                  }
                 </td>
               </tr>
             }
@@ -196,6 +261,50 @@
           <button class="btn btn-primary" (click)="guardarAjuste()" [disabled]="isLoading()">
             Guardar Existencia
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL SOLICITAR TRASPASO -->
+  @if (isTransferModalOpen() && transferItem()) {
+    <div class="modal-backdrop" (click)="closeTransferModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Solicitar Traspaso</h3>
+          <button class="btn-close" (click)="closeTransferModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="item-summary-box">
+            <img [src]="getImagenUrl(transferItem()!.foto)" class="summary-thumb" />
+            <div>
+              <h4 class="font-semibold">{{ transferItem()!.producto_nombre }}</h4>
+              <p class="text-sm">{{ transferItem()!.color }} · {{ transferItem()!.talla }}</p>
+              <p class="text-sm text-muted">Origen: {{ transferItem()!.sucursal }} · Disponible: {{ transferItem()!.cantidad }}</p>
+            </div>
+          </div>
+          <div class="form-group mt-4">
+            <label>Sucursal destino <span class="req">*</span></label>
+            <select class="form-control full-width" [ngModel]="transferDestinationId()" (ngModelChange)="transferDestinationId.set(+$event)">
+              @for (branch of sucursales(); track branch.id) {
+                @if (branch.id !== transferItem()!.sucursal_id) {
+                  <option [value]="branch.id">{{ branch.name }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cantidad <span class="req">*</span></label>
+            <input class="form-control full-width" type="number" min="1" [max]="transferItem()!.cantidad" [ngModel]="transferQuantity()" (ngModelChange)="transferQuantity.set(+$event)" />
+          </div>
+          <div class="form-group">
+            <label>Observación</label>
+            <textarea class="form-control full-width" rows="3" maxlength="500" [ngModel]="transferObservation()" (ngModelChange)="transferObservation.set($event)" placeholder="Motivo o indicaciones para el traspaso"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeTransferModal()">Cancelar</button>
+          <button class="btn btn-primary" (click)="crearTraspaso()" [disabled]="isLoading()">Crear Solicitud</button>
         </div>
       </div>
     </div>

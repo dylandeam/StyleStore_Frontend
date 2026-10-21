@@ -379,7 +379,8 @@
               class="form-control select-sucursal-reserva"
               [min]="minFechaReserva"
               [max]="maxFechaReserva"
-              [(ngModel)]="fechaLimiteReserva"
+              [ngModel]="fechaLimiteReserva"
+              (ngModelChange)="actualizarFechaReserva($event)"
             />
             <small class="help-desc-text">
               ℹ️ Tu prenda estará reservada hasta esta fecha para que puedas pasar a probártela y abonar en caja física.
@@ -390,17 +391,24 @@
             <label class="sucursal-picker-label">
               <strong>🕘 Hora de recogida: *</strong>
             </label>
-            <input
-              type="time"
-              class="form-control select-sucursal-reserva"
-              [min]="(sucursalReservaSeleccionada?.hora_apertura || '09:00').slice(0, 5)"
-              [max]="(sucursalReservaSeleccionada?.hora_cierre || '18:00').slice(0, 5)"
-              [(ngModel)]="horaRetiroReserva"
-              required
-            />
-            <small class="help-desc-text">
-              Atención: {{ sucursalReservaSeleccionada?.hora_apertura || '09:00' }} – {{ sucursalReservaSeleccionada?.hora_cierre || '18:00' }}.
-            </small>
+              <select
+                class="form-control select-sucursal-reserva"
+                [(ngModel)]="horaRetiroReserva"
+                [disabled]="cargandoBloques() || bloquesReserva().length === 0"
+                required
+              >
+                <option value="" disabled>
+                  {{ cargandoBloques() ? 'Consultando horarios...' : 'Selecciona un bloque' }}
+                </option>
+                @for (bloque of bloquesReserva(); track bloque.inicio) {
+                  <option [value]="bloque.inicio" [disabled]="!bloque.disponible">
+                    {{ bloque.inicio }}–{{ bloque.fin }} {{ bloque.disponible ? 'Disponible' : 'Ocupado' }}
+                  </option>
+                }
+              </select>
+              <small class="help-desc-text">
+                Atención: {{ sucursalReservaSeleccionada?.hora_apertura || '09:00' }} – {{ sucursalReservaSeleccionada?.hora_cierre || '18:00' }}. Los bloques ocupados no se pueden seleccionar.
+              </small>
           </div>
         </div>
 

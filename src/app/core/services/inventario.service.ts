@@ -2,7 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { InventarioItem, StockAdjustRequest } from '../models/inventario.model';
+import {
+  EstadoTraspaso,
+  InventarioItem,
+  StockAdjustRequest,
+  TraspasoCreateRequest,
+  TraspasoInventario,
+} from '../models/inventario.model';
 
 @Injectable({
   providedIn: 'root',
@@ -35,5 +41,24 @@ export class InventarioService {
       `${this.apiUrl}/ajustar`,
       data
     );
+  }
+
+  getTraspasos(estado?: EstadoTraspaso): Observable<TraspasoInventario[]> {
+    const params = estado ? new HttpParams().set('estado', estado) : undefined;
+    return this.http.get<TraspasoInventario[]>(`${this.apiUrl}/traspasos`, { params });
+  }
+
+  crearTraspaso(data: TraspasoCreateRequest): Observable<TraspasoInventario> {
+    return this.http.post<TraspasoInventario>(`${this.apiUrl}/traspasos`, data);
+  }
+
+  decidirTraspaso(
+    id: number,
+    accion: 'aprobar' | 'rechazar' | 'cancelar',
+    respuesta?: string
+  ): Observable<TraspasoInventario> {
+    return this.http.post<TraspasoInventario>(`${this.apiUrl}/traspasos/${id}/${accion}`, {
+      respuesta: respuesta || null,
+    });
   }
 }

@@ -25,7 +25,11 @@ export class PlanesService {
   }
 
   contractPlan(code: string): Observable<PlanContract> {
-    return this.http.post<PlanContract>(`${this.apiUrl}/planes/contratar`, { plan_codigo: code });
+    return this.http.post<PlanContract>(`${this.apiUrl}/planes/contratar`, {
+      plan_codigo: code,
+      pago_confirmado: true,
+      referencia_pago: `WEB-SIM-${Date.now()}`,
+    });
   }
 
   getMyContract(): Observable<PlanContract | null> {

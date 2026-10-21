@@ -35,7 +35,14 @@ export class TenantService {
 
   updateSubscription(
     id: number,
-    payload: { plan_codigo: string; estado: string; fecha_inicio: string; fecha_fin: string },
+    payload: {
+      plan_codigo: string;
+      estado: string;
+      fecha_inicio: string;
+      fecha_fin: string;
+      pago_confirmado: boolean;
+      referencia_pago?: string;
+    },
   ): Observable<TenantSubscription> {
     return this.http.put<TenantSubscription>(`${this.url}/${id}/suscripcion`, payload);
   }

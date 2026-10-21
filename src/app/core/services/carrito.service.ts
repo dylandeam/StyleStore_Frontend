@@ -110,6 +110,9 @@ export class CarritoService {
     direccion_envio?: string;
     despacho_delivery?: boolean;
     despacho_yango?: boolean;
+    tipo_entrega?: 'delivery' | 'recojo';
+    fecha_recojo?: string;
+    hora_recojo?: string;
   }): Observable<{ message: string; orden_venta_id: number; total: number; estado: string }> {
     const payload = typeof data === 'number' ? { sucursal_id: data } : (data || {});
     return this.http.post<{ message: string; orden_venta_id: number; total: number; estado: string }>(
