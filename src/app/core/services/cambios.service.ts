@@ -25,6 +25,25 @@ export interface SolicitudCambioDevolucion {
   talla_nueva?: string;
   color_nuevo?: string;
   created_at?: string;
+  nuevo_stock_inventario_id?: number;
+  precio_original?: number;
+  precio_nuevo?: number;
+  monto_adicional?: number;
+  saldo_favor_generado?: number;
+  monto_reembolsado?: number;
+  metodo_pago_diferencia?: string;
+  nota_venta_numero?: string;
+  orden_ajuste_id?: number;
+}
+
+export interface InventarioCambio {
+  stock_inventario_id: number;
+  producto_codigo: string;
+  producto_nombre: string;
+  color_nombre?: string;
+  talla_nombre?: string;
+  precio: number;
+  cantidad: number;
 }
 
 export interface SolicitudCambioCreate {
@@ -85,11 +104,32 @@ export class CambiosService {
     });
   }
 
-  completarEnCaja(solicitudId: number, reponerPrenda: boolean, nuevoStockId?: number): Observable<any> {
+  completarEnCaja(solicitudId: number, data: {
+    reponer_prenda_original: boolean;
+    nuevo_stock_inventario_id?: number;
+    metodo_pago_diferencia?: 'efectivo' | 'qr';
+    efectivo_recibido?: number;
+    metodo_reembolso?: 'efectivo' | 'transferencia';
+  }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${solicitudId}/completar`, {
-      reponer_prenda_original: reponerPrenda,
-      nuevo_stock_inventario_id: nuevoStockId,
+      ...data,
     });
+  }
+
+  getPolitica(): Observable<{ plazo_cambios_dias: number }> {
+    return this.http.get<{ plazo_cambios_dias: number }>(`${this.apiUrl}/politica`);
+  }
+
+  updatePolitica(plazo: number): Observable<{ plazo_cambios_dias: number; message: string }> {
+    return this.http.put<{ plazo_cambios_dias: number; message: string }>(`${this.apiUrl}/politica`, { plazo_cambios_dias: plazo });
+  }
+
+  getInventarioDisponible(sucursalId: number): Observable<InventarioCambio[]> {
+    return this.http.get<InventarioCambio[]>(`${this.apiUrl}/inventario-disponible`, { params: { sucursal_id: sucursalId } });
+  }
+
+  getMiSaldo(): Observable<{ saldo: number; movimientos: any[] }> {
+    return this.http.get<{ saldo: number; movimientos: any[] }>(`${this.apiUrl}/mi-saldo`);
   }
 
   getOpcionesDisponibles(productoCodigo: string, sucursalId: number): Observable<{ colores: any[]; tallas: any[] }> {

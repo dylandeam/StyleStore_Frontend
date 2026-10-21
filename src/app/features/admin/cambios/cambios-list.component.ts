@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CambiosService, SolicitudCambioDevolucion } from '../../../core/services/cambios.service';
+import { CambiosService, InventarioCambio, SolicitudCambioDevolucion } from '../../../core/services/cambios.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 
@@ -37,12 +37,31 @@ export class CambiosListComponent implements OnInit {
   reponerPrendaOriginal: boolean = true;
   nuevoStockId: number | undefined = undefined;
   submittingCompletar = false;
+  inventarioCambio: InventarioCambio[] = [];
+  metodoPagoDiferencia: 'efectivo' | 'qr' = 'efectivo';
+  efectivoRecibido = 0;
+  metodoReembolso: 'efectivo' | 'transferencia' = 'efectivo';
+  plazoCambiosDias = 7;
+  guardandoPolitica = false;
 
   toastMessage = '';
 
   ngOnInit(): void {
     this.cargarSucursales();
     this.cargarSolicitudes();
+    this.cargarPolitica();
+  }
+
+  cargarPolitica(): void {
+    this.cambiosService.getPolitica().subscribe({ next: (p) => this.plazoCambiosDias = p.plazo_cambios_dias });
+  }
+
+  guardarPolitica(): void {
+    this.guardandoPolitica = true;
+    this.cambiosService.updatePolitica(this.plazoCambiosDias).subscribe({
+      next: (p) => { this.plazoCambiosDias = p.plazo_cambios_dias; this.guardandoPolitica = false; this.mostrarToast('Política de cambios actualizada.'); },
+      error: (e) => { this.guardandoPolitica = false; alert(e?.error?.detail || 'No se pudo actualizar la política.'); },
+    });
   }
 
   cargarSucursales(): void {
@@ -122,6 +141,15 @@ export class CambiosListComponent implements OnInit {
     this.selectedSolicitud = sol;
     this.reponerPrendaOriginal = true;
     this.nuevoStockId = undefined;
+    this.inventarioCambio = [];
+    this.metodoPagoDiferencia = 'efectivo';
+    this.efectivoRecibido = 0;
+    if (sol.tipo === 'cambio' && sol.sucursal_id) {
+      this.cambiosService.getInventarioDisponible(sol.sucursal_id).subscribe({
+        next: (items) => { this.inventarioCambio = items; this.cdr.markForCheck(); },
+        error: (e) => alert(e?.error?.detail || 'No se pudo cargar el inventario de la sucursal.'),
+      });
+    }
     this.showCompletarModal = true;
     this.cdr.markForCheck();
   }
@@ -135,12 +163,20 @@ export class CambiosListComponent implements OnInit {
 
   ejecutarCompletarEnCaja(): void {
     if (!this.selectedSolicitud) return;
+    if (this.selectedSolicitud.tipo === 'cambio' && !this.nuevoStockId) { alert('Selecciona la nueva prenda.'); return; }
+    if (this.montoAdicional > 0 && this.metodoPagoDiferencia === 'efectivo' && this.efectivoRecibido < this.montoAdicional) { alert('El efectivo recibido no cubre la diferencia.'); return; }
 
     this.submittingCompletar = true;
     this.cdr.markForCheck();
 
     this.cambiosService
-      .completarEnCaja(this.selectedSolicitud.id, this.reponerPrendaOriginal, this.nuevoStockId)
+      .completarEnCaja(this.selectedSolicitud.id, {
+        reponer_prenda_original: this.reponerPrendaOriginal,
+        nuevo_stock_inventario_id: this.nuevoStockId,
+        metodo_pago_diferencia: this.montoAdicional > 0 ? this.metodoPagoDiferencia : undefined,
+        efectivo_recibido: this.montoAdicional > 0 && this.metodoPagoDiferencia === 'efectivo' ? this.efectivoRecibido : undefined,
+        metodo_reembolso: this.selectedSolicitud.tipo === 'devolucion' ? this.metodoReembolso : undefined,
+      })
       .subscribe({
         next: () => {
           this.mostrarToast(`Canje/Devolución #${this.selectedSolicitud?.id} completado con éxito en caja.`);
@@ -155,6 +191,17 @@ export class CambiosListComponent implements OnInit {
         },
       });
   }
+
+  get prendaNuevaSeleccionada(): InventarioCambio | undefined {
+    return this.inventarioCambio.find((item) => item.stock_inventario_id === Number(this.nuevoStockId));
+  }
+
+  get diferenciaCambio(): number {
+    return (Number(this.prendaNuevaSeleccionada?.precio) || 0) - (Number(this.selectedSolicitud?.precio_original) || 0);
+  }
+
+  get montoAdicional(): number { return Math.max(0, this.diferenciaCambio); }
+  get saldoFavor(): number { return Math.max(0, -this.diferenciaCambio); }
 
   mostrarToast(msg: string): void {
     this.toastMessage = msg;

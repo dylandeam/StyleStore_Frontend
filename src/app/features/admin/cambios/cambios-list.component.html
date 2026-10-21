@@ -11,6 +11,12 @@
     </div>
   </div>
 
+  <div class="policy-card">
+    <div><strong>Política del tenant</strong><span>Plazo permitido desde la fecha de compra.</span></div>
+    <label><input type="number" min="1" max="90" [(ngModel)]="plazoCambiosDias"> días</label>
+    <button type="button" class="btn-refresh" (click)="guardarPolitica()" [disabled]="guardandoPolitica">{{ guardandoPolitica ? 'Guardando…' : 'Guardar plazo' }}</button>
+  </div>
+
   <!-- Filtros -->
   <div class="filters-card">
     <div class="filters-row">
@@ -91,6 +97,12 @@
               </div>
               <div class="small text-primary" *ngIf="sol.tipo === 'cambio' && (sol.talla_nueva || sol.color_nuevo)">
                 <strong>Solicita:</strong> {{ sol.talla_nueva || 'Talla' }} - {{ sol.color_nuevo || 'Color' }}
+              </div>
+              <div class="financial-result" *ngIf="sol.estado === 'completada'">
+                <span *ngIf="sol.monto_adicional">Cobrado: Bs. {{ sol.monto_adicional | number:'1.2-2' }}</span>
+                <span *ngIf="sol.saldo_favor_generado">Saldo a favor: Bs. {{ sol.saldo_favor_generado | number:'1.2-2' }}</span>
+                <span *ngIf="sol.monto_reembolsado">Reembolsado: Bs. {{ sol.monto_reembolsado | number:'1.2-2' }}</span>
+                <small *ngIf="sol.nota_venta_numero">Nota {{ sol.nota_venta_numero }}</small>
               </div>
             </td>
             <td>
@@ -209,9 +221,37 @@
           </label>
         </div>
 
+        <div class="form-group mb-3" *ngIf="selectedSolicitud.tipo === 'cambio'">
+          <label class="form-label">Nueva prenda a entregar:</label>
+          <select class="form-select" [(ngModel)]="nuevoStockId">
+            <option [ngValue]="undefined">Selecciona una existencia</option>
+            <option *ngFor="let item of inventarioCambio" [ngValue]="item.stock_inventario_id">
+              {{ item.producto_nombre }} · {{ item.color_nombre || 'Sin color' }} · {{ item.talla_nombre || 'Única' }} · Bs. {{ item.precio | number:'1.2-2' }} ({{ item.cantidad }} disp.)
+            </option>
+          </select>
+        </div>
+
+        <div class="settlement-box" *ngIf="selectedSolicitud.tipo === 'cambio' && prendaNuevaSeleccionada">
+          <div><span>Precio pagado original</span><strong>Bs. {{ selectedSolicitud.precio_original | number:'1.2-2' }}</strong></div>
+          <div><span>Precio nueva prenda</span><strong>Bs. {{ prendaNuevaSeleccionada.precio | number:'1.2-2' }}</strong></div>
+          <div class="charge" *ngIf="montoAdicional > 0"><span>Diferencia a cobrar</span><strong>Bs. {{ montoAdicional | number:'1.2-2' }}</strong></div>
+          <div class="credit" *ngIf="saldoFavor > 0"><span>Saldo a favor del cliente</span><strong>Bs. {{ saldoFavor | number:'1.2-2' }}</strong></div>
+          <div class="credit" *ngIf="montoAdicional === 0 && saldoFavor === 0"><span>Cambio equivalente</span><strong>Sin diferencia</strong></div>
+        </div>
+
+        <div class="payment-fields" *ngIf="montoAdicional > 0">
+          <label>Método de cobro<select [(ngModel)]="metodoPagoDiferencia"><option value="efectivo">Efectivo</option><option value="qr">QR</option></select></label>
+          <label *ngIf="metodoPagoDiferencia === 'efectivo'">Efectivo recibido<input type="number" min="0" [(ngModel)]="efectivoRecibido"></label>
+        </div>
+
+        <div class="payment-fields" *ngIf="selectedSolicitud.tipo === 'devolucion'">
+          <label>Método del reembolso<select [(ngModel)]="metodoReembolso"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option></select></label>
+          <p>Importe a reembolsar: <strong>Bs. {{ selectedSolicitud.precio_original | number:'1.2-2' }}</strong></p>
+        </div>
+
         <div class="notice-caja">
           <i class="bi bi-info-circle-fill"></i>
-          <span>Al confirmar, el sistema registrará la operación en la bitácora y finalizará la solicitud de cambio/devolución.</span>
+          <span>Al confirmar se ajustará el stock, se registrará el cobro, reembolso o saldo a favor y se emitirá una nota de venta.</span>
         </div>
       </div>
 

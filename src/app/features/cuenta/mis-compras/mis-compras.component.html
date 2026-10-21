@@ -9,6 +9,11 @@
     </a>
   </div>
 
+  <div class="garantia-banner" *ngIf="saldoFavor > 0">
+    <div class="garantia-icon">💳</div>
+    <div class="garantia-content"><h3 class="garantia-title">Saldo a favor: Bs. {{ saldoFavor | number:'1.2-2' }}</h3><p class="garantia-desc">Crédito generado por cambios de prendas de menor precio, válido dentro de esta empresa.</p></div>
+  </div>
+
   <!-- Selector de Pestañas -->
   <div class="tabs-bar">
     <button
@@ -25,7 +30,7 @@
       [class.active]="tabActiva === 'cambios'"
       (click)="cambiarTab('cambios')"
     >
-      🔄 Cambios y Devoluciones (Última Semana)
+      🔄 Cambios y Devoluciones ({{ plazoCambiosDias }} días)
       <span class="tab-count-badge" *ngIf="comprasSemana.length > 0">{{ comprasSemana.length }}</span>
     </button>
   </div>
@@ -34,9 +39,9 @@
   <div class="garantia-banner" *ngIf="tabActiva === 'cambios'">
     <div class="garantia-icon">🛡️</div>
     <div class="garantia-content">
-      <h3 class="garantia-title">Garantía Oficial StyleStore: Plazo de 7 Días</h3>
+      <h3 class="garantia-title">Política de cambios: {{ plazoCambiosDias }} días</h3>
       <p class="garantia-desc">
-        Aquí se muestran exclusivamente los artículos que compraste en los últimos <strong>7 días naturales</strong>.
+        Aquí se muestran exclusivamente los artículos que compraste en los últimos <strong>{{ plazoCambiosDias }} días naturales</strong>.
         Puedes solicitar cambio de talla, cambio de color o devolución presencial en cualquiera de nuestras sucursales.
       </p>
     </div>
@@ -51,9 +56,9 @@
   <!-- Empty State para pestaña Cambios -->
   <div *ngIf="!loading && tabActiva === 'cambios' && comprasSemana.length === 0" class="empty-state">
     <div class="empty-icon">⏳</div>
-    <h3>No tienes compras dentro del plazo de 7 días</h3>
+    <h3>No tienes compras dentro del plazo de {{ plazoCambiosDias }} días</h3>
     <p>
-      Nuestra política de cambios y devoluciones aplica para prendas adquiridas dentro de la última semana.
+      Nuestra política de cambios y devoluciones aplica durante {{ plazoCambiosDias }} días desde la compra.
       Tus compras más antiguas han superado el plazo de garantía física.
     </p>
     <div class="empty-actions">

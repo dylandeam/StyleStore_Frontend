@@ -48,8 +48,12 @@ export class MisComprasComponent implements OnInit {
   coloresDisponibles: any[] = [];
   tallasDisponibles: any[] = [];
   cargandoOpciones = false;
+  plazoCambiosDias = 7;
+  saldoFavor = 0;
 
   ngOnInit(): void {
+    this.cambiosService.getPolitica().subscribe({ next: (p) => { this.plazoCambiosDias = p.plazo_cambios_dias; this.cdr.markForCheck(); } });
+    this.cambiosService.getMiSaldo().subscribe({ next: (p) => { this.saldoFavor = Number(p.saldo) || 0; this.cdr.markForCheck(); } });
     this.route.queryParams.subscribe((params) => {
       this.tabActiva = params['tab'] === 'cambios' ? 'cambios' : 'todas';
       this.cargarCompras();
@@ -117,7 +121,7 @@ export class MisComprasComponent implements OnInit {
     return !!(orden.envio?.repartidor_lat && orden.envio?.tracking_activo !== false);
   }
 
-  // Verifica si está dentro de los 7 días de gracia para cambios/devoluciones
+  // Verifica si está dentro del plazo configurado por el tenant.
   isEligibleForCambio(orden: OrdenVenta): boolean {
     if (orden.estado !== 'pagada' && orden.estado !== 'entregada') {
       return false;
@@ -125,14 +129,14 @@ export class MisComprasComponent implements OnInit {
     const fechaOrden = new Date(orden.created_at || orden.fecha);
     const ahora = new Date();
     const diffDias = (ahora.getTime() - fechaOrden.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDias <= 7;
+    return diffDias <= this.plazoCambiosDias;
   }
 
   diasRestantesCambio(orden: OrdenVenta): number {
     const fechaOrden = new Date(orden.created_at || orden.fecha);
     const ahora = new Date();
     const diffDias = (ahora.getTime() - fechaOrden.getTime()) / (1000 * 60 * 60 * 24);
-    const restantes = Math.max(0, Math.ceil(7 - diffDias));
+    const restantes = Math.max(0, Math.ceil(this.plazoCambiosDias - diffDias));
     return restantes;
   }
 
@@ -241,7 +245,7 @@ export class MisComprasComponent implements OnInit {
       },
       error: (err) => {
         this.cambioSubmitting = false;
-        this.cambioErrorMessage = err.error?.detail || 'No se pudo enviar la solicitud. Verifica el plazo de 7 días.';
+        this.cambioErrorMessage = err.error?.detail || `No se pudo enviar la solicitud. Verifica el plazo de ${this.plazoCambiosDias} días.`;
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },

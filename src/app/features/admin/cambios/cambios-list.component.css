@@ -410,3 +410,17 @@
   font-weight: 700;
   cursor: pointer;
 }
+.policy-card { display:flex; align-items:center; gap:18px; padding:16px 20px; margin-bottom:16px; background:#fff; border:1px solid #E8E2D8; border-radius:12px; }
+.policy-card > div { flex:1; display:flex; flex-direction:column; }
+.policy-card span { color:#64748B; font-size:.88rem; }
+.policy-card label { display:flex; align-items:center; gap:6px; font-weight:700; }
+.policy-card input { width:75px; padding:8px; border:1px solid #CBD5E1; border-radius:7px; }
+.financial-result { display:flex; flex-direction:column; margin-top:6px; color:#166534; font-weight:700; font-size:.78rem; }
+.settlement-box { border:1px solid #CBD5E1; border-radius:10px; padding:12px; margin:12px 0; background:#F8FAFC; }
+.settlement-box > div { display:flex; justify-content:space-between; gap:15px; padding:5px 0; }
+.settlement-box .charge { color:#B91C1C; border-top:1px solid #E2E8F0; }
+.settlement-box .credit { color:#15803D; border-top:1px solid #E2E8F0; }
+.payment-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
+.payment-fields label { display:flex; flex-direction:column; gap:5px; font-weight:700; }
+.payment-fields input,.payment-fields select { padding:9px; border:1px solid #CBD5E1; border-radius:7px; }
+@media (max-width:700px) { .policy-card { align-items:stretch; flex-direction:column; } .payment-fields { grid-template-columns:1fr; } }
