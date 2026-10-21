@@ -1306,4 +1306,9 @@
 .pp-footer a:hover {
   text-decoration: underline;
 }
-
+.discount-code-box { margin:16px 0; padding:14px; border:1px dashed #C7A76B; border-radius:10px; background:#FFFCF5; }
+.discount-code-box label { display:block; font-weight:700; color:#14263D; margin-bottom:8px; }
+.discount-code-row { display:flex; gap:8px; }
+.discount-code-row input { flex:1; min-width:0; padding:10px; border:1px solid #CBD5E1; border-radius:8px; text-transform:uppercase; }
+.discount-code-row button { border:0; border-radius:8px; background:#14263D; color:#fff; padding:0 16px; font-weight:700; cursor:pointer; }
+.discount-code-box small,.total-row.discount { color:#15803D; font-weight:600; }

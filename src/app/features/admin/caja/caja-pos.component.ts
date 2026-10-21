@@ -10,6 +10,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 import { InventarioItem } from '../../../core/models/inventario.model';
 import { VentaPresencialCreate } from '../../../core/models/venta.model';
+import { PromocionesService } from '../../../core/services/promociones.service';
 
 @Component({
   selector: 'app-caja-pos',
@@ -25,6 +26,7 @@ export class CajaPosComponent implements OnInit {
   private inventarioService = inject(InventarioService);
   private uploadService = inject(UploadService);
   private authService = inject(AuthService);
+  private promocionesService = inject(PromocionesService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
@@ -65,6 +67,10 @@ export class CajaPosComponent implements OnInit {
   metodoPagoDirecto: 'efectivo' | 'qr' = 'efectivo';
   efectivoRecibidoDirecto: number = 0;
   cartDirecto: { item: InventarioItem; cantidad: number; subtotal: number }[] = [];
+  codigoDescuentoDirecto = '';
+  codigoAplicadoDirecto = '';
+  porcentajeCodigoDirecto = 0;
+  validandoCodigoDirecto = false;
 
   // Historial de Pagos
   historialPagos: any[] = [];
@@ -425,7 +431,35 @@ export class CajaPosComponent implements OnInit {
   }
 
   get totalVentaDirecta(): number {
-    return this.cartDirecto.reduce((acc, curr) => acc + curr.subtotal, 0);
+    const subtotal = this.subtotalVentaDirecta;
+    return Math.round((subtotal - subtotal * this.porcentajeCodigoDirecto / 100) * 100) / 100;
+  }
+
+  get subtotalVentaDirecta(): number { return this.cartDirecto.reduce((acc, curr) => acc + curr.subtotal, 0); }
+  get descuentoCodigoDirecto(): number { return Math.round((this.subtotalVentaDirecta * this.porcentajeCodigoDirecto / 100) * 100) / 100; }
+
+  aplicarCodigoDirecto(): void {
+    const codigo = this.codigoDescuentoDirecto.trim().toUpperCase();
+    if (!codigo) { this.mostrarToast('Ingresa un código de descuento.'); return; }
+    if (!navigator.onLine) { this.mostrarToast('Los códigos requieren conexión para validar vigencia y usos.'); return; }
+    this.validandoCodigoDirecto = true;
+    this.promocionesService.validarCodigo(codigo, 'presencial').subscribe({
+      next: (res) => {
+        this.validandoCodigoDirecto = false; this.codigoAplicadoDirecto = res.codigo;
+        this.codigoDescuentoDirecto = res.codigo; this.porcentajeCodigoDirecto = res.porcentaje;
+        this.efectivoRecibidoDirecto = this.totalVentaDirecta;
+        this.mostrarToast(`Código ${res.codigo} aplicado: ${res.porcentaje}% OFF.`);
+      },
+      error: (err) => {
+        this.validandoCodigoDirecto = false; this.codigoAplicadoDirecto = ''; this.porcentajeCodigoDirecto = 0;
+        this.mostrarToast(err?.error?.detail || 'El código no es válido para caja.');
+      },
+    });
+  }
+
+  quitarCodigoDirecto(): void {
+    this.codigoAplicadoDirecto = ''; this.codigoDescuentoDirecto = ''; this.porcentajeCodigoDirecto = 0;
+    this.efectivoRecibidoDirecto = this.totalVentaDirecta;
   }
 
   get cambioDirecto(): number {
@@ -461,6 +495,7 @@ export class CajaPosComponent implements OnInit {
       sucursal_id: this.selectedSucursalId,
       metodo_pago: this.metodoPagoDirecto,
       efectivo_recibido: this.metodoPagoDirecto === 'efectivo' ? this.efectivoRecibidoDirecto : this.totalVentaDirecta,
+      codigo_descuento: this.codigoAplicadoDirecto || undefined,
       items: this.cartDirecto.map((ci) => ({
         stock_inventario_id: ci.item.stock_inventario_id || ci.item.id || 0,
         cantidad: ci.cantidad,
@@ -511,6 +546,7 @@ export class CajaPosComponent implements OnInit {
         };
         this.ordenSeleccionada = ordenCreada;
         this.cartDirecto = [];
+        this.quitarCodigoDirecto();
         this.mostrarToast(`¡Venta presencial completada! Ticket ${this.ticketEmitido.ticket_numero}`);
         this.cargarInventarioSucursal();
         this.cargarOrdenesPendientes();
@@ -529,6 +565,7 @@ export class CajaPosComponent implements OnInit {
     this.ticketEmitido = null;
     this.efectivoRecibido = 0;
     this.cartDirecto = [];
+    this.quitarCodigoDirecto();
     this.efectivoRecibidoDirecto = 0;
     this.cdr.markForCheck();
   }

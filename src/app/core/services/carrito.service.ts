@@ -11,6 +11,8 @@ export interface CarritoItem {
   stock_inventario_id: number;
   cantidad: number;
   precio_unitario: number;
+  precio_original?: number;
+  porcentaje_promocion?: number;
   subtotal: number;
   producto_codigo?: string;
   producto_nombre?: string;
@@ -113,6 +115,7 @@ export class CarritoService {
     tipo_entrega?: 'delivery' | 'recojo';
     fecha_recojo?: string;
     hora_recojo?: string;
+    codigo_descuento?: string;
   }): Observable<{ message: string; orden_venta_id: number; total: number; estado: string }> {
     const payload = typeof data === 'number' ? { sucursal_id: data } : (data || {});
     return this.http.post<{ message: string; orden_venta_id: number; total: number; estado: string }>(

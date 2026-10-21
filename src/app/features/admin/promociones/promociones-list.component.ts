@@ -1,8 +1,12 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PromocionesService } from '../../../core/services/promociones.service';
+import { PromocionesService, PromocionAgrupada, CodigoDescuento } from '../../../core/services/promociones.service';
 import { ProductoService } from '../../../core/services/producto.service';
+import { CategoriasService } from '../../../core/services/categorias.service';
+import { TemporadasService } from '../../../core/services/temporadas.service';
+import { Categoria } from '../../../core/models/categoria.model';
+import { Temporada } from '../../../core/models/temporada.model';
 import { Producto, PromocionUpdate } from '../../../core/models/producto.model';
 import { environment } from '../../../../environments/environment';
 
@@ -16,11 +20,33 @@ import { environment } from '../../../../environments/environment';
 export class PromocionesListComponent implements OnInit {
   private promocionesService = inject(PromocionesService);
   private productoService = inject(ProductoService);
+  private categoriasService = inject(CategoriasService);
+  private temporadasService = inject(TemporadasService);
 
   productos = signal<Producto[]>([]);
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   successMsg = signal<string | null>(null);
+  agrupadas = signal<PromocionAgrupada[]>([]);
+  codigos = signal<CodigoDescuento[]>([]);
+  categorias = signal<Categoria[]>([]);
+  temporadas = signal<Temporada[]>([]);
+
+  grupoNombre = '';
+  grupoTipo: 'categoria' | 'temporada' = 'categoria';
+  grupoObjetivoId: number | null = null;
+  grupoPorcentaje = 10;
+  grupoInicio = '';
+  grupoFin = '';
+
+  codigoNombre = '';
+  codigoDescripcion = '';
+  codigoPorcentaje = 10;
+  codigoOnline = true;
+  codigoPresencial = true;
+  codigoInicio = '';
+  codigoFin = '';
+  codigoMaxUsos: number | null = null;
 
   searchTerm: string = '';
   filterEstado: 'todos' | 'promocion' | 'normal' = 'todos';
@@ -37,6 +63,54 @@ export class PromocionesListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.cargarReglas();
+  }
+
+  cargarReglas(): void {
+    this.promocionesService.getAgrupadas().subscribe({ next: (v) => this.agrupadas.set(v), error: (e) => console.warn('Promociones agrupadas todavía no disponibles:', e) });
+    this.promocionesService.getCodigos().subscribe({ next: (v) => this.codigos.set(v), error: (e) => console.warn('Códigos todavía no disponibles:', e) });
+    this.categoriasService.getCategorias().subscribe({ next: (v) => this.categorias.set(v) });
+    this.temporadasService.getTemporadas().subscribe({ next: (v) => this.temporadas.set(v) });
+  }
+
+  guardarAgrupada(): void {
+    if (!this.grupoNombre.trim() || !this.grupoObjetivoId || this.grupoPorcentaje < 1 || this.grupoPorcentaje > 90) {
+      this.error.set('Completa el nombre, objetivo y porcentaje (1 a 90%).'); return;
+    }
+    const data: any = {
+      nombre: this.grupoNombre.trim(), tipo: this.grupoTipo, porcentaje: this.grupoPorcentaje,
+      categoria_id: this.grupoTipo === 'categoria' ? Number(this.grupoObjetivoId) : null,
+      temporada_id: this.grupoTipo === 'temporada' ? Number(this.grupoObjetivoId) : null,
+      fecha_inicio: this.grupoInicio || null, fecha_fin: this.grupoFin || null, active: true,
+    };
+    this.promocionesService.createAgrupada(data).subscribe({
+      next: () => { this.grupoNombre = ''; this.grupoObjetivoId = null; this.successMsg.set('Promoción agrupada creada.'); this.cargarReglas(); },
+      error: (e) => this.error.set(e?.error?.detail || 'No se pudo crear la promoción agrupada.'),
+    });
+  }
+
+  eliminarAgrupada(item: PromocionAgrupada): void {
+    if (!confirm(`¿Eliminar la promoción "${item.nombre}"?`)) return;
+    this.promocionesService.deleteAgrupada(item.id).subscribe({ next: () => this.cargarReglas(), error: (e) => this.error.set(e?.error?.detail || 'No se pudo eliminar.') });
+  }
+
+  guardarCodigo(): void {
+    if (!this.codigoNombre.trim() || this.codigoPorcentaje < 1 || this.codigoPorcentaje > 90 || (!this.codigoOnline && !this.codigoPresencial)) {
+      this.error.set('Completa el código, porcentaje y habilita al menos un canal.'); return;
+    }
+    this.promocionesService.createCodigo({
+      codigo: this.codigoNombre.trim().toUpperCase(), descripcion: this.codigoDescripcion.trim() || null,
+      porcentaje: this.codigoPorcentaje, aplica_online: this.codigoOnline, aplica_presencial: this.codigoPresencial,
+      fecha_inicio: this.codigoInicio || null, fecha_fin: this.codigoFin || null, max_usos: this.codigoMaxUsos || null, active: true,
+    }).subscribe({
+      next: () => { this.codigoNombre = ''; this.codigoDescripcion = ''; this.successMsg.set('Código de descuento creado.'); this.cargarReglas(); },
+      error: (e) => this.error.set(e?.error?.detail || 'No se pudo crear el código.'),
+    });
+  }
+
+  eliminarCodigo(item: CodigoDescuento): void {
+    if (!confirm(`¿Eliminar el código "${item.codigo}"?`)) return;
+    this.promocionesService.deleteCodigo(item.id).subscribe({ next: () => this.cargarReglas(), error: (e) => this.error.set(e?.error?.detail || 'No se pudo eliminar.') });
   }
 
   cargarProductos(): void {

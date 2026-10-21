@@ -1955,4 +1955,9 @@
   background: #4f46e5;
   color: #fff;
 }
-
+.pos-discount-code { padding:12px; border:1px dashed #C7A76B; border-radius:9px; background:#FFFCF5; margin-bottom:12px; }
+.pos-discount-code label { display:block; font-weight:700; margin-bottom:7px; }
+.pos-discount-code > div { display:flex; gap:7px; }
+.pos-discount-code input { flex:1; min-width:0; border:1px solid #CBD5E1; border-radius:7px; padding:9px; text-transform:uppercase; }
+.pos-discount-code button { border:0; border-radius:7px; background:#14263D; color:white; padding:8px 12px; cursor:pointer; }
+.summary-line.discount { color:#15803D; font-weight:700; }

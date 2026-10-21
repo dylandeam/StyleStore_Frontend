@@ -9,6 +9,7 @@ import { UploadService } from '../../core/services/upload.service';
 import { BranchSelectionService } from '../../core/services/branch-selection.service';
 import { ReservaService } from '../../core/services/reserva.service';
 import { BloqueHorario } from '../../core/models/reserva.model';
+import { PromocionesService } from '../../core/services/promociones.service';
 
 @Component({
   selector: 'app-carrito',
@@ -25,6 +26,7 @@ export class CarritoComponent implements OnInit {
   private uploadService = inject(UploadService);
   private cdr = inject(ChangeDetectorRef);
   private reservaService = inject(ReservaService);
+  private promocionesService = inject(PromocionesService);
   public branchService = inject(BranchSelectionService);
 
   // Estados Reactivos
@@ -47,6 +49,10 @@ export class CarritoComponent implements OnInit {
   horaRecojo = '';
   bloquesRecojo = signal<BloqueHorario[]>([]);
   cargandoBloquesRecojo = signal(false);
+  codigoDescuento = '';
+  codigoAplicado = '';
+  porcentajeCodigo = 0;
+  validandoCodigo = false;
 
   // Método de pago elegido
   metodoPagoState = signal<'paypal' | 'efectivo'>('paypal');
@@ -395,10 +401,33 @@ export class CarritoComponent implements OnInit {
 
   get totalFinal(): number {
     const subtotal = Number(this.carrito?.total) || 0;
+    const descuentoCodigo = subtotal * this.porcentajeCodigo / 100;
     const envio = this.conEnvio ? (Number(this.costoEnvio) || 5.0) : 0;
-    const total = subtotal + envio;
+    const total = subtotal - descuentoCodigo + envio;
     return isNaN(total) || total <= 0 ? (this.conEnvio ? 5.0 : 0) : Math.round(total * 100) / 100;
   }
+
+  get montoDescuentoCodigo(): number {
+    return Math.round(((Number(this.carrito?.total) || 0) * this.porcentajeCodigo / 100) * 100) / 100;
+  }
+
+  aplicarCodigo(): void {
+    const codigo = this.codigoDescuento.trim().toUpperCase();
+    if (!codigo) { this.mostrarToast('Ingresa un código de descuento.'); return; }
+    this.validandoCodigo = true;
+    this.promocionesService.validarCodigo(codigo, 'online').subscribe({
+      next: (res) => {
+        this.validandoCodigo = false; this.codigoAplicado = res.codigo; this.codigoDescuento = res.codigo;
+        this.porcentajeCodigo = res.porcentaje; this.mostrarToast(`Código ${res.codigo} aplicado: ${res.porcentaje}% OFF.`);
+      },
+      error: (err) => {
+        this.validandoCodigo = false; this.codigoAplicado = ''; this.porcentajeCodigo = 0;
+        this.mostrarToast(err?.error?.detail || 'El código no es válido.');
+      },
+    });
+  }
+
+  quitarCodigo(): void { this.codigoAplicado = ''; this.codigoDescuento = ''; this.porcentajeCodigo = 0; }
 
   getImageUrl(foto?: string | null): string {
     return this.uploadService.getImageUrl(foto, 'productos') || 'assets/images/placeholder.jpg';
@@ -488,6 +517,7 @@ export class CarritoComponent implements OnInit {
         tipo_entrega: this.conEnvio ? 'delivery' : 'recojo',
         fecha_recojo: this.conEnvio ? undefined : this.fechaRecojo,
         hora_recojo: this.conEnvio ? undefined : this.horaRecojo,
+        codigo_descuento: this.codigoAplicado || undefined,
       })
       .subscribe({
         next: (res) => {

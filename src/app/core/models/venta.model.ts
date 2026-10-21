@@ -17,6 +17,11 @@ export interface OrdenVenta {
   fecha: string;
   estado: string;
   total: number;
+  subtotal_productos?: number;
+  descuento_promociones?: number;
+  descuento_codigo?: number;
+  codigo_descuento?: string;
+  porcentaje_codigo?: number;
   tipo_venta: string;
   metodo_pago?: string;
   ticket_numero?: string;
@@ -44,6 +49,7 @@ export interface VentaPresencialCreate {
   items: VentaItemCreate[];
   metodo_pago?: string;
   efectivo_recibido?: number;
+  codigo_descuento?: string;
 }
 
 export interface PagoResponse {

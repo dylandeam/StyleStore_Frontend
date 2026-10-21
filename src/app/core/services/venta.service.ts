@@ -33,7 +33,7 @@ export class VentaService {
     return defer(() => {
       if (!navigator.onLine) return from(this.offlineOperations.queueCashSale(localPayload));
       return this.http.post<OrdenVenta>(`${this.apiUrl}/presencial`, data).pipe(
-        catchError((error) => error?.status === 0
+        catchError((error) => error?.status === 0 && !data.codigo_descuento
           ? from(this.offlineOperations.queueCashSale(localPayload))
           : throwError(() => error))
       );

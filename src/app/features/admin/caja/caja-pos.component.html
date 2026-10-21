@@ -511,6 +511,14 @@
 
       <!-- Resumen y Total -->
       <div class="cart-summary">
+        <div class="pos-discount-code" *ngIf="cartDirecto.length > 0">
+          <label>Código de descuento presencial</label>
+          <div><input [(ngModel)]="codigoDescuentoDirecto" [disabled]="!!codigoAplicadoDirecto" placeholder="Ej. CLIENTE10" />
+          <button type="button" *ngIf="!codigoAplicadoDirecto" (click)="aplicarCodigoDirecto()" [disabled]="validandoCodigoDirecto">Aplicar</button>
+          <button type="button" *ngIf="codigoAplicadoDirecto" (click)="quitarCodigoDirecto()">Quitar</button></div>
+        </div>
+        <div class="summary-line" *ngIf="codigoAplicadoDirecto"><span>Subtotal:</span><span>Bs. {{ subtotalVentaDirecta | number:'1.2-2' }}</span></div>
+        <div class="summary-line discount" *ngIf="codigoAplicadoDirecto"><span>{{ codigoAplicadoDirecto }} ({{ porcentajeCodigoDirecto }}%):</span><span>- Bs. {{ descuentoCodigoDirecto | number:'1.2-2' }}</span></div>
         <div class="summary-line total">
           <span>TOTAL:</span>
           <strong>Bs. {{ totalVentaDirecta | number:'1.2-2' }}</strong>

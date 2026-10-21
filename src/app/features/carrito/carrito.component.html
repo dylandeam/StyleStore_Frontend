@@ -333,6 +333,16 @@
           </div>
         </div>
 
+        <div class="discount-code-box">
+          <label for="codigo-descuento">Código de descuento</label>
+          <div class="discount-code-row">
+            <input id="codigo-descuento" [(ngModel)]="codigoDescuento" [disabled]="!!codigoAplicado" placeholder="Ej. VERANO15" />
+            <button type="button" *ngIf="!codigoAplicado" (click)="aplicarCodigo()" [disabled]="validandoCodigo">{{ validandoCodigo ? 'Validando...' : 'Aplicar' }}</button>
+            <button type="button" *ngIf="codigoAplicado" (click)="quitarCodigo()">Quitar</button>
+          </div>
+          <small *ngIf="codigoAplicado">{{ codigoAplicado }} aplicado: {{ porcentajeCodigo }}% de descuento.</small>
+        </div>
+
         <!-- Desglose de Totales -->
         <div class="totals-breakdown">
           <div class="total-row">
@@ -343,6 +353,11 @@
           <div class="total-row" *ngIf="conEnvio">
             <span>Envío Delivery StyleStore ({{ distanciaKm | number:'1.1-2' }} km)</span>
             <span class="delivery-tarifa-badge">Bs. {{ costoEnvio | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="total-row discount" *ngIf="codigoAplicado">
+            <span>Código {{ codigoAplicado }} ({{ porcentajeCodigo }}%)</span>
+            <span>- Bs. {{ montoDescuentoCodigo | number:'1.2-2' }}</span>
           </div>
 
           <hr class="summary-divider" />
