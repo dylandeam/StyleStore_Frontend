@@ -18,7 +18,8 @@ export class ClientesListComponent implements OnInit {
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
+    return !this.authService.currentUser()?.is_platform_admin
+      && (role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero');
   }
 
   get isPlatformAdmin(): boolean {
@@ -28,6 +29,15 @@ export class ClientesListComponent implements OnInit {
   clientes = signal<Cliente[]>([]);
   isLoading = signal<boolean>(false);
   searchTerm = '';
+  selectedTenantFilter = '';
+
+  get tenantOptions(): Array<{ id: number; nombre: string }> {
+    const options = new Map<number, string>();
+    for (const client of this.clientes()) {
+      (client.empresa_ids || []).forEach((id, index) => options.set(id, client.empresas?.[index] || `Tenant #${id}`));
+    }
+    return [...options.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
 
   showModal = signal<boolean>(false);
   isEditing = signal<boolean>(false);
@@ -64,16 +74,21 @@ export class ClientesListComponent implements OnInit {
   }
 
   get filteredClientes(): Cliente[] {
-    if (!this.searchTerm.trim()) return this.clientes();
+    let list = this.clientes();
+    if (this.selectedTenantFilter) {
+      list = list.filter((client) => client.empresa_ids?.includes(Number(this.selectedTenantFilter)));
+    }
+    if (!this.searchTerm.trim()) return list;
     const term = this.searchTerm.toLowerCase();
-    return this.clientes().filter(
+    return list.filter(
       (c) =>
         c.codigo.toLowerCase().includes(term) ||
         (c.nombre && c.nombre.toLowerCase().includes(term)) ||
         (c.apellido && c.apellido.toLowerCase().includes(term)) ||
         (c.ci && c.ci.toLowerCase().includes(term)) ||
         (c.email && c.email.toLowerCase().includes(term)) ||
-        (c.telefono && c.telefono.toLowerCase().includes(term))
+        (c.telefono && c.telefono.toLowerCase().includes(term)) ||
+        (c.empresas && c.empresas.some((empresa) => empresa.toLowerCase().includes(term)))
     );
   }
 

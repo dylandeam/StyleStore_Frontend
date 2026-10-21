@@ -40,7 +40,14 @@ h1 {
 
 .toolbar-card {
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
+
+.filter-group { display:flex; align-items:center; gap:.5rem; font-size:.85rem; font-weight:700; }
+.filter-group .form-control { min-width:210px; padding:.65rem .8rem; }
 
 .search-box {
   max-width: 400px;

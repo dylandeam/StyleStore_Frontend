@@ -19,7 +19,8 @@ export class SucursalesListComponent implements OnInit {
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal';
+    return !this.authService.currentUser()?.is_platform_admin
+      && (role === 'administrador' || role === 'encargado_sucursal');
   }
 
   get isPlatformAdmin(): boolean {
@@ -29,6 +30,15 @@ export class SucursalesListComponent implements OnInit {
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);
   filterCity = '';
+  selectedTenantFilter = '';
+
+  get tenantOptions(): Array<{ id: number; nombre: string }> {
+    const options = new Map<number, string>();
+    for (const branch of this.sucursales()) {
+      if (branch.empresa_id) options.set(branch.empresa_id, branch.empresa_nombre || `Tenant #${branch.empresa_id}`);
+    }
+    return [...options.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
 
   // Modal State
   showModal = signal<boolean>(false);
@@ -67,11 +77,16 @@ export class SucursalesListComponent implements OnInit {
   }
 
   get filteredSucursales(): Sucursal[] {
-    if (!this.filterCity) return this.sucursales();
-    return this.sucursales().filter(
+    let list = this.sucursales();
+    if (this.selectedTenantFilter) {
+      list = list.filter((branch) => branch.empresa_id === Number(this.selectedTenantFilter));
+    }
+    if (!this.filterCity) return list;
+    return list.filter(
       (s) =>
         s.city.toLowerCase().includes(this.filterCity.toLowerCase()) ||
-        s.name.toLowerCase().includes(this.filterCity.toLowerCase())
+        s.name.toLowerCase().includes(this.filterCity.toLowerCase()) ||
+        !!s.empresa_nombre?.toLowerCase().includes(this.filterCity.toLowerCase())
     );
   }
 

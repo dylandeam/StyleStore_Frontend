@@ -29,11 +29,24 @@ export class EmpleadosListComponent implements OnInit {
     return !!this.authService.currentUser()?.is_platform_admin;
   }
 
+  get canManage(): boolean {
+    return this.isAdmin && !this.isPlatformAdmin;
+  }
+
   empleados = signal<Empleado[]>([]);
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);
   searchTerm = '';
   selectedSucursalFilter = '';
+  selectedTenantFilter = '';
+
+  get tenantOptions(): Array<{ id: number; nombre: string }> {
+    const options = new Map<number, string>();
+    for (const employee of this.empleados()) {
+      if (employee.empresa_id) options.set(employee.empresa_id, employee.empresa_nombre || `Tenant #${employee.empresa_id}`);
+    }
+    return [...options.entries()].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  }
 
   // Modal State
   showModal = signal<boolean>(false);
@@ -90,6 +103,9 @@ export class EmpleadosListComponent implements OnInit {
 
   get filteredEmpleados(): Empleado[] {
     let list = this.empleados();
+    if (this.selectedTenantFilter) {
+      list = list.filter((e) => e.empresa_id === Number(this.selectedTenantFilter));
+    }
     if (this.selectedSucursalFilter) {
       list = list.filter((e) => e.sucursal_id === Number(this.selectedSucursalFilter));
     }
@@ -102,6 +118,7 @@ export class EmpleadosListComponent implements OnInit {
           (e.apellido && e.apellido.toLowerCase().includes(term)) ||
           (e.ci && e.ci.toLowerCase().includes(term)) ||
           (e.email && e.email.toLowerCase().includes(term))
+          || (e.empresa_nombre && e.empresa_nombre.toLowerCase().includes(term))
       );
     }
     return list;

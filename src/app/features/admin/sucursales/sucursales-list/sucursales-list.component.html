@@ -31,6 +31,15 @@
         placeholder="Filtrar por nombre o ciudad..."
       />
     </div>
+    @if (isPlatformAdmin) {
+      <div class="filter-group">
+        <label for="filtro-tenant-sucursal">Tenant:</label>
+        <select id="filtro-tenant-sucursal" [(ngModel)]="selectedTenantFilter" class="form-control">
+          <option value="">Todos los tenants</option>
+          @for (tenant of tenantOptions; track tenant.id) { <option [value]="tenant.id">{{ tenant.nombre }}</option> }
+        </select>
+      </div>
+    }
   </div>
 
   <!-- Grid of branches -->

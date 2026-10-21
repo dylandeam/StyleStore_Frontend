@@ -5,7 +5,7 @@
       <h1>Gestión de Empleados</h1>
       <p class="subtitle">Personal de atención, caja y almacén con asignación de sucursal (CU7)</p>
     </div>
-    @if (isAdmin) {
+    @if (canManage) {
       <button class="btn btn-primary" (click)="openCreateModal()">
         <span class="btn-icon">+</span> Registrar Empleado
       </button>
@@ -24,6 +24,13 @@
       </div>
 
       <div class="filter-group">
+        @if (isPlatformAdmin) {
+          <label for="filtro-tenant-empleado">Tenant:</label>
+          <select id="filtro-tenant-empleado" [(ngModel)]="selectedTenantFilter" class="form-select">
+            <option value="">Todos los tenants</option>
+            @for (tenant of tenantOptions; track tenant.id) { <option [value]="tenant.id">{{ tenant.nombre }}</option> }
+          </select>
+        }
         <label for="filtro-sucursal">Sucursal:</label>
         <select id="filtro-sucursal" [(ngModel)]="selectedSucursalFilter" class="form-select">
           <option value="">Todas las sucursales</option>
@@ -61,7 +68,7 @@
               <th>Edad</th>
               <th>Sueldo</th>
               <th>Teléfono</th>
-              @if (isAdmin) {
+              @if (canManage) {
                 <th class="actions-col">Acciones</th>
               }
             </tr>
@@ -100,7 +107,7 @@
                 <td>{{ emp.edad }} años</td>
                 <td class="cell-money">Bs. {{ emp.sueldo }}</td>
                 <td>{{ emp.telefono }}</td>
-                @if (isAdmin) {
+                @if (canManage) {
                   <td class="actions-col">
                     <button class="btn-action edit" (click)="openEditModal(emp)" title="Editar">
                       ✏️

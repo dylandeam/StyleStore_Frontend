@@ -22,6 +22,15 @@
           [(ngModel)]="searchTerm"
         />
       </div>
+      @if (isPlatformAdmin) {
+        <div class="filter-group">
+          <label for="filtro-tenant-cliente">Tenant:</label>
+          <select id="filtro-tenant-cliente" [(ngModel)]="selectedTenantFilter" class="form-select">
+            <option value="">Todos los tenants</option>
+            @for (tenant of tenantOptions; track tenant.id) { <option [value]="tenant.id">{{ tenant.nombre }}</option> }
+          </select>
+        </div>
+      }
     </div>
   </div>
 
