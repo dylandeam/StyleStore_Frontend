@@ -23,8 +23,7 @@
       "name": "catalog-images",
       "urls": [
         "/uploads/**",
-        "https://web-production-07e73.up.railway.app/uploads/**",
-        "https://stylestorebackend-production.up.railway.app/uploads/**"
+        "https://web-production-07e73.up.railway.app/uploads/**"
       ],
       "cacheConfig": {
         "strategy": "performance",
