@@ -25,6 +25,10 @@ export class EmpleadosListComponent implements OnInit {
     return this.authService.currentUser()?.role === 'administrador';
   }
 
+  get isPlatformAdmin(): boolean {
+    return !!this.authService.currentUser()?.is_platform_admin;
+  }
+
   empleados = signal<Empleado[]>([]);
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);

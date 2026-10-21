@@ -38,3 +38,13 @@ export interface EmpresaOption {
   nombre: string;
   active: boolean;
 }
+
+export interface PlanPayPalOrder {
+  id: string;
+  status: string;
+  links: Array<{ href: string; rel: string; method: string }>;
+  contratacion_id: number;
+  plan_codigo: PlanCode;
+  total: number;
+  moneda: string;
+}

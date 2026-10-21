@@ -28,6 +28,7 @@ export class TenantsComponent implements OnInit {
   readonly statusFilter = signal<'all' | 'active' | 'suspended'>('all');
   readonly modalMode = signal<ModalMode | null>(null);
   readonly selected = signal<TenantSummary | null>(null);
+  readonly expandedTenantId = signal<number | null>(null);
 
   createForm: TenantCreate = this.emptyCreateForm();
   companyForm = { codigo: '', nombre: '' };
@@ -142,6 +143,10 @@ export class TenantsComponent implements OnInit {
       next: () => { this.success.set(`Tenant ${tenant.active ? 'suspendido' : 'reactivado'} correctamente.`); this.load(); },
       error: (err) => this.error.set(err?.error?.detail || 'No se pudo cambiar el estado.'),
     });
+  }
+
+  toggleDetails(tenant: TenantSummary): void {
+    this.expandedTenantId.update((current) => current === tenant.id ? null : tenant.id);
   }
 
   subscriptionClass(tenant: TenantSummary): string {

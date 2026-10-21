@@ -208,3 +208,12 @@
 .auth-link:hover {
   text-decoration: underline;
 }
+
+.tenant-selector { border: 0; padding: 0; margin-inline: 0; }
+.tenant-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .65rem; }
+.tenant-option { display: flex; gap: .65rem; align-items: center; padding: .75rem; border: 1px solid var(--border-subtle); border-radius: 12px; cursor: pointer; background: #fff; }
+.tenant-option:has(input:checked) { border-color: var(--accent-link); background: rgba(75, 85, 185, .07); }
+.tenant-option input { width: auto; }
+.tenant-option span { display: grid; }
+.tenant-option small { color: var(--text-secondary); }
+@media (max-width: 560px) { .tenant-options { grid-template-columns: 1fr; } }

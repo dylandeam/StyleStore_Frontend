@@ -54,6 +54,7 @@
             <tr>
               <th>Código</th>
               <th>Empleado</th>
+              @if (isPlatformAdmin) { <th>Tenant</th> }
               <th>Rol</th>
               <th>CI</th>
               <th>Sucursal</th>
@@ -86,6 +87,7 @@
                     </div>
                   </div>
                 </td>
+                @if (isPlatformAdmin) { <td><span class="badge-branch">{{ emp.empresa_nombre || 'Sin tenant' }}</span></td> }
                 <td>
                   <span class="badge-role" [ngClass]="getRoleBadgeClass(emp.role)">
                     {{ getRoleLabel(emp.role) }}

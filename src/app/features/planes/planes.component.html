@@ -1,8 +1,8 @@
 <section class="plans-shell">
   <header class="hero">
-    <span class="eyebrow">{{ isAdminView ? 'CONFIGURACIÓN COMERCIAL' : 'MEMBRESÍAS STYLESTORE' }}</span>
-    <h1>{{ isAdminView ? 'Diseña tus planes de suscripción' : 'Elige una experiencia a tu medida' }}</h1>
-    <p>{{ isAdminView ? 'Configura precio, moneda, beneficios y apariencia sin afectar a otras empresas.' : 'Tres opciones transparentes, configuradas especialmente para tu tienda.' }}</p>
+    <span class="eyebrow">{{ isAdminView && isPlatformAdmin ? 'CONFIGURACIÓN COMERCIAL' : 'MEMBRESÍAS STYLESTORE' }}</span>
+    <h1>{{ isAdminView && isPlatformAdmin ? 'Diseña tus planes de suscripción' : 'Elige, cambia o renueva tu plan' }}</h1>
+    <p>{{ isAdminView && isPlatformAdmin ? 'Configura precio, moneda, beneficios y apariencia sin afectar a otras empresas.' : 'El cambio se activa únicamente después de que PayPal confirme el cobro.' }}</p>
 
     @if (isPlatformAdmin && isAdminView) {
       <label class="tenant-picker">
@@ -52,11 +52,11 @@
             @for (benefit of plan.beneficios; track benefit) { <li><span>✓</span>{{ benefit }}</li> }
             @if (!plan.beneficios.length) { <li class="muted">Contenido pendiente de configuración</li> }
           </ul>
-          @if (isAdminView) {
+          @if (isAdminView && isPlatformAdmin) {
             <button class="primary" (click)="edit(plan)">Configurar plan</button>
           } @else if (canContract) {
-            <button class="primary" [disabled]="saving() || myContract()?.plan_codigo === plan.codigo" (click)="contract(plan)">
-              {{ myContract()?.plan_codigo === plan.codigo ? 'Plan actual' : 'Contratar plan' }}
+            <button class="primary" [disabled]="saving()" (click)="contract(plan)">
+              {{ myContract()?.plan_codigo === plan.codigo ? 'Renovar plan' : 'Cambiar a este plan' }}
             </button>
           } @else {
             <span class="client-note">Plan administrado por tu tienda</span>

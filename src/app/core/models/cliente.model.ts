@@ -8,6 +8,8 @@ export interface Cliente {
   ci?: string | null;
   email?: string | null;
   role?: string | null;
+  empresa_ids?: number[];
+  empresas?: string[];
   created_at?: string;
   updated_at?: string;
 }

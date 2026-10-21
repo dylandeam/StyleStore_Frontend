@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { EmpresaOption, PlanContract, SubscriptionPlan } from '../../core/models/plan.model';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,6 +18,7 @@ export class PlanesComponent implements OnInit {
   private readonly plansService = inject(PlanesService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly plans = signal<SubscriptionPlan[]>([]);
   readonly companies = signal<EmpresaOption[]>([]);
@@ -57,16 +58,20 @@ export class PlanesComponent implements OnInit {
     const load = () => {
       if (this.isPlatformAdmin && this.isAdminView) this.loadCompanies();
       this.loadPlans();
-      if (!this.isAdminView) this.loadContract();
+      if (!this.isAdminView || !this.isPlatformAdmin) this.loadContract();
     };
     if (this.authService.currentUser()) load();
     else this.authService.getProfile().subscribe({ next: load, error: () => this.loading.set(false) });
+    const paypalToken = this.route.snapshot.queryParamMap.get('token');
+    if (paypalToken && this.route.snapshot.queryParamMap.get('paypal_plan') === '1') {
+      this.capturePlanPayment(paypalToken);
+    }
   }
 
   loadPlans(): void {
     this.loading.set(true);
     this.error.set(null);
-    const request = this.isAdminView
+    const request = this.isAdminView && this.isPlatformAdmin
       ? this.plansService.getAdminPlans(this.selectedEmpresaId)
       : this.plansService.getPublicPlans();
     request.subscribe({
@@ -116,11 +121,40 @@ export class PlanesComponent implements OnInit {
   }
 
   contract(plan: SubscriptionPlan): void {
-    if (!confirm(`¿Confirmas el pago simulado de ${plan.moneda} ${plan.precio_mensual} para activar o renovar el plan ${plan.nombre}?`)) return;
+    if (!confirm(`Serás enviado a PayPal para pagar ${plan.moneda} ${plan.precio_mensual}. El plan solo cambiará cuando PayPal confirme el cobro. ¿Continuar?`)) return;
     this.saving.set(true);
-    this.plansService.contractPlan(plan.codigo).subscribe({
-      next: (contract) => { this.myContract.set(contract); this.saving.set(false); this.message.set(`Pago confirmado y plan ${plan.nombre} activado correctamente.`); },
-      error: (err) => { this.saving.set(false); this.error.set(err?.error?.detail || 'No se pudo contratar el plan.'); },
+    this.error.set(null);
+    const returnUrl = `${window.location.origin}/planes?paypal_plan=1`;
+    const cancelUrl = `${window.location.origin}/planes?paypal_cancelado=1`;
+    this.plansService.createPayPalOrder(plan.codigo, returnUrl, cancelUrl).subscribe({
+      next: (order) => {
+        const approval = order.links.find((link) => link.rel === 'approve')?.href;
+        if (!approval) {
+          this.saving.set(false);
+          this.error.set('PayPal no devolvió un enlace de aprobación.');
+          return;
+        }
+        window.location.assign(approval);
+      },
+      error: (err) => { this.saving.set(false); this.error.set(err?.error?.detail || 'No se pudo iniciar el pago con PayPal.'); },
+    });
+  }
+
+  private capturePlanPayment(paypalOrderId: string): void {
+    this.saving.set(true);
+    this.message.set('Confirmando el cobro con PayPal…');
+    this.plansService.capturePayPalOrder(paypalOrderId).subscribe({
+      next: (contract) => {
+        this.myContract.set(contract);
+        this.saving.set(false);
+        this.message.set(`Pago confirmado. El plan ${contract.plan_nombre} ya está activo.`);
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.message.set(null);
+        this.error.set(err?.error?.detail || 'PayPal no pudo confirmar el cobro; el plan anterior continúa sin cambios.');
+      },
     });
   }
 

@@ -23,24 +23,20 @@
     }
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
-      <div class="form-group">
-        <label for="reg-empresa" class="form-label">Código de empresa</label>
-        <div class="input-wrapper">
-          <input
-            id="reg-empresa"
-            type="text"
-            class="form-control"
-            placeholder="Déjalo vacío si usas StyleStore"
-            formControlName="empresa_codigo"
-            autocomplete="organization"
-            [class.is-invalid]="registerForm.get('empresa_codigo')?.touched && registerForm.get('empresa_codigo')?.invalid"
-          />
+      <fieldset class="form-group tenant-selector">
+        <legend class="form-label">Empresas donde deseas registrarte *</legend>
+        <p class="foto-help-text">Puedes elegir una o varias. La primera seleccionada será tu tienda inicial.</p>
+        <div class="tenant-options">
+          @for (company of companies(); track company.codigo) {
+            <label class="tenant-option">
+              <input type="checkbox" [checked]="selectedCompanyCodes().includes(company.codigo)" (change)="toggleCompany(company.codigo, $any($event.target).checked)" />
+              <span><strong>{{ company.nombre }}</strong><small>{{ company.codigo }}</small></span>
+            </label>
+          } @empty {
+            <span class="foto-help-text">Cargando empresas disponibles…</span>
+          }
         </div>
-        <span class="foto-help-text">Tu empresa te proporcionará este código cuando corresponda.</span>
-        @if (registerForm.get('empresa_codigo')?.touched && registerForm.get('empresa_codigo')?.invalid) {
-          <span class="form-error">Usa únicamente letras, números, guion o guion bajo.</span>
-        }
-      </div>
+      </fieldset>
 
       <!-- Nombres y Apellidos en dos columnas -->
       <div class="form-row-2col">

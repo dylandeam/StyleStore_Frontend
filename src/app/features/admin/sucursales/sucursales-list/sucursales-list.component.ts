@@ -22,6 +22,10 @@ export class SucursalesListComponent implements OnInit {
     return role === 'administrador' || role === 'encargado_sucursal';
   }
 
+  get isPlatformAdmin(): boolean {
+    return !!this.authService.currentUser()?.is_platform_admin;
+  }
+
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);
   filterCity = '';

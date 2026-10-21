@@ -44,6 +44,7 @@
             <tr>
               <th>Código</th>
               <th>Cliente</th>
+              @if (isPlatformAdmin) { <th>Tenant(s)</th> }
               <th>Rol</th>
               <th>CI</th>
               <th>Teléfono</th>
@@ -63,6 +64,7 @@
                   <strong>{{ getNombreCompleto(c) }}</strong>
                   <div class="cell-subtext">{{ c.email }}</div>
                 </td>
+                @if (isPlatformAdmin) { <td><span class="badge-branch">{{ c.empresas?.join(', ') || 'Sin tenant' }}</span></td> }
                 <td>
                   <span class="badge-role cliente">Cliente</span>
                 </td>

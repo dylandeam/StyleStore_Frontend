@@ -21,6 +21,10 @@ export class ClientesListComponent implements OnInit {
     return role === 'administrador' || role === 'encargado_sucursal' || role === 'cajero';
   }
 
+  get isPlatformAdmin(): boolean {
+    return !!this.authService.currentUser()?.is_platform_admin;
+  }
+
   clientes = signal<Cliente[]>([]);
   isLoading = signal<boolean>(false);
   searchTerm = '';

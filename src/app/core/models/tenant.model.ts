@@ -35,6 +35,8 @@ export interface TenantSummary {
   suscripcion?: TenantSubscription | null;
   usuarios_count: number;
   sucursales_count: number;
+  sucursales: Array<{ id: number; nombre: string; ciudad: string; active: boolean }>;
+  usuarios: Array<{ id: number; nombre: string; email: string; rol: string; active: boolean }>;
 }
 
 export interface TenantCreate {

@@ -174,3 +174,11 @@
   background: #fecaca;
   color: #991b1b;
 }
+
+/* Mantiene la tabla completa navegable y las acciones siempre visibles. */
+.table-card { max-width: 100%; overflow: visible; }
+.table-responsive { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
+.data-table { min-width: 1120px; }
+.data-table .actions-col { position: sticky; right: 0; z-index: 2; min-width: 112px; white-space: nowrap; background: var(--bg-card, #fff); box-shadow: -8px 0 12px rgba(20, 38, 61, .07); }
+.data-table thead .actions-col { z-index: 3; }
+.data-table .btn-action { display: inline-flex; align-items: center; justify-content: center; margin-inline: .15rem; }

@@ -55,6 +55,7 @@
           </div>
 
           <h3 class="branch-name">{{ item.name }}</h3>
+          @if (isPlatformAdmin) { <span class="branch-city-pill">Tenant: {{ item.empresa_nombre || ('#' + item.empresa_id) }}</span> }
 
           <div class="branch-details">
             <div class="detail-item">

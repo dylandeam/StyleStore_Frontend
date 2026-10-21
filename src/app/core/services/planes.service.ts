@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { EmpresaOption, PlanContract, SubscriptionPlan } from '../models/plan.model';
+import { EmpresaOption, PlanContract, PlanPayPalOrder, SubscriptionPlan } from '../models/plan.model';
 
 @Injectable({ providedIn: 'root' })
 export class PlanesService {
@@ -24,11 +24,17 @@ export class PlanesService {
     return this.http.put<SubscriptionPlan>(`${this.apiUrl}/planes/admin/${code}`, payload, { params });
   }
 
-  contractPlan(code: string): Observable<PlanContract> {
-    return this.http.post<PlanContract>(`${this.apiUrl}/planes/contratar`, {
+  createPayPalOrder(code: string, returnUrl: string, cancelUrl: string): Observable<PlanPayPalOrder> {
+    return this.http.post<PlanPayPalOrder>(`${this.apiUrl}/planes/paypal/crear-orden`, {
       plan_codigo: code,
-      pago_confirmado: true,
-      referencia_pago: `WEB-SIM-${Date.now()}`,
+      return_url: returnUrl,
+      cancel_url: cancelUrl,
+    });
+  }
+
+  capturePayPalOrder(paypalOrderId: string): Observable<PlanContract> {
+    return this.http.post<PlanContract>(`${this.apiUrl}/planes/paypal/capturar-orden`, {
+      paypal_order_id: paypalOrderId,
     });
   }
 

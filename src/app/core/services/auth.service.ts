@@ -6,7 +6,7 @@ import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
 import { User, UserCreateByAdmin } from '../models/user.model';
-import { LoginRequest, RegisterRequest, TokenResponse, MessageResponse } from '../models/auth.model';
+import { LoginRequest, RegisterRequest, RegistrationCompany, TokenResponse, MessageResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -51,6 +51,10 @@ export class AuthService {
         return throwError(() => error);
       })
     );
+  }
+
+  getRegistrationCompanies(): Observable<RegistrationCompany[]> {
+    return this.http.get<RegistrationCompany[]>(`${this.API_URL}/empresas/publicas/registro`);
   }
 
   login(payload: LoginRequest): Observable<TokenResponse> {

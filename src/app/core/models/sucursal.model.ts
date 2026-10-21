@@ -1,5 +1,7 @@
 export interface Sucursal {
   id: number;
+  empresa_id?: number | null;
+  empresa_nombre?: string | null;
   name: string;
   city: string;
   address: string;

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   AbstractControl,
@@ -31,7 +31,7 @@ export const passwordsMatchValidator: ValidatorFn = (
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly uploadService = inject(UploadService);
@@ -42,6 +42,8 @@ export class RegisterComponent {
   readonly isLoading = this.authService.isLoading;
   readonly showPassword = signal<boolean>(false);
   readonly showConfirmPassword = signal<boolean>(false);
+  readonly companies = signal<Array<{ codigo: string; nombre: string }>>([]);
+  readonly selectedCompanyCodes = signal<string[]>([]);
 
   // Foto de perfil opcional
   readonly fotoUrl = signal<string>('');
@@ -54,7 +56,6 @@ export class RegisterComponent {
       ci: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(20)]],
       telefono: ['', [Validators.required, Validators.minLength(7), Validators.maxLength(20)]],
       direccion: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(255)]],
-      empresa_codigo: ['', [Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_-]*$/)]],
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
@@ -68,6 +69,19 @@ export class RegisterComponent {
     },
     { validators: passwordsMatchValidator }
   );
+
+  ngOnInit(): void {
+    this.authService.getRegistrationCompanies().subscribe({
+      next: (companies) => this.companies.set(companies),
+      error: () => this.errorMessage.set('No se pudieron cargar las empresas disponibles.'),
+    });
+  }
+
+  toggleCompany(code: string, checked: boolean): void {
+    this.selectedCompanyCodes.update((current) =>
+      checked ? Array.from(new Set([...current, code])) : current.filter((item) => item !== code)
+    );
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword.update((val) => !val);
@@ -106,6 +120,10 @@ export class RegisterComponent {
       this.registerForm.markAllAsTouched();
       return;
     }
+    if (!this.selectedCompanyCodes().length) {
+      this.errorMessage.set('Selecciona al menos una empresa donde deseas registrarte.');
+      return;
+    }
 
     this.errorMessage.set(null);
     this.successMessage.set(null);
@@ -127,7 +145,7 @@ export class RegisterComponent {
         foto: this.fotoUrl() || null,
         email: val.email!.trim(),
         password: val.password!,
-        empresa_codigo: val.empresa_codigo?.trim().toLowerCase() || undefined,
+        empresa_codigos: this.selectedCompanyCodes(),
       })
       .subscribe({
         next: () => {

@@ -12,7 +12,12 @@ export interface RegisterRequest {
   telefono: string;
   direccion: string;
   foto?: string | null;
-  empresa_codigo?: string;
+  empresa_codigos: string[];
+}
+
+export interface RegistrationCompany {
+  codigo: string;
+  nombre: string;
 }
 
 export interface TokenResponse {

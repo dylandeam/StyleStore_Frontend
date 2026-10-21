@@ -70,6 +70,7 @@
           </div>
 
           <div class="actions">
+            <button type="button" (click)="toggleDetails(tenant)">{{ expandedTenantId() === tenant.id ? 'Ocultar detalle' : 'Ver sucursales y usuarios' }}</button>
             <button type="button" (click)="openCompany(tenant)">Empresa</button>
             <button type="button" (click)="openAdmin(tenant)">Administrador</button>
             <button type="button" (click)="openSubscription(tenant)">Plan y renovación</button>
@@ -77,6 +78,22 @@
               {{ tenant.active ? 'Suspender' : 'Reactivar' }}
             </button>
           </div>
+          @if (expandedTenantId() === tenant.id) {
+            <div class="tenant-detail">
+              <section>
+                <h3>Sucursales</h3>
+                @for (branch of tenant.sucursales; track branch.id) {
+                  <p><strong>{{ branch.nombre }}</strong><span>{{ branch.ciudad }} · {{ branch.active ? 'Activa' : 'Inactiva' }}</span></p>
+                } @empty { <small>No hay sucursales registradas.</small> }
+              </section>
+              <section>
+                <h3>Usuarios y roles</h3>
+                @for (user of tenant.usuarios; track user.id) {
+                  <p><strong>{{ user.nombre }}</strong><span>{{ user.email }} · {{ user.rol }} · {{ user.active ? 'Activo' : 'Inactivo' }}</span></p>
+                } @empty { <small>No hay usuarios registrados.</small> }
+              </section>
+            </div>
+          }
         </article>
       }
     </div>

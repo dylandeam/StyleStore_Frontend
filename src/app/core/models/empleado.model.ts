@@ -13,6 +13,8 @@ export interface Empleado {
   email?: string | null;
   role?: string | null;
   sucursal_nombre?: string | null;
+  empresa_id?: number | null;
+  empresa_nombre?: string | null;
   created_at?: string;
   updated_at?: string;
 }
