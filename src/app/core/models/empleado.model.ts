@@ -1,3 +1,12 @@
+export interface EmpleadoSucursalAsignacion {
+  id?: number;
+  sucursal_id: number;
+  sucursal_nombre?: string | null;
+  hora_inicio: string;
+  hora_fin: string;
+  dias_semana: string[];
+}
+
 export interface Empleado {
   codigo: string;
   user_id: number;
@@ -15,6 +24,8 @@ export interface Empleado {
   sucursal_nombre?: string | null;
   empresa_id?: number | null;
   empresa_nombre?: string | null;
+  jornada_tipo: 'tiempo_completo' | 'medio_tiempo';
+  asignaciones: EmpleadoSucursalAsignacion[];
   created_at?: string;
   updated_at?: string;
 }
@@ -32,6 +43,8 @@ export interface EmpleadoCreate {
   telefono: string;
   direccion: string;
   foto?: string | null;
+  jornada_tipo?: 'tiempo_completo' | 'medio_tiempo';
+  asignaciones?: EmpleadoSucursalAsignacion[];
 }
 
 export interface EmpleadoUpdate {
@@ -46,4 +59,6 @@ export interface EmpleadoUpdate {
   direccion?: string;
   foto?: string | null;
   active?: boolean;
+  jornada_tipo?: 'tiempo_completo' | 'medio_tiempo';
+  asignaciones?: EmpleadoSucursalAsignacion[];
 }

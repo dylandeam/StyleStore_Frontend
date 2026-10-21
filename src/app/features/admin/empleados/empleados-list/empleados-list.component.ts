@@ -5,7 +5,7 @@ import { EmpleadosService } from '../../../../core/services/empleados.service';
 import { SucursalService } from '../../../../core/services/sucursal.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UploadService } from '../../../../core/services/upload.service';
-import { Empleado, EmpleadoCreate, EmpleadoUpdate } from '../../../../core/models/empleado.model';
+import { Empleado, EmpleadoCreate, EmpleadoSucursalAsignacion, EmpleadoUpdate } from '../../../../core/models/empleado.model';
 import { Sucursal } from '../../../../core/models/sucursal.model';
 
 @Component({
@@ -39,6 +39,15 @@ export class EmpleadosListComponent implements OnInit {
   searchTerm = '';
   selectedSucursalFilter = '';
   selectedTenantFilter = '';
+  readonly weekDays = [
+    { value: 'lunes', label: 'Lun' },
+    { value: 'martes', label: 'Mar' },
+    { value: 'miercoles', label: 'Mié' },
+    { value: 'jueves', label: 'Jue' },
+    { value: 'viernes', label: 'Vie' },
+    { value: 'sabado', label: 'Sáb' },
+    { value: 'domingo', label: 'Dom' },
+  ];
 
   get tenantOptions(): Array<{ id: number; nombre: string }> {
     const options = new Map<number, string>();
@@ -70,6 +79,8 @@ export class EmpleadosListComponent implements OnInit {
     telefono: '',
     direccion: '',
     foto: '',
+    jornada_tipo: 'tiempo_completo',
+    asignaciones: [],
   };
 
   ngOnInit(): void {
@@ -96,6 +107,7 @@ export class EmpleadosListComponent implements OnInit {
         this.sucursales.set(data);
         if (this.formData.sucursal_id === 0 && data.length > 0) {
           this.formData.sucursal_id = data[0].id;
+          this.formData.asignaciones = [this.defaultAssignment(data[0])];
         }
       },
     });
@@ -107,7 +119,10 @@ export class EmpleadosListComponent implements OnInit {
       list = list.filter((e) => e.empresa_id === Number(this.selectedTenantFilter));
     }
     if (this.selectedSucursalFilter) {
-      list = list.filter((e) => e.sucursal_id === Number(this.selectedSucursalFilter));
+      const branchId = Number(this.selectedSucursalFilter);
+      list = list.filter((e) =>
+        e.sucursal_id === branchId || e.asignaciones?.some((item) => item.sucursal_id === branchId)
+      );
     }
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
@@ -142,6 +157,8 @@ export class EmpleadosListComponent implements OnInit {
       telefono: '',
       direccion: '',
       foto: '',
+      jornada_tipo: 'tiempo_completo',
+      asignaciones: this.sucursales().length ? [this.defaultAssignment(this.sucursales()[0])] : [],
     };
     this.modalError.set('');
     this.modalSuccess.set('');
@@ -165,6 +182,13 @@ export class EmpleadosListComponent implements OnInit {
       telefono: emp.telefono,
       direccion: emp.direccion,
       foto: emp.foto || '',
+      jornada_tipo: emp.jornada_tipo || 'tiempo_completo',
+      asignaciones: (emp.asignaciones || []).map((item) => ({
+        ...item,
+        hora_inicio: item.hora_inicio.substring(0, 5),
+        hora_fin: item.hora_fin.substring(0, 5),
+        dias_semana: [...item.dias_semana],
+      })),
     };
     this.modalError.set('');
     this.modalSuccess.set('');
@@ -263,6 +287,48 @@ export class EmpleadosListComponent implements OnInit {
     }
   }
 
+  private defaultAssignment(branch: Sucursal): EmpleadoSucursalAsignacion {
+    return {
+      sucursal_id: branch.id,
+      hora_inicio: (branch.hora_apertura || '09:00').substring(0, 5),
+      hora_fin: (branch.hora_cierre || '18:00').substring(0, 5),
+      dias_semana: ['lunes', 'martes', 'miercoles', 'jueves', 'viernes'],
+    };
+  }
+
+  isBranchAssigned(branchId: number): boolean {
+    return !!this.formData.asignaciones?.some((item) => item.sucursal_id === branchId);
+  }
+
+  assignmentFor(branchId: number): EmpleadoSucursalAsignacion | undefined {
+    return this.formData.asignaciones?.find((item) => item.sucursal_id === branchId);
+  }
+
+  toggleBranch(branch: Sucursal, checked: boolean): void {
+    const current = [...(this.formData.asignaciones || [])];
+    if (checked && !current.some((item) => item.sucursal_id === branch.id)) {
+      current.push(this.defaultAssignment(branch));
+      if (!this.formData.sucursal_id) this.formData.sucursal_id = branch.id;
+    } else if (!checked) {
+      this.formData.asignaciones = current.filter((item) => item.sucursal_id !== branch.id);
+      if (this.formData.sucursal_id === branch.id) {
+        this.formData.sucursal_id = this.formData.asignaciones[0]?.sucursal_id || 0;
+      }
+      return;
+    }
+    this.formData.asignaciones = current;
+  }
+
+  toggleAssignmentDay(assignment: EmpleadoSucursalAsignacion, day: string, checked: boolean): void {
+    assignment.dias_semana = checked
+      ? Array.from(new Set([...assignment.dias_semana, day]))
+      : assignment.dias_semana.filter((item) => item !== day);
+  }
+
+  formatDays(days: string[]): string {
+    return days.map((day) => this.weekDays.find((item) => item.value === day)?.label || day).join(', ');
+  }
+
   saveEmpleado(): void {
     if (!this.formData.nombre.trim() || this.formData.nombre.trim().length < 2) {
       this.modalError.set('El nombre debe tener al menos 2 caracteres.');
@@ -276,9 +342,19 @@ export class EmpleadosListComponent implements OnInit {
       this.modalError.set('La cédula de identidad (CI) debe tener al menos 4 dígitos para generar el código.');
       return;
     }
-    if (!this.formData.sucursal_id || this.formData.sucursal_id === 0) {
-      this.modalError.set('Debe seleccionar una sucursal válida.');
+    if (!this.formData.asignaciones?.length || !this.formData.sucursal_id) {
+      this.modalError.set('Debe asignar al menos una sucursal y elegir la principal.');
       return;
+    }
+    for (const assignment of this.formData.asignaciones) {
+      if (!assignment.hora_inicio || !assignment.hora_fin || assignment.hora_inicio >= assignment.hora_fin) {
+        this.modalError.set('Cada asignación debe tener una hora inicial anterior a la hora final.');
+        return;
+      }
+      if (!assignment.dias_semana.length) {
+        this.modalError.set('Selecciona al menos un día para cada sucursal asignada.');
+        return;
+      }
     }
     if (!this.formData.telefono.trim() || this.formData.telefono.trim().length < 5) {
       this.modalError.set('El teléfono debe contener al menos 5 dígitos.');
@@ -304,6 +380,8 @@ export class EmpleadosListComponent implements OnInit {
         telefono: this.formData.telefono.trim(),
         direccion: this.formData.direccion.trim(),
         foto: this.formData.foto?.trim() || null,
+        jornada_tipo: this.formData.jornada_tipo,
+        asignaciones: this.formData.asignaciones,
       };
 
       this.empleadosService.updateEmpleado(this.editingCodigo, updateData).subscribe({

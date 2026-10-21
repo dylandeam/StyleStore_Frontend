@@ -63,8 +63,9 @@
               <th>Empleado</th>
               @if (isPlatformAdmin) { <th>Tenant</th> }
               <th>Rol</th>
+              <th>Jornada</th>
               <th>CI</th>
-              <th>Sucursal</th>
+              <th>Sucursales y horarios</th>
               <th>Edad</th>
               <th>Sueldo</th>
               <th>Teléfono</th>
@@ -100,9 +101,18 @@
                     {{ getRoleLabel(emp.role) }}
                   </span>
                 </td>
+                <td>{{ emp.jornada_tipo === 'medio_tiempo' ? 'Medio tiempo' : 'Tiempo completo' }}</td>
                 <td>{{ emp.ci }}</td>
                 <td>
-                  <span class="badge-branch">{{ emp.sucursal_nombre || 'Sucursal #' + emp.sucursal_id }}</span>
+                  <div class="employee-assignments-cell">
+                    @for (assignment of emp.asignaciones; track assignment.sucursal_id) {
+                      <span class="badge-branch">
+                        {{ assignment.sucursal_nombre || 'Sucursal #' + assignment.sucursal_id }}
+                        {{ assignment.sucursal_id === emp.sucursal_id ? ' (principal)' : '' }}<br />
+                        <small>{{ assignment.hora_inicio.substring(0, 5) }}–{{ assignment.hora_fin.substring(0, 5) }} · {{ formatDays(assignment.dias_semana) }}</small>
+                      </span>
+                    }
+                  </div>
                 </td>
                 <td>{{ emp.edad }} años</td>
                 <td class="cell-money">Bs. {{ emp.sueldo }}</td>
@@ -236,18 +246,16 @@
             </div>
 
             <div class="form-group">
-              <label for="emp-sucursal">Sucursal Asignada *</label>
+              <label for="emp-jornada">Tipo de jornada *</label>
               <select
-                id="emp-sucursal"
+                id="emp-jornada"
                 class="form-control"
-                [(ngModel)]="formData.sucursal_id"
-                name="emp_branch_id"
+                [(ngModel)]="formData.jornada_tipo"
+                name="emp_workday_type"
                 required
               >
-                <option [value]="0" disabled>-- Seleccione una sucursal --</option>
-                @for (s of sucursales(); track s.id) {
-                  <option [value]="s.id">{{ s.name }} ({{ s.city }})</option>
-                }
+                <option value="tiempo_completo">Tiempo completo</option>
+                <option value="medio_tiempo">Medio tiempo</option>
               </select>
             </div>
 
@@ -264,6 +272,59 @@
                 <option value="encargado_sucursal">Encargado de Sucursal</option>
                 <option value="administrador">Administrador</option>
               </select>
+            </div>
+
+            <div class="form-group assignment-editor">
+              <label>Sucursales y tramos horarios *</label>
+              <small class="form-hint">Selecciona una o varias sucursales y marca cuál será la principal.</small>
+              <div class="assignment-list">
+                @for (s of sucursales(); track s.id) {
+                  <div class="assignment-card" [class.selected]="isBranchAssigned(s.id)">
+                    <label class="assignment-toggle">
+                      <input
+                        type="checkbox"
+                        [checked]="isBranchAssigned(s.id)"
+                        (change)="toggleBranch(s, $any($event.target).checked)"
+                      />
+                      <strong>{{ s.name }}</strong>
+                      <span>{{ s.city }}</span>
+                    </label>
+                    @if (assignmentFor(s.id); as assignment) {
+                      <div class="assignment-details">
+                        <label class="primary-radio">
+                          <input
+                            type="radio"
+                            name="emp_primary_branch"
+                            [value]="s.id"
+                            [(ngModel)]="formData.sucursal_id"
+                          />
+                          Sucursal principal
+                        </label>
+                        <label>
+                          Desde
+                          <input type="time" [(ngModel)]="assignment.hora_inicio" [name]="'start_' + s.id" />
+                        </label>
+                        <label>
+                          Hasta
+                          <input type="time" [(ngModel)]="assignment.hora_fin" [name]="'end_' + s.id" />
+                        </label>
+                        <div class="weekday-selector">
+                          @for (day of weekDays; track day.value) {
+                            <label>
+                              <input
+                                type="checkbox"
+                                [checked]="assignment.dias_semana.includes(day.value)"
+                                (change)="toggleAssignmentDay(assignment, day.value, $any($event.target).checked)"
+                              />
+                              {{ day.label }}
+                            </label>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             </div>
 
             @if (!isEditing()) {
