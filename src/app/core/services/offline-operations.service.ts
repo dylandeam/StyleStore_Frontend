@@ -62,6 +62,9 @@ export class OfflineOperationsService {
           const response = await firstValueFrom(this.http.post<{
             status: 'procesando' | 'confirmada' | 'rechazada' | 'conflicto';
             reason?: string;
+            refund_id?: number;
+            refund_status?: string;
+            refund_amount?: number;
           }>(`${environment.apiUrl}/sync/operations`, {
             operation_uuid: operation.id,
             operation_type: operation.type,
@@ -72,6 +75,9 @@ export class OfflineOperationsService {
           await this.db.updateOperation(operation.id, {
             status: response.status === 'procesando' ? 'pendiente' : response.status,
             reason: response.reason,
+            refundId: response.refund_id,
+            refundStatus: response.refund_status,
+            refundAmount: response.refund_amount,
           });
         } catch (error: unknown) {
           const networkFailure = typeof error === 'object' && error !== null && 'status' in error && error.status === 0;

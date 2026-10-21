@@ -1,0 +1,63 @@
+<main class="refund-page">
+  <header class="page-heading">
+    <div>
+      <span class="eyebrow">CONTROL DE CAJA OFFLINE</span>
+      <h1>Reembolsos pendientes</h1>
+      <p>Devuelve y documenta el efectivo de ventas locales rechazadas por falta de stock al sincronizar.</p>
+    </div>
+    <div class="summary"><strong>{{ pendientes() }}</strong><span>por resolver</span></div>
+  </header>
+
+  @if (success) { <div class="alert success">{{ success }}</div> }
+  @if (error) { <div class="alert error">{{ error }}</div> }
+
+  <section class="toolbar">
+    <label>Estado
+      <select [(ngModel)]="filtro" (change)="cargar()">
+        <option value="">Todos</option><option value="pendiente">Pendiente</option>
+        <option value="entregado">Entregado</option><option value="cancelado">Cancelado</option>
+      </select>
+    </label>
+    <button type="button" (click)="cargar()">Actualizar</button>
+  </section>
+
+  @if (loading) {
+    <div class="state">Cargando reembolsos…</div>
+  } @else if (!items.length) {
+    <div class="state"><strong>Todo está al día</strong><p>No hay reembolsos que coincidan con el filtro.</p></div>
+  } @else {
+    <section class="refund-grid">
+      @for (item of items; track item.id) {
+        <article class="refund-card" [class.resolved]="item.estado !== 'pendiente'">
+          <div class="card-head"><span class="folio">#{{ item.id }}</span><span class="status" [attr.data-state]="item.estado">{{ item.estado }}</span></div>
+          <div class="amount"><small>Monto a devolver</small><strong>{{ item.monto | currency:item.moneda:'symbol-narrow':'1.2-2' }}</strong></div>
+          <dl>
+            <div><dt>Cliente</dt><dd>Usuario #{{ item.user_id }}</dd></div>
+            <div><dt>Sucursal</dt><dd>{{ item.sucursal_id ? '#' + item.sucursal_id : 'Sin asignar' }}</dd></div>
+            <div><dt>Registrado</dt><dd>{{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+            <div><dt>Operación</dt><dd>{{ item.operation_uuid.slice(0, 8).toUpperCase() }}</dd></div>
+          </dl>
+          <p class="reason">{{ item.motivo }}</p>
+          @if (item.observaciones) { <p class="notes"><strong>Resolución:</strong> {{ item.observaciones }}</p> }
+          @if (item.estado === 'pendiente') {
+            <footer><button class="cancel" (click)="abrir(item, 'cancelado')">Cancelar</button><button class="deliver" (click)="abrir(item, 'entregado')">Registrar entrega</button></footer>
+          }
+        </article>
+      }
+    </section>
+  }
+
+  @if (selected) {
+    <div class="modal-backdrop" (click)="cerrar()">
+      <section class="modal" (click)="$event.stopPropagation()">
+        <header><div><span class="eyebrow">REEMBOLSO #{{ selected.id }}</span><h2>{{ accion === 'entregado' ? 'Confirmar entrega' : 'Cancelar reembolso' }}</h2></div><button (click)="cerrar()">×</button></header>
+        <div class="modal-body">
+          <div class="modal-amount">{{ selected.monto | currency:selected.moneda:'symbol-narrow':'1.2-2' }}</div>
+          <label>Observaciones obligatorias<textarea rows="4" [(ngModel)]="observaciones" maxlength="1000" placeholder="Describe quién recibió el efectivo o el motivo de cancelación"></textarea></label>
+          <p>Esta resolución queda registrada en bitácora y no puede modificarse después.</p>
+        </div>
+        <footer><button class="secondary" (click)="cerrar()">Volver</button><button class="primary" [disabled]="saving || observaciones.trim().length < 3" (click)="confirmar()">{{ saving ? 'Guardando…' : 'Confirmar' }}</button></footer>
+      </section>
+    </div>
+  }
+</main>

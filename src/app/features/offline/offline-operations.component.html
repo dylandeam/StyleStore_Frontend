@@ -39,6 +39,9 @@
           @if (operation.reason) {
             <p class="reason"><strong>Resultado:</strong> {{ operation.reason }}</p>
           }
+          @if (operation.refundId) {
+            <p class="reason"><strong>Reembolso #{{ operation.refundId }}:</strong> {{ operation.refundStatus }} · {{ operation.refundAmount | currency:'BOB':'symbol-narrow':'1.2-2' }}</p>
+          }
         </article>
       }
     </section>

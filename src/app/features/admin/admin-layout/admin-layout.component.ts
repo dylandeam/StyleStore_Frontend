@@ -113,6 +113,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/planes')) {
       this.currentTitle.set('Planes de Suscripción');
       this.currentSubtitle.set('Compara y contrata el plan ideal para ti');
+    } else if (url.includes('/admin/reembolsos')) {
+      this.currentTitle.set('Reembolsos Offline');
+      this.currentSubtitle.set('Devolución auditable de efectivo por conflictos de stock al sincronizar');
     } else if (url.includes('/admin/cambios')) {
       this.currentTitle.set('Cambios y Devoluciones');
       this.currentSubtitle.set('Revisión de solicitudes (plazo 7 días) y canje en caja POS con stock');

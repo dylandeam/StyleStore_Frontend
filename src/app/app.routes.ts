@@ -48,6 +48,7 @@ import { ClienteTrackerComponent } from './features/delivery/rastreo/cliente-tra
 import { PlanesComponent } from './features/planes/planes.component';
 import { OfflineOperationsComponent } from './features/offline/offline-operations.component';
 import { TenantsComponent } from './features/admin/tenants/tenants.component';
+import { ReembolsosComponent } from './features/admin/reembolsos/reembolsos.component';
 
 export const routes: Routes = [
   {
@@ -227,6 +228,11 @@ export const routes: Routes = [
       {
         path: 'admin/cambios',
         component: CambiosListComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'admin/reembolsos',
+        component: ReembolsosComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
       },
       // Administración y Personas

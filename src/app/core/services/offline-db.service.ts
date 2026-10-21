@@ -24,6 +24,9 @@ export interface OfflineOperation<T = unknown> {
   clientCreatedAt: string;
   status: OfflineOperationStatus;
   reason?: string;
+  refundId?: number;
+  refundStatus?: string;
+  refundAmount?: number;
 }
 
 interface StyleStoreOfflineSchema extends DBSchema {
