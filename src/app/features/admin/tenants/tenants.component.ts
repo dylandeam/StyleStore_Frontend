@@ -3,11 +3,10 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { PlanCode } from '../../../core/models/plan.model';
 import { TenantCreate, TenantSummary } from '../../../core/models/tenant.model';
 import { TenantService } from '../../../core/services/tenant.service';
 
-type ModalMode = 'create' | 'company' | 'admin' | 'subscription';
+type ModalMode = 'create' | 'company' | 'admin';
 
 @Component({
   selector: 'app-tenants',
@@ -33,10 +32,6 @@ export class TenantsComponent implements OnInit {
   createForm: TenantCreate = this.emptyCreateForm();
   companyForm = { codigo: '', nombre: '' };
   adminForm = { name: '', email: '', password: '', is_active: true };
-  subscriptionForm = {
-    plan_codigo: 'basico' as PlanCode, estado: 'activa', fecha_inicio: '', fecha_fin: '',
-    pago_confirmado: true, referencia_pago: '',
-  };
 
   readonly filteredTenants = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -86,20 +81,6 @@ export class TenantsComponent implements OnInit {
     this.modalMode.set('admin');
   }
 
-  openSubscription(tenant: TenantSummary): void {
-    this.selected.set(tenant);
-    const start = tenant.suscripcion?.fecha_inicio || this.dateOffset(0);
-    this.subscriptionForm = {
-      plan_codigo: tenant.suscripcion?.plan_codigo || 'basico',
-      estado: tenant.suscripcion?.estado || 'activa',
-      fecha_inicio: start,
-      fecha_fin: tenant.suscripcion?.fecha_fin || this.dateOffset(30),
-      pago_confirmado: true,
-      referencia_pago: '',
-    };
-    this.modalMode.set('subscription');
-  }
-
   closeModal(): void {
     if (!this.saving()) this.modalMode.set(null);
   }
@@ -120,9 +101,7 @@ export class TenantsComponent implements OnInit {
               is_active: this.adminForm.is_active,
               ...(this.adminForm.password ? { password: this.adminForm.password } : {}),
             })
-          : mode === 'subscription' && tenant
-            ? this.tenantService.updateSubscription(tenant.id, this.subscriptionForm)
-            : null;
+          : null;
     if (!request) { this.saving.set(false); return; }
     request.subscribe({
       next: () => {
@@ -167,9 +146,4 @@ export class TenantsComponent implements OnInit {
     return { codigo: '', nombre: '', admin_email: '', admin_name: '', admin_password: '', plan_codigo: 'basico' };
   }
 
-  private dateOffset(days: number): string {
-    const value = new Date();
-    value.setDate(value.getDate() + days);
-    return value.toISOString().slice(0, 10);
-  }
 }

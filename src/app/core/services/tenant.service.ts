@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { TenantAdmin, TenantCreate, TenantSubscription, TenantSummary } from '../models/tenant.model';
+import { TenantAdmin, TenantCreate, TenantSummary } from '../models/tenant.model';
 
 @Injectable({ providedIn: 'root' })
 export class TenantService {
@@ -33,17 +33,4 @@ export class TenantService {
     return this.http.put<TenantAdmin>(`${this.url}/${id}/administrador`, payload);
   }
 
-  updateSubscription(
-    id: number,
-    payload: {
-      plan_codigo: string;
-      estado: string;
-      fecha_inicio: string;
-      fecha_fin: string;
-      pago_confirmado: boolean;
-      referencia_pago?: string;
-    },
-  ): Observable<TenantSubscription> {
-    return this.http.put<TenantSubscription>(`${this.url}/${id}/suscripcion`, payload);
-  }
 }

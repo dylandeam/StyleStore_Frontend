@@ -73,7 +73,7 @@
             <button type="button" (click)="toggleDetails(tenant)">{{ expandedTenantId() === tenant.id ? 'Ocultar detalle' : 'Ver sucursales y usuarios' }}</button>
             <button type="button" (click)="openCompany(tenant)">Empresa</button>
             <button type="button" (click)="openAdmin(tenant)">Administrador</button>
-            <button type="button" (click)="openSubscription(tenant)">Plan y renovación</button>
+            <a routerLink="/admin/planes">Configurar precios</a>
             <button type="button" class="state-action" [class.activate]="!tenant.active" (click)="toggleActive(tenant)">
               {{ tenant.active ? 'Suspender' : 'Reactivar' }}
             </button>
@@ -111,7 +111,6 @@
               @case ('create') { Registrar nuevo tenant }
               @case ('company') { Editar empresa }
               @case ('admin') { Administrador del tenant }
-              @case ('subscription') { Plan y renovación }
             }
           </h2>
         </div>
@@ -145,24 +144,6 @@
             <label class="wide">Nueva contraseña <small>Déjala vacía para conservar la actual</small><input minlength="8" type="password" name="owner_password" [(ngModel)]="adminForm.password" /></label>
             <label class="check wide"><input type="checkbox" name="owner_active" [(ngModel)]="adminForm.is_active" /> Cuenta habilitada</label>
           </div>
-        } @else if (modalMode() === 'subscription') {
-          <div class="form-grid">
-            <label>Plan
-              <select name="subscription_plan" [(ngModel)]="subscriptionForm.plan_codigo">
-                <option value="basico">Básico</option><option value="intermedio">Intermedio</option><option value="profesional">Profesional</option>
-              </select>
-            </label>
-            <label>Estado
-              <select name="subscription_status" [(ngModel)]="subscriptionForm.estado">
-                <option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="vencida">Vencida</option><option value="cancelada">Cancelada</option>
-              </select>
-            </label>
-            <label>Fecha de inicio<input required type="date" name="start_date" [(ngModel)]="subscriptionForm.fecha_inicio" /></label>
-            <label>Fecha de vencimiento<input required type="date" name="end_date" [(ngModel)]="subscriptionForm.fecha_fin" /></label>
-            <label class="check wide"><input type="checkbox" name="payment_confirmed" [(ngModel)]="subscriptionForm.pago_confirmado" /> Pago de renovación confirmado</label>
-            <label class="wide">Referencia de pago <small>Opcional; se genera automáticamente si queda vacía</small><input name="payment_reference" [(ngModel)]="subscriptionForm.referencia_pago" /></label>
-          </div>
-          <p class="form-note">Guardar genera una nueva contratación auditable y conserva el historial anterior.</p>
         }
       </div>
 

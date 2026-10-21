@@ -36,3 +36,4 @@ h1 { font: 800 clamp(1.7rem, 3vw, 2.35rem)/1.1 var(--font-heading); margin: 0; }
 .tenant-detail p { display:grid; gap:.15rem; margin:.45rem 0; padding-bottom:.45rem; border-bottom:1px solid #e7e2f0; }
 .tenant-detail p span,.tenant-detail small { color:#6f687e; font-size:.78rem; overflow-wrap:anywhere; }
 @media (max-width:700px) { .tenant-detail { grid-template-columns:1fr; } }
+.actions a { display:inline-flex; align-items:center; justify-content:center; padding:.7rem .8rem; border-radius:10px; text-decoration:none; font-weight:700; color:inherit; background:#f1eef7; }
