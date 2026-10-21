@@ -20,6 +20,14 @@ export interface RegistrationCompany {
   nombre: string;
 }
 
+export interface TenantAccess {
+  id: number;
+  codigo: string;
+  nombre: string;
+  active: boolean;
+  is_current: boolean;
+}
+
 export interface TokenResponse {
   access_token: string;
   refresh_token: string;

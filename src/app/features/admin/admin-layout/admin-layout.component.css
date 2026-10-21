@@ -601,6 +601,11 @@
   box-shadow: 0 2px 8px rgba(20, 38, 61, 0.2);
 }
 
+.tenant-switcher { display:flex; align-items:center; gap:.45rem; padding:.35rem .55rem; border:1px solid #d5d9e2; border-radius:12px; background:#fff; }
+.tenant-switcher select { max-width:190px; border:0; outline:0; background:transparent; color:#14263d; font:inherit; font-size:.82rem; font-weight:700; cursor:pointer; }
+.tenant-switcher select:disabled { opacity:.65; cursor:wait; }
+@media (max-width:760px) { .tenant-switcher { max-width:150px; } .tenant-switcher select { max-width:105px; } }
+
 .top-cart-btn:hover {
   background: #1e3a5f;
   transform: translateY(-1px);
@@ -768,4 +773,3 @@
   color: #2563eb;
   font-weight: 600;
 }
-

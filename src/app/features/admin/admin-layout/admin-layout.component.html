@@ -580,6 +580,16 @@
       </div>
 
       <div class="header-right-actions">
+        @if (isCliente && tenants().length > 1) {
+          <label class="tenant-switcher" title="Cambiar tienda activa">
+            <span>🏢</span>
+            <select [value]="user()?.empresa_id" (change)="switchTenant($event)" [disabled]="isSwitchingTenant()">
+              @for (tenant of tenants(); track tenant.id) {
+                <option [value]="tenant.id" [disabled]="!tenant.active">{{ tenant.nombre }}{{ tenant.active ? '' : ' (inactiva)' }}</option>
+              }
+            </select>
+          </label>
+        }
         <!-- Campana de Notificaciones -->
         <div class="notifications-wrapper">
           <button 

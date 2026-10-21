@@ -6,7 +6,7 @@ import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
 import { User, UserCreateByAdmin } from '../models/user.model';
-import { LoginRequest, RegisterRequest, RegistrationCompany, TokenResponse, MessageResponse } from '../models/auth.model';
+import { LoginRequest, RegisterRequest, RegistrationCompany, TenantAccess, TokenResponse, MessageResponse } from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -55,6 +55,22 @@ export class AuthService {
 
   getRegistrationCompanies(): Observable<RegistrationCompany[]> {
     return this.http.get<RegistrationCompany[]>(`${this.API_URL}/empresas/publicas/registro`);
+  }
+
+  getMyTenants(): Observable<TenantAccess[]> {
+    return this.http.get<TenantAccess[]>(`${this.API_URL}/auth/tenants`);
+  }
+
+  selectTenant(empresaId: number): Observable<TokenResponse> {
+    return this.http.post<TokenResponse>(`${this.API_URL}/auth/tenants/select`, { empresa_id: empresaId }).pipe(
+      tap((res) => {
+        this.tokenService.setTokens(res.access_token, res.refresh_token);
+        localStorage.removeItem('stylestore_selected_branch');
+        localStorage.removeItem('stylestore_pending_order_id');
+        this.currentUser.set(null);
+        this.saveStoredUser(null);
+      })
+    );
   }
 
   login(payload: LoginRequest): Observable<TokenResponse> {

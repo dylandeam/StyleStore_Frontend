@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { NotificacionesService, NotificacionItem, MisNotificacionesResponse } from '../../../core/services/notificaciones.service';
 import { ChatbotWidgetComponent } from '../../chatbot/chatbot-widget/chatbot-widget.component';
 import { User } from '../../../core/models/user.model';
+import { TenantAccess } from '../../../core/models/auth.model';
 
 @Component({
   selector: 'app-admin-layout',
@@ -23,6 +24,8 @@ export class AdminLayoutComponent implements OnInit {
   readonly isSidebarCollapsed = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly user = this.authService.currentUser;
+  readonly tenants = signal<TenantAccess[]>([]);
+  readonly isSwitchingTenant = signal(false);
 
   // Categorías colapsables en la barra lateral
   readonly collapsedCategories = signal<Record<string, boolean>>({});
@@ -52,10 +55,13 @@ export class AdminLayoutComponent implements OnInit {
   ngOnInit(): void {
     if (!this.user()) {
       this.authService.getProfile().subscribe({
+        next: () => this.loadTenants(),
         error: () => {
           this.authService.logout();
         },
       });
+    } else {
+      this.loadTenants();
     }
 
     this.updateHeaderMeta(this.router.url);
@@ -68,6 +74,27 @@ export class AdminLayoutComponent implements OnInit {
       });
 
     this.cargarNotificaciones();
+  }
+
+  private loadTenants(): void {
+    if (this.user()?.role !== 'cliente') return;
+    this.authService.getMyTenants().subscribe({
+      next: (items) => this.tenants.set(items),
+      error: () => this.tenants.set([]),
+    });
+  }
+
+  switchTenant(event: Event): void {
+    const empresaId = Number((event.target as HTMLSelectElement).value);
+    if (!empresaId || empresaId === this.user()?.empresa_id || this.isSwitchingTenant()) return;
+    this.isSwitchingTenant.set(true);
+    this.authService.selectTenant(empresaId).subscribe({
+      next: () => window.location.assign('/dashboard'),
+      error: () => {
+        this.isSwitchingTenant.set(false);
+        this.loadTenants();
+      },
+    });
   }
 
   cargarNotificaciones(): void {
