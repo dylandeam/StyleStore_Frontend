@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SucursalService } from '../../../../core/services/sucursal.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { PlanesService } from '../../../../core/services/planes.service';
+import { PlanContract } from '../../../../core/models/plan.model';
 import { Sucursal, SucursalCreate } from '../../../../core/models/sucursal.model';
 
 @Component({
@@ -16,6 +18,7 @@ import { Sucursal, SucursalCreate } from '../../../../core/models/sucursal.model
 export class SucursalesListComponent implements OnInit {
   private sucursalService = inject(SucursalService);
   private authService = inject(AuthService);
+  private planesService = inject(PlanesService);
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
@@ -27,8 +30,21 @@ export class SucursalesListComponent implements OnInit {
     return !!this.authService.currentUser()?.is_platform_admin;
   }
 
+  currentContract = signal<PlanContract | null>(null);
   sucursales = signal<Sucursal[]>([]);
   isLoading = signal<boolean>(false);
+
+  get activeBranchesCount(): number {
+    return this.sucursales().filter((s) => s.active).length;
+  }
+
+  get maxBranches(): number {
+    return this.currentContract()?.max_sucursales ?? 2;
+  }
+
+  get isQuotaReached(): boolean {
+    return this.canManage && this.activeBranchesCount >= this.maxBranches;
+  }
   filterCity = '';
   selectedTenantFilter = '';
 
@@ -74,6 +90,13 @@ export class SucursalesListComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+
+    if (this.canManage) {
+      this.planesService.getMyContract().subscribe({
+        next: (contract) => this.currentContract.set(contract),
+        error: () => {},
+      });
+    }
   }
 
   get filteredSucursales(): Sucursal[] {
@@ -103,7 +126,11 @@ export class SucursalesListComponent implements OnInit {
       hora_apertura: '09:00',
       hora_cierre: '18:00',
     };
-    this.modalError.set('');
+    this.modalError.set(
+      this.isQuotaReached
+        ? `Aviso: Has alcanzado el cupo máximo de ${this.maxBranches} sucursales activas de tu plan ${this.currentContract()?.plan_nombre || ''}. Para registrar una nueva sucursal activa debes mejorar tu plan en Planes de Suscripción o desactivar una sucursal existente.`
+        : ''
+    );
     this.modalSuccess.set('');
     this.showModal.set(true);
   }

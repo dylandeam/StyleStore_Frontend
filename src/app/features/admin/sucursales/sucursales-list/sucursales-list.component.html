@@ -18,6 +18,28 @@
     }
   </div>
 
+  @if (canManage && currentContract()) {
+    <div class="branch-quota-banner" [class.quota-full]="isQuotaReached">
+      <div class="quota-left">
+        <span class="plan-pill" [class.plan-basico]="currentContract()?.plan_codigo === 'basico'" [class.plan-intermedio]="currentContract()?.plan_codigo === 'intermedio'" [class.plan-profesional]="currentContract()?.plan_codigo === 'profesional'">
+          Plan {{ currentContract()?.plan_nombre }}
+        </span>
+        <span class="quota-text">
+          Ocupación de sucursales: <strong>{{ activeBranchesCount }} / {{ maxBranches }}</strong> activas
+        </span>
+        <div class="quota-bar-wrapper">
+          <div class="quota-bar-fill" [style.width.%]="(activeBranchesCount / maxBranches) * 100" [class.bar-full]="isQuotaReached"></div>
+        </div>
+      </div>
+      @if (isQuotaReached) {
+        <div class="quota-alert-action">
+          <span class="quota-warning-badge">⚠️ Cupo Completo</span>
+          <a routerLink="/planes" class="btn-upgrade">Mejorar Plan</a>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Filter -->
   <div class="toolbar-card">
     <div class="search-box">

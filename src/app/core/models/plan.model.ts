@@ -30,6 +30,8 @@ export interface PlanContract {
   fecha_inicio: string;
   fecha_fin?: string | null;
   created_at: string;
+  max_sucursales?: number | null;
+  capacidades?: Record<string, boolean>;
 }
 
 export interface EmpresaOption {
