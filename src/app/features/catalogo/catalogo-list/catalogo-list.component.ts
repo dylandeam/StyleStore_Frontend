@@ -41,6 +41,8 @@ export class CatalogoListComponent implements OnInit {
 
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
+  favoriteError = signal<string | null>(null);
+  mostrarSoloFavoritos = false;
 
   // Filtros
   searchTerm = '';
@@ -49,6 +51,7 @@ export class CatalogoListComponent implements OnInit {
   selectedColeccionId: number | null = null;
 
   ngOnInit(): void {
+    this.mostrarSoloFavoritos = this.router.url.startsWith('/cuenta/favoritos');
     this.cargarFiltros();
     this.cargarParaTi();
     this.cargarCatalogo();
@@ -132,13 +135,33 @@ export class CatalogoListComponent implements OnInit {
 
   get productosFiltrados(): CatalogoItem[] {
     const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.productos();
-    return this.productos().filter(
+    const scoped = this.mostrarSoloFavoritos
+      ? this.productos().filter((product) => product.es_favorito)
+      : this.productos();
+    if (!term) return scoped;
+    return scoped.filter(
       (p) =>
         p.nombre.toLowerCase().includes(term) ||
         p.codigo.toLowerCase().includes(term) ||
         (p.categoria_nombre && p.categoria_nombre.toLowerCase().includes(term))
     );
+  }
+
+  toggleFavorito(producto: CatalogoItem): void {
+    this.favoriteError.set(null);
+    const request = producto.es_favorito
+      ? this.carritoService.quitarFavorito(producto.codigo)
+      : this.carritoService.agregarFavorito(producto.codigo);
+    request.subscribe({
+      next: (state) => {
+        this.productos.update((items) => items.map((item) =>
+          item.codigo === producto.codigo ? { ...item, es_favorito: state.es_favorito } : item
+        ));
+      },
+      error: (err) => this.favoriteError.set(
+        err?.error?.detail || 'No se pudo actualizar tu lista de favoritos.'
+      ),
+    });
   }
 
   getImageUrl(fotoPath: string | null | undefined): string {

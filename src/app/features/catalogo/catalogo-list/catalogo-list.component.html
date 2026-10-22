@@ -149,14 +149,22 @@
   <!-- Grid de Productos Principal -->
   <main *ngIf="!isLoading() && !error()" class="products-section">
     <div class="results-header">
-      <p class="results-count">Mostrando <strong>{{ productosFiltrados.length }}</strong> prendas disponibles</p>
+      <div>
+        <h2 *ngIf="mostrarSoloFavoritos" class="favorites-title">Mis favoritos</h2>
+        <p class="results-count">Mostrando <strong>{{ productosFiltrados.length }}</strong> prendas {{ mostrarSoloFavoritos ? 'guardadas' : 'disponibles' }}</p>
+      </div>
+      <a *ngIf="!mostrarSoloFavoritos" routerLink="/cuenta/favoritos" class="btn-favorites-view">♥ Ver mis favoritos</a>
+      <a *ngIf="mostrarSoloFavoritos" routerLink="/catalogo" class="btn-favorites-view">← Volver al catálogo</a>
     </div>
+
+    <p *ngIf="favoriteError()" class="favorite-error">{{ favoriteError() }}</p>
 
     <div *ngIf="productosFiltrados.length === 0" class="empty-results">
       <span class="empty-icon">👗</span>
-      <h3>No encontramos prendas con los filtros seleccionados</h3>
-      <p>Prueba seleccionando otra sucursal o restableciendo los filtros de búsqueda.</p>
-      <button (click)="limpiarFiltros()" class="btn-primary">Ver todas las prendas</button>
+      <h3>{{ mostrarSoloFavoritos ? 'Todavía no guardaste prendas' : 'No encontramos prendas con los filtros seleccionados' }}</h3>
+      <p>{{ mostrarSoloFavoritos ? 'Marca el corazón de una prenda para conservarla en la lista de este tenant.' : 'Prueba seleccionando otra sucursal o restableciendo los filtros de búsqueda.' }}</p>
+      <a *ngIf="mostrarSoloFavoritos" routerLink="/catalogo" class="btn-primary">Explorar catálogo</a>
+      <button *ngIf="!mostrarSoloFavoritos" (click)="limpiarFiltros()" class="btn-primary">Ver todas las prendas</button>
     </div>
 
     <div class="products-grid">
@@ -178,6 +186,14 @@
           </span>
           <span class="category-tag">{{ p.categoria_nombre || 'Exclusivo' }}</span>
           <span *ngIf="p.coleccion_nombre" class="coleccion-tag">{{ p.coleccion_nombre }}</span>
+          <button
+            type="button"
+            class="favorite-button"
+            [class.active]="p.es_favorito"
+            [attr.aria-label]="p.es_favorito ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+            [title]="p.es_favorito ? 'Quitar de favoritos' : 'Guardar en favoritos'"
+            (click)="$event.stopPropagation(); toggleFavorito(p)"
+          >{{ p.es_favorito ? '♥' : '♡' }}</button>
         </div>
 
         <div class="card-body">

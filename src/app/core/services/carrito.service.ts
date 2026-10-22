@@ -74,6 +74,7 @@ export interface CatalogoItem {
     }>;
   }>;
   stock_total: number;
+  es_favorito?: boolean;
 }
 
 @Injectable({
@@ -86,6 +87,7 @@ export class CarritoService {
   private offlineState = inject(OfflineStateService);
   private apiUrl = `${environment.apiUrl}/carrito`;
   private catalogoUrl = `${environment.apiUrl}/catalogo`;
+  private favoritosUrl = `${environment.apiUrl}/favoritos`;
 
   getMyCart(): Observable<Carrito> {
     return this.http.get<Carrito>(`${this.apiUrl}/mio`);
@@ -178,6 +180,19 @@ export class CarritoService {
     let params = new HttpParams();
     if (sucursalId) params = params.set('sucursal_id', sucursalId);
     return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`, { params });
+  }
+
+  agregarFavorito(codigo: string): Observable<{ producto_codigo: string; es_favorito: boolean }> {
+    return this.http.post<{ producto_codigo: string; es_favorito: boolean }>(
+      `${this.favoritosUrl}/${encodeURIComponent(codigo)}`,
+      {}
+    );
+  }
+
+  quitarFavorito(codigo: string): Observable<{ producto_codigo: string; es_favorito: boolean }> {
+    return this.http.delete<{ producto_codigo: string; es_favorito: boolean }>(
+      `${this.favoritosUrl}/${encodeURIComponent(codigo)}`
+    );
   }
 
   getRecomendadosIA(codigo: string, limit: number = 4): Observable<any[]> {

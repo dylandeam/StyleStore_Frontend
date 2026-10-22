@@ -89,6 +89,10 @@ export const routes: Routes = [
         component: CatalogoListComponent,
       },
       {
+        path: 'cuenta/favoritos',
+        component: CatalogoListComponent,
+      },
+      {
         path: 'promociones',
         component: PromocionesClienteComponent,
       },
