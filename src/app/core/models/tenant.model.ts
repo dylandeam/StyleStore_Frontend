@@ -23,6 +23,13 @@ export interface TenantSubscription {
   max_sucursales?: number | null;
 }
 
+export interface TenantCapacidades {
+  chatbot: boolean;
+  predicciones: boolean;
+  max_sucursales?: number | null;
+  cupo_sucursales_disponible?: number | null;
+}
+
 export interface TenantSummary {
   id: number;
   codigo: string;
@@ -35,6 +42,10 @@ export interface TenantSummary {
   suscripcion?: TenantSubscription | null;
   usuarios_count: number;
   sucursales_count: number;
+  archivos_count?: number;
+  proximamente_count?: number;
+  pruebas_virtuales_count?: number;
+  capacidades?: TenantCapacidades | null;
   sucursales: Array<{ id: number; nombre: string; ciudad: string; active: boolean }>;
   usuarios: Array<{ id: number; nombre: string; email: string; rol: string; active: boolean }>;
 }

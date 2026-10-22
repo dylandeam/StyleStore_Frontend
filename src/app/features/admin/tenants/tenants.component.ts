@@ -25,6 +25,7 @@ export class TenantsComponent implements OnInit {
   readonly success = signal<string | null>(null);
   readonly search = signal('');
   readonly statusFilter = signal<'all' | 'active' | 'suspended'>('all');
+  readonly viewMode = signal<'cards' | 'matrix'>('cards');
   readonly modalMode = signal<ModalMode | null>(null);
   readonly selected = signal<TenantSummary | null>(null);
   readonly expandedTenantId = signal<number | null>(null);
@@ -140,6 +141,26 @@ export class TenantsComponent implements OnInit {
     if (tenant.inactive_reason === 'subscription_expired') return 'Inactivo por vencimiento';
     if (tenant.inactive_reason === 'payment_pending') return 'Pago pendiente';
     return 'Suspendido';
+  }
+
+  branchOccupancyPct(tenant: TenantSummary): number {
+    const max = tenant.capacidades?.max_sucursales ?? tenant.suscripcion?.max_sucursales ?? 2;
+    if (!max || max <= 0) return 0;
+    return Math.min(100, Math.round((tenant.sucursales_count / max) * 100));
+  }
+
+  branchOccupancyLabel(tenant: TenantSummary): string {
+    const max = tenant.capacidades?.max_sucursales ?? tenant.suscripcion?.max_sucursales ?? 2;
+    const count = tenant.sucursales_count;
+    if (count >= max) return `${count} / ${max} (Límite alcanzado)`;
+    return `${count} / ${max} (${max - count} disponibles)`;
+  }
+
+  planBadgeClass(tenant: TenantSummary): string {
+    const code = (tenant.suscripcion?.plan_codigo || 'basico').toLowerCase();
+    if (code.includes('profesional')) return 'plan-badge profesional';
+    if (code.includes('intermedio')) return 'plan-badge intermedio';
+    return 'plan-badge basico';
   }
 
   private emptyCreateForm(): TenantCreate {

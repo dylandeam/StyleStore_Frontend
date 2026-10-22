@@ -28,13 +28,160 @@
       <option value="active">Activos</option>
       <option value="suspended">Suspendidos</option>
     </select>
+    <div class="view-switch">
+      <button type="button" [class.active]="viewMode() === 'cards'" (click)="viewMode.set('cards')">
+        ▦ Tarjetas
+      </button>
+      <button type="button" [class.active]="viewMode() === 'matrix'" (click)="viewMode.set('matrix')">
+        ⊞ Matriz Tenant / Plan / Sucursales
+      </button>
+    </div>
   </div>
 
   @if (loading()) {
     <div class="loading"><span></span> Cargando empresas…</div>
   } @else if (!filteredTenants().length) {
     <div class="empty-state"><strong>No hay tenants para mostrar</strong><p>Ajusta los filtros o registra una nueva empresa.</p></div>
+  } @else if (viewMode() === 'matrix') {
+    <!-- VISTA MATRIZ COMPLETA OPERATIVA (REQ-014) -->
+    <div class="matrix-wrapper">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Empresa / Tenant</th>
+            <th>Plan Contratado</th>
+            <th>Sucursales & Cupo</th>
+            <th>Capacidades IA</th>
+            <th>Recursos Secundarios (REQ-017)</th>
+            <th>Usuarios</th>
+            <th>Administrador</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tenant of filteredTenants(); track tenant.id) {
+            <tr [class.suspended]="!tenant.active">
+              <td>
+                <div class="tenant-cell">
+                  <span class="tenant-avatar-sm">{{ tenant.nombre.charAt(0).toUpperCase() }}</span>
+                  <div>
+                    <strong>{{ tenant.nombre }}</strong>
+                    <code>{{ tenant.codigo }}</code>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span [class]="planBadgeClass(tenant)">
+                  {{ tenant.suscripcion?.plan_nombre || 'Sin plan' }}
+                </span>
+                <small class="cell-sub">
+                  {{ tenant.suscripcion?.estado || 'No asignado' }} · {{ tenant.suscripcion?.fecha_fin ? (tenant.suscripcion?.fecha_fin | date:'dd/MM/yy') : 'Sin vencimiento' }}
+                </small>
+              </td>
+              <td>
+                <div class="branch-meter">
+                  <div class="meter-bar">
+                    <div class="meter-fill" [style.width.%]="branchOccupancyPct(tenant)" [class.full]="branchOccupancyPct(tenant) >= 100"></div>
+                  </div>
+                  <small>{{ branchOccupancyLabel(tenant) }}</small>
+                </div>
+              </td>
+              <td>
+                <div class="caps-cell">
+                  <span class="cap-tag" [class.on]="tenant.capacidades?.chatbot" title="Chatbot Asistente Virtual">
+                    {{ tenant.capacidades?.chatbot ? '✓ Chatbot' : '✗ Chatbot' }}
+                  </span>
+                  <span class="cap-tag" [class.on]="tenant.capacidades?.predicciones" title="Predicciones de Stock y Ventas ML">
+                    {{ tenant.capacidades?.predicciones ? '✓ Predicciones' : '✗ Predicciones' }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div class="resources-cell">
+                  <span class="res-tag" title="Archivos persistentes en BD">📁 {{ tenant.archivos_count ?? 0 }} fotos</span>
+                  <span class="res-tag" title="Próximos lanzamientos">🚀 {{ tenant.proximamente_count ?? 0 }} prox.</span>
+                  <span class="res-tag" title="Pruebas virtuales de probador">👗 {{ tenant.pruebas_virtuales_count ?? 0 }} try-on</span>
+                </div>
+              </td>
+              <td class="text-center">
+                <strong>{{ tenant.usuarios_count }}</strong>
+              </td>
+              <td>
+                <div class="admin-cell">
+                  <span>{{ tenant.admin?.name || 'Sin admin' }}</span>
+                  <small>{{ tenant.admin?.email || 'Pendiente' }}</small>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [class.active]="tenant.active">
+                  {{ tenantStatusLabel(tenant) }}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <button type="button" class="btn-sm" (click)="toggleDetails(tenant)">
+                    {{ expandedTenantId() === tenant.id ? 'Ocultar' : 'Detalles' }}
+                  </button>
+                  <button type="button" class="btn-sm" (click)="openCompany(tenant)">Editar</button>
+                  <button type="button" class="btn-sm" (click)="openAdmin(tenant)">Admin</button>
+                  <button type="button" class="btn-sm" [class.btn-danger]="tenant.active" [class.btn-success]="!tenant.active" (click)="toggleActive(tenant)">
+                    {{ tenant.active ? 'Suspender' : 'Reactivar' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+            @if (expandedTenantId() === tenant.id) {
+              <tr class="detail-row">
+                <td colspan="9">
+                  <div class="tenant-detail">
+                    <section>
+                      <h3>Sucursales asignadas ({{ tenant.sucursales.length }})</h3>
+                      @for (branch of tenant.sucursales; track branch.id) {
+                        <p><strong>{{ branch.nombre }}</strong><span>{{ branch.ciudad }} · {{ branch.active ? 'Activa' : 'Inactiva' }}</span></p>
+                      } @empty { <small>No hay sucursales registradas.</small> }
+                    </section>
+                    <section>
+                      <h3>Usuarios y roles ({{ tenant.usuarios.length }})</h3>
+                      @for (user of tenant.usuarios; track user.id) {
+                        <p><strong>{{ user.nombre }}</strong><span>{{ user.email }} · {{ user.rol }} · {{ user.active ? 'Activo' : 'Inactivo' }}</span></p>
+                      } @empty { <small>No hay usuarios registrados.</small> }
+                    </section>
+                    <section class="secondary-resources-section">
+                      <h3>Recursos secundarios y capacidades (REQ-017)</h3>
+                      <div class="resources-grid">
+                        <div class="resource-pill">
+                          <span>Archivos en base de datos</span>
+                          <strong>{{ tenant.archivos_count ?? 0 }} fotos persistentes</strong>
+                        </div>
+                        <div class="resource-pill">
+                          <span>Próximos lanzamientos</span>
+                          <strong>{{ tenant.proximamente_count ?? 0 }} prendas registradas</strong>
+                        </div>
+                        <div class="resource-pill">
+                          <span>Prueba virtual por foto</span>
+                          <strong>{{ tenant.pruebas_virtuales_count ?? 0 }} trabajos procesados</strong>
+                        </div>
+                        <div class="resource-pill" [class.enabled]="tenant.capacidades?.chatbot">
+                          <span>Chatbot IA</span>
+                          <strong>{{ tenant.capacidades?.chatbot ? '✓ Habilitado' : '✗ Requiere Intermedio/Profesional' }}</strong>
+                        </div>
+                        <div class="resource-pill" [class.enabled]="tenant.capacidades?.predicciones">
+                          <span>Predicciones Stock ML</span>
+                          <strong>{{ tenant.capacidades?.predicciones ? '✓ Habilitado' : '✗ Requiere Profesional' }}</strong>
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
   } @else {
+    <!-- VISTA TARJETAS TRADICIONAL -->
     <div class="tenant-grid">
       @for (tenant of filteredTenants(); track tenant.id) {
         <article class="tenant-card" [class.suspended]="!tenant.active">
@@ -59,8 +206,14 @@
           </div>
 
           <dl class="tenant-metrics">
-            <div><dt>Sucursales</dt><dd>{{ tenant.sucursales_count }} / {{ tenant.suscripcion?.max_sucursales ?? '∞' }}</dd></div>
-            <div><dt>Usuarios</dt><dd>{{ tenant.usuarios_count }}</dd></div>
+            <div>
+              <dt>Sucursales</dt>
+              <dd>{{ tenant.sucursales_count }} / {{ tenant.suscripcion?.max_sucursales ?? '∞' }}</dd>
+            </div>
+            <div>
+              <dt>Recursos aislados</dt>
+              <dd>📁{{ tenant.archivos_count ?? 0 }} · 🚀{{ tenant.proximamente_count ?? 0 }}</dd>
+            </div>
           </dl>
 
           <div class="admin-block">
@@ -70,7 +223,9 @@
           </div>
 
           <div class="actions">
-            <button type="button" (click)="toggleDetails(tenant)">{{ expandedTenantId() === tenant.id ? 'Ocultar detalle' : 'Ver sucursales y usuarios' }}</button>
+            <button type="button" (click)="toggleDetails(tenant)">
+              {{ expandedTenantId() === tenant.id ? 'Ocultar detalle' : 'Ver sucursales y recursos' }}
+            </button>
             <button type="button" (click)="openCompany(tenant)">Empresa</button>
             <button type="button" (click)="openAdmin(tenant)">Administrador</button>
             <a routerLink="/admin/planes">Configurar precios</a>
@@ -81,16 +236,41 @@
           @if (expandedTenantId() === tenant.id) {
             <div class="tenant-detail">
               <section>
-                <h3>Sucursales</h3>
+                <h3>Sucursales ({{ tenant.sucursales.length }})</h3>
                 @for (branch of tenant.sucursales; track branch.id) {
                   <p><strong>{{ branch.nombre }}</strong><span>{{ branch.ciudad }} · {{ branch.active ? 'Activa' : 'Inactiva' }}</span></p>
                 } @empty { <small>No hay sucursales registradas.</small> }
               </section>
               <section>
-                <h3>Usuarios y roles</h3>
+                <h3>Usuarios y roles ({{ tenant.usuarios.length }})</h3>
                 @for (user of tenant.usuarios; track user.id) {
                   <p><strong>{{ user.nombre }}</strong><span>{{ user.email }} · {{ user.rol }} · {{ user.active ? 'Activo' : 'Inactivo' }}</span></p>
                 } @empty { <small>No hay usuarios registrados.</small> }
+              </section>
+              <section class="secondary-resources-section wide">
+                <h3>Recursos secundarios y capacidades (REQ-017)</h3>
+                <div class="resources-grid">
+                  <div class="resource-pill">
+                    <span>Archivos en base de datos</span>
+                    <strong>{{ tenant.archivos_count ?? 0 }} fotos persistentes</strong>
+                  </div>
+                  <div class="resource-pill">
+                    <span>Próximos lanzamientos</span>
+                    <strong>{{ tenant.proximamente_count ?? 0 }} prendas registradas</strong>
+                  </div>
+                  <div class="resource-pill">
+                    <span>Prueba virtual por foto</span>
+                    <strong>{{ tenant.pruebas_virtuales_count ?? 0 }} trabajos procesados</strong>
+                  </div>
+                  <div class="resource-pill" [class.enabled]="tenant.capacidades?.chatbot">
+                    <span>Chatbot IA</span>
+                    <strong>{{ tenant.capacidades?.chatbot ? '✓ Habilitado' : '✗ No incluido' }}</strong>
+                  </div>
+                  <div class="resource-pill" [class.enabled]="tenant.capacidades?.predicciones">
+                    <span>Predicciones Stock ML</span>
+                    <strong>{{ tenant.capacidades?.predicciones ? '✓ Habilitado' : '✗ No incluido' }}</strong>
+                  </div>
+                </div>
               </section>
             </div>
           }
