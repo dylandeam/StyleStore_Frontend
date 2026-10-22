@@ -154,5 +154,26 @@ export class ReportesService {
   exportarConsultaIAExcel(pregunta: string, respuesta: string, kpis: any[] = []): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/asistente-ia/excel`, { pregunta, respuesta, kpis }, { responseType: 'blob' });
   }
+
+  // Comparativa entre Sucursales (REQ-063)
+  getComparativaSucursalesPreview(): Observable<{
+    total_sucursales: number;
+    gran_total_ventas: number;
+    gran_total_ordenes: number;
+    gran_total_stock: number;
+    gran_total_criticos: number;
+    ticket_promedio_general: number;
+    sucursales: any[];
+  }> {
+    return this.http.get<any>(`${this.apiUrl}/comparativa-sucursales/preview`);
+  }
+
+  exportarComparativaExcel(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/comparativa-sucursales/excel`, { responseType: 'blob' });
+  }
+
+  exportarComparativaPDF(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/comparativa-sucursales/pdf`, { responseType: 'blob' });
+  }
 }
 

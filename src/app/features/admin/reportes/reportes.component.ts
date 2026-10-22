@@ -55,6 +55,11 @@ export class ReportesComponent implements OnInit {
   cargandoReporteDinamico: boolean = false;
   datosReporteDinamico: { title: string; columns: string[]; data: any[][] } | null = null;
 
+  // Comparativa entre Sucursales (REQ-063)
+  datosComparativa: any = null;
+  cargandoComparativa: boolean = false;
+  seccionComparativaAbierta: boolean = true;
+
   // ========================================================
   // ASISTENTE DE IA PARA REPORTES Y BÚSQUEDA POR VOZ
   // ========================================================
@@ -133,6 +138,7 @@ export class ReportesComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarSucursales();
+    this.cargarComparativaSucursales();
     this.initSpeechRecognitionIA();
   }
 
@@ -715,4 +721,242 @@ export class ReportesComponent implements OnInit {
       this.cdr.detectChanges();
     }, 3500);
   }
+
+  // ========================================================
+  // COMPARATIVA ENTRE SUCURSALES (REQ-063)
+  // ========================================================
+
+  cargarComparativaSucursales(): void {
+    this.cargandoComparativa = true;
+    this.cdr.markForCheck();
+
+    this.reportesService.getComparativaSucursalesPreview().subscribe({
+      next: (data) => {
+        this.ngZone.run(() => {
+          this.datosComparativa = data;
+          this.cargandoComparativa = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.cargandoComparativa = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  descargarComparativaExcel(): void {
+    this.descargando = true;
+    this.reportesService.exportarComparativaExcel().subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, `comparativa_sucursales_${Date.now()}.xlsx`);
+          this.mostrarToast('Reporte comparativo de sucursales descargado en Excel.');
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al descargar comparativa en Excel.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  descargarComparativaPDF(): void {
+    this.descargando = true;
+    this.reportesService.exportarComparativaPDF().subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, `comparativa_sucursales_${Date.now()}.pdf`);
+          this.mostrarToast('Reporte comparativo de sucursales descargado en PDF.');
+          this.cdr.markForCheck();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al descargar comparativa en PDF.');
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  toggleSeccionComparativa(): void {
+    this.seccionComparativaAbierta = !this.seccionComparativaAbierta;
+    this.cdr.markForCheck();
+  }
+
+  getMaxVentasComparativa(): number {
+    if (!this.datosComparativa?.sucursales?.length) return 1;
+    const max = Math.max(...this.datosComparativa.sucursales.map((s: any) => s.total_ventas || 0));
+    return max > 0 ? max : 1;
+  }
+
+  getMaxStockComparativa(): number {
+    if (!this.datosComparativa?.sucursales?.length) return 1;
+    const max = Math.max(...this.datosComparativa.sucursales.map((s: any) => s.total_stock || 0));
+    return max > 0 ? max : 1;
+  }
+
+  // ========================================================
+  // GRÁFICOS VISUALES INTERACTIVOS (REQ-039)
+  // ========================================================
+
+  get chartVentasPorMetodo(): Array<{
+    metodo: string;
+    total: number;
+    porcentaje: number;
+    color: string;
+    dashArray: string;
+    dashOffset: number;
+  }> {
+    if (!this.datosPreviewVentas?.items?.length) return [];
+    const items = this.datosPreviewVentas.items;
+    const totals: Record<string, number> = {};
+    let grandTotal = 0;
+
+    for (const it of items) {
+      const mp = (it.metodo_pago || 'EFECTIVO').toUpperCase();
+      const val = Number(it.total) || 0;
+      totals[mp] = (totals[mp] || 0) + val;
+      grandTotal += val;
+    }
+
+    if (grandTotal === 0) return [];
+
+    const palette: Record<string, string> = {
+      EFECTIVO: '#2E7D32',
+      QR: '#C29B38',
+      'QR SIMPLE': '#C29B38',
+      PAYPAL: '#0288D1',
+      TARJETA: '#7B1FA2',
+    };
+
+    const circumference = 251.32; // 2 * PI * 40
+    let accumulated = 0;
+    const result: Array<{
+      metodo: string;
+      total: number;
+      porcentaje: number;
+      color: string;
+      dashArray: string;
+      dashOffset: number;
+    }> = [];
+
+    const keys = Object.keys(totals);
+    for (const k of keys) {
+      const total = totals[k];
+      const pct = Math.round((total / grandTotal) * 100);
+      const dashLength = (pct / 100) * circumference;
+      const dashArray = `${dashLength.toFixed(1)} ${(circumference - dashLength).toFixed(1)}`;
+      const dashOffset = -accumulated;
+      accumulated += dashLength;
+
+      result.push({
+        metodo: k,
+        total: Math.round(total * 100) / 100,
+        porcentaje: pct,
+        color: palette[k] || '#14263D',
+        dashArray,
+        dashOffset,
+      });
+    }
+
+    return result;
+  }
+
+  get chartVentasPorSucursal(): Array<{ nombre: string; total: number; porcentaje: number }> {
+    if (!this.datosPreviewVentas?.items?.length) return [];
+    const items = this.datosPreviewVentas.items;
+    const totals: Record<string, number> = {};
+    let grandTotal = 0;
+
+    for (const it of items) {
+      const suc = it.sucursal_nombre || 'General';
+      const val = Number(it.total) || 0;
+      totals[suc] = (totals[suc] || 0) + val;
+      grandTotal += val;
+    }
+
+    if (grandTotal === 0) return [];
+
+    return Object.keys(totals)
+      .map((suc) => ({
+        nombre: suc,
+        total: Math.round(totals[suc] * 100) / 100,
+        porcentaje: Math.round((totals[suc] / grandTotal) * 100),
+      }))
+      .sort((a, b) => b.total - a.total);
+  }
+
+  get chartInventarioSalud(): {
+    saludableCount: number;
+    criticoCount: number;
+    agotadoCount: number;
+    saludablePct: number;
+    criticoPct: number;
+    agotadoPct: number;
+  } {
+    if (!this.datosPreviewInventario?.items?.length) {
+      return { saludableCount: 0, criticoCount: 0, agotadoCount: 0, saludablePct: 0, criticoPct: 0, agotadoPct: 0 };
+    }
+    const items = this.datosPreviewInventario.items;
+    const total = items.length;
+    let critico = 0;
+    let agotado = 0;
+    let saludable = 0;
+
+    for (const it of items) {
+      const cant = Number(it.cantidad) || 0;
+      if (cant === 0) {
+        agotado++;
+      } else if (cant <= 5) {
+        critico++;
+      } else {
+        saludable++;
+      }
+    }
+
+    return {
+      saludableCount: saludable,
+      criticoCount: critico,
+      agotadoCount: agotado,
+      saludablePct: Math.round((saludable / total) * 100),
+      criticoPct: Math.round((critico / total) * 100),
+      agotadoPct: Math.round((agotado / total) * 100),
+    };
+  }
+
+  get chartInventarioPorSucursal(): Array<{ nombre: string; totalUnidades: number; criticos: number }> {
+    if (!this.datosPreviewInventario?.items?.length) return [];
+    const items = this.datosPreviewInventario.items;
+    const map: Record<string, { total: number; criticos: number }> = {};
+
+    for (const it of items) {
+      const suc = it.sucursal_nombre || 'General';
+      if (!map[suc]) map[suc] = { total: 0, criticos: 0 };
+      const cant = Number(it.cantidad) || 0;
+      map[suc].total += cant;
+      if (cant <= 5) map[suc].criticos++;
+    }
+
+    return Object.keys(map)
+      .map((k) => ({
+        nombre: k,
+        totalUnidades: map[k].total,
+        criticos: map[k].criticos,
+      }))
+      .sort((a, b) => b.totalUnidades - a.totalUnidades);
+  }
 }
+

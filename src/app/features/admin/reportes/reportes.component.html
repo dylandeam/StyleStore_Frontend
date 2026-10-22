@@ -141,6 +141,143 @@
     </div>
   </div>
 
+  <!-- ========================================================= -->
+  <!-- COMPARATIVA ENTRE SUCURSALES & RENDIMIENTO (REQ-063)       -->
+  <!-- ========================================================= -->
+  <div class="card comparativa-card">
+    <div class="comparativa-header">
+      <div class="comparativa-title-group">
+        <div class="comparativa-icon-wrap">
+          <span>🏢</span>
+        </div>
+        <div>
+          <div class="comparativa-badge">REQ-063 · MULTI-SUCURSAL Y AISLAMIENTO TENANT</div>
+          <h2>Comparativa de Rendimiento entre Sucursales</h2>
+          <p class="subtitle">Monitorea en tiempo real las ventas, volumen de transacciones, existencias consolidadas y niveles críticos de tus tiendas.</p>
+        </div>
+      </div>
+
+      <div class="comparativa-actions">
+        <button type="button" class="btn-refresh-comparativa" (click)="cargarComparativaSucursales()" [disabled]="cargandoComparativa" title="Actualizar datos">
+          <span class="refresh-icon">🔄</span> Actualizar
+        </button>
+        <button type="button" class="btn-export-sm btn-excel" [disabled]="descargando || !datosComparativa" (click)="descargarComparativaExcel()">
+          <span>📗</span> Excel
+        </button>
+        <button type="button" class="btn-export-sm btn-pdf" [disabled]="descargando || !datosComparativa" (click)="descargarComparativaPDF()">
+          <span>📕</span> PDF
+        </button>
+        <button type="button" class="btn-toggle-seccion" (click)="toggleSeccionComparativa()">
+          {{ seccionComparativaAbierta ? '▲ Ocultar' : '▼ Mostrar' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="comparativa-loading" *ngIf="cargandoComparativa">
+      <div class="spinner-sm"></div>
+      <span>Calculando indicadores comparativos entre sucursales...</span>
+    </div>
+
+    <!-- Contenido Comparativa -->
+    <div class="comparativa-body" *ngIf="!cargandoComparativa && datosComparativa && seccionComparativaAbierta">
+      <!-- Barra Resumen KPIs Consolidados -->
+      <div class="comparativa-kpi-bar">
+        <div class="comp-kpi-item">
+          <span class="comp-kpi-label">Sucursales Activas</span>
+          <strong class="comp-kpi-val">{{ datosComparativa.total_sucursales }}</strong>
+          <small class="comp-kpi-sub">Puntos de venta de tu empresa</small>
+        </div>
+        <div class="comp-kpi-item highlight">
+          <span class="comp-kpi-label">Gran Total Recaudado</span>
+          <strong class="comp-kpi-val">Bs. {{ datosComparativa.gran_total_ventas | number:'1.2-2' }}</strong>
+          <small class="comp-kpi-sub">Total acumulado en el tenant</small>
+        </div>
+        <div class="comp-kpi-item">
+          <span class="comp-kpi-label">Órdenes Procesadas</span>
+          <strong class="comp-kpi-val">{{ datosComparativa.gran_total_ordenes }}</strong>
+          <small class="comp-kpi-sub">Transacciones registradas</small>
+        </div>
+        <div class="comp-kpi-item">
+          <span class="comp-kpi-label">Stock Consolidado</span>
+          <strong class="comp-kpi-val">{{ datosComparativa.gran_total_stock }} unids.</strong>
+          <small class="comp-kpi-sub">En todas las tiendas</small>
+        </div>
+        <div class="comp-kpi-item warning" *ngIf="datosComparativa.gran_total_criticos > 0">
+          <span class="comp-kpi-label">Alertas Críticas</span>
+          <strong class="comp-kpi-val text-danger">{{ datosComparativa.gran_total_criticos }}</strong>
+          <small class="comp-kpi-sub">Prendas con ≤ 5 unidades</small>
+        </div>
+        <div class="comp-kpi-item">
+          <span class="comp-kpi-label">Ticket Promedio</span>
+          <strong class="comp-kpi-val">Bs. {{ datosComparativa.ticket_promedio_general | number:'1.2-2' }}</strong>
+          <small class="comp-kpi-sub">Por venta concretada</small>
+        </div>
+      </div>
+
+      <!-- Gráficos Comparativos Visuales (REQ-039) -->
+      <div class="comparativa-charts-grid">
+        <!-- Gráfico 1: Ventas y Participación por Sucursal -->
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span class="chart-badge">GRÁFICO COMPARATIVO</span>
+            <h4>Participación en Ventas por Sucursal</h4>
+            <span class="chart-hint">Porcentaje de recaudación sobre el total del tenant</span>
+          </div>
+          <div class="bars-container">
+            <div class="bar-row" *ngFor="let s of datosComparativa.sucursales">
+              <div class="bar-info">
+                <span class="branch-name"><strong>{{ s.nombre }}</strong> ({{ s.ciudad }})</span>
+                <span class="branch-amounts">
+                  <strong>Bs. {{ s.total_ventas | number:'1.2-2' }}</strong>
+                  <span class="pct-badge">{{ s.porcentaje_ventas }}%</span>
+                </span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill gold-gradient" [style.width.%]="s.porcentaje_ventas"></div>
+              </div>
+              <div class="mini-payment-tags">
+                <span class="mini-tag tag-cash" *ngIf="s.desglose_pagos?.efectivo > 0">Efectivo: Bs. {{ s.desglose_pagos.efectivo | number:'1.0-0' }}</span>
+                <span class="mini-tag tag-qr" *ngIf="s.desglose_pagos?.qr > 0">QR: Bs. {{ s.desglose_pagos.qr | number:'1.0-0' }}</span>
+                <span class="mini-tag tag-paypal" *ngIf="s.desglose_pagos?.paypal > 0">PayPal: Bs. {{ s.desglose_pagos.paypal | number:'1.0-0' }}</span>
+                <span class="mini-tag tag-orders">{{ s.cantidad_ordenes }} ventas · Tk. Prom: Bs. {{ s.ticket_promedio | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico 2: Existencias y Stock Crítico por Sucursal -->
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span class="chart-badge">GRÁFICO COMPARATIVO</span>
+            <h4>Nivel de Stock y Existencias Críticas</h4>
+            <span class="chart-hint">Comparativa de prendas totales vs alertas de agotamiento</span>
+          </div>
+          <div class="bars-container">
+            <div class="bar-row" *ngFor="let s of datosComparativa.sucursales">
+              <div class="bar-info">
+                <span class="branch-name"><strong>{{ s.nombre }}</strong></span>
+                <span class="branch-amounts">
+                  <span>{{ s.total_stock }} prendas</span>
+                  <span class="critical-pill" *ngIf="s.items_criticos > 0">⚠️ {{ s.items_criticos }} críticas</span>
+                  <span class="ok-pill" *ngIf="s.items_criticos === 0">✓ Stock Óptimo</span>
+                </span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill navy-gradient" [style.width.%]="(s.total_stock / getMaxStockComparativa()) * 100"></div>
+              </div>
+              <div class="mini-stock-details">
+                <span class="mini-detail">Personal asignado: <strong>{{ s.empleados_count }}</strong></span>
+                <span class="mini-detail" *ngIf="s.items_agotados > 0">Agotadas: <strong class="text-danger">{{ s.items_agotados }}</strong></span>
+                <span class="mini-detail">Dirección: {{ s.direccion }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="reportes-grid">
     <!-- 1. Reporte de Ventas -->
     <div class="card reporte-card">
@@ -426,6 +563,73 @@
         <p>No se encontraron registros de ventas con los filtros aplicados.</p>
       </div>
 
+      <!-- Gráficos Visuales de Ventas (REQ-039) -->
+      <div class="preview-charts-row" *ngIf="datosPreviewVentas?.items?.length">
+        <!-- Donut Chart: Métodos de Pago -->
+        <div class="preview-chart-card">
+          <div class="preview-chart-header">
+            <span class="chart-tag">DISTRIBUCIÓN FINANCIERA</span>
+            <h4>Ventas por Forma de Pago</h4>
+          </div>
+          <div class="donut-chart-wrap">
+            <div class="donut-svg-box">
+              <svg viewBox="0 0 100 100" class="donut-svg">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#EFE8DE" stroke-width="12"></circle>
+                <circle
+                  *ngFor="let seg of chartVentasPorMetodo"
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="transparent"
+                  [attr.stroke]="seg.color"
+                  stroke-width="12"
+                  [attr.stroke-dasharray]="seg.dashArray"
+                  [attr.stroke-dashoffset]="seg.dashOffset"
+                  stroke-linecap="round"
+                  transform="rotate(-90 50 50)"
+                  class="donut-segment"
+                ></circle>
+              </svg>
+              <div class="donut-center-text">
+                <span class="donut-center-total">Bs. {{ datosPreviewVentas?.total_monto | number:'1.0-0' }}</span>
+                <span class="donut-center-sub">Total</span>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-item" *ngFor="let seg of chartVentasPorMetodo">
+                <span class="legend-dot" [style.background-color]="seg.color"></span>
+                <div class="legend-text">
+                  <span class="legend-label">{{ seg.metodo }}</span>
+                  <strong class="legend-val">Bs. {{ seg.total | number:'1.2-2' }} ({{ seg.porcentaje }}%)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking por Sucursales -->
+        <div class="preview-chart-card">
+          <div class="preview-chart-header">
+            <span class="chart-tag">RENDIMIENTO REGIONAL</span>
+            <h4>Distribución de Ventas por Sucursal</h4>
+          </div>
+          <div class="branch-rank-list">
+            <div class="rank-item" *ngFor="let b of chartVentasPorSucursal; let idx = index">
+              <div class="rank-badge">{{ idx + 1 }}</div>
+              <div class="rank-content">
+                <div class="rank-title-row">
+                  <span class="rank-name">{{ b.nombre }}</span>
+                  <span class="rank-val">Bs. {{ b.total | number:'1.2-2' }} ({{ b.porcentaje }}%)</span>
+                </div>
+                <div class="rank-bar-track">
+                  <div class="rank-bar-fill" [style.width.%]="b.porcentaje"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="table-responsive" *ngIf="datosPreviewVentas?.items?.length">
         <table class="report-table">
           <thead>
@@ -487,6 +691,69 @@
       <div class="empty-state" *ngIf="!datosPreviewInventario?.items?.length">
         <span class="empty-icon">🔍</span>
         <p>No se encontraron existencias con los filtros aplicados.</p>
+      </div>
+
+      <!-- Gráficos Visuales de Inventario (REQ-039) -->
+      <div class="preview-charts-row" *ngIf="datosPreviewInventario?.items?.length">
+        <!-- Salud del Stock -->
+        <div class="preview-chart-card">
+          <div class="preview-chart-header">
+            <span class="chart-tag">ESTADO DEL INVENTARIO</span>
+            <h4>Salud de las Existencias</h4>
+          </div>
+          <div class="stock-health-summary">
+            <div class="health-meter-track">
+              <div class="health-seg seg-healthy" [style.width.%]="chartInventarioSalud.saludablePct" title="Saludable: {{ chartInventarioSalud.saludablePct }}%"></div>
+              <div class="health-seg seg-critical" [style.width.%]="chartInventarioSalud.criticoPct" title="Crítico: {{ chartInventarioSalud.criticoPct }}%"></div>
+              <div class="health-seg seg-out" [style.width.%]="chartInventarioSalud.agotadoPct" title="Agotado: {{ chartInventarioSalud.agotadoPct }}%"></div>
+            </div>
+            <div class="health-legend">
+              <div class="health-card green">
+                <span class="health-dot dot-green"></span>
+                <div>
+                  <span class="health-title">Stock Óptimo (> 5 un.)</span>
+                  <strong>{{ chartInventarioSalud.saludableCount }} items ({{ chartInventarioSalud.saludablePct }}%)</strong>
+                </div>
+              </div>
+              <div class="health-card yellow">
+                <span class="health-dot dot-yellow"></span>
+                <div>
+                  <span class="health-title">Stock Crítico (1 - 5 un.)</span>
+                  <strong>{{ chartInventarioSalud.criticoCount }} items ({{ chartInventarioSalud.criticoPct }}%)</strong>
+                </div>
+              </div>
+              <div class="health-card red" *ngIf="chartInventarioSalud.agotadoCount > 0">
+                <span class="health-dot dot-red"></span>
+                <div>
+                  <span class="health-title">Agotado (0 un.)</span>
+                  <strong>{{ chartInventarioSalud.agotadoCount }} items ({{ chartInventarioSalud.agotadoPct }}%)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existencias por Sucursal -->
+        <div class="preview-chart-card">
+          <div class="preview-chart-header">
+            <span class="chart-tag">DISTRIBUCIÓN GEOGRÁFICA</span>
+            <h4>Existencias y Alertas por Tienda</h4>
+          </div>
+          <div class="branch-rank-list">
+            <div class="rank-item" *ngFor="let s of chartInventarioPorSucursal">
+              <div class="rank-badge">🏢</div>
+              <div class="rank-content">
+                <div class="rank-title-row">
+                  <span class="rank-name">{{ s.nombre }}</span>
+                  <span class="rank-val">{{ s.totalUnidades }} unidades</span>
+                </div>
+                <div class="mini-warning-text" *ngIf="s.criticos > 0">
+                  <span class="text-danger font-bold">⚠️ {{ s.criticos }} prendas en stock crítico</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="table-responsive" *ngIf="datosPreviewInventario?.items?.length">
