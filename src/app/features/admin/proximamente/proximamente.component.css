@@ -821,3 +821,4 @@
     min-height: 40px;
   }
 }
+.cell-actions.platform-readonly button { display: none; }

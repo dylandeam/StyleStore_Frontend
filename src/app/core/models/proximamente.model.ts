@@ -1,5 +1,7 @@
 export interface Proximamente {
   id: number;
+  empresa_id: number;
+  empresa_nombre?: string;
   nombre: string;
   descripcion?: string;
   foto?: string;

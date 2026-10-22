@@ -32,9 +32,10 @@ export class ProximamenteComponent implements OnInit {
 
   // Permisos de usuario
   currentUser = this.authService.currentUser;
+  isPlatformAdmin = computed(() => !!this.currentUser()?.is_platform_admin);
   canManage = computed(() => {
     const role = this.currentUser()?.role;
-    return role === 'administrador' || role === 'encargado_sucursal';
+    return !this.isPlatformAdmin() && (role === 'administrador' || role === 'encargado_sucursal');
   });
 
   items = signal<Proximamente[]>([]);

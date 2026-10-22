@@ -35,13 +35,14 @@
         }
       </div>
     } @else {
-      @if (canManage()) {
+      @if (canManage() || isPlatformAdmin()) {
         <!-- VISTA TABLA PARA ADMINISTRADORES / ENCARGADOS -->
         <div class="table-responsive">
           <table class="data-table">
             <thead>
               <tr>
                 <th>Foto</th>
+                @if (isPlatformAdmin()) { <th>Tenant</th> }
                 <th>Nombre y Descripción</th>
                 <th>Llegada Estimada</th>
                 <th>Categoría / Colección</th>
@@ -64,6 +65,9 @@
                       <div class="no-img-box">👗</div>
                     }
                   </td>
+                  @if (isPlatformAdmin()) {
+                    <td><span class="badge">{{ item.empresa_nombre || ('Tenant #' + item.empresa_id) }}</span></td>
+                  }
                   <td>
                     <div class="font-semibold text-navy">{{ item.nombre }}</div>
                     <div class="text-xs text-muted">{{ item.descripcion || 'Sin descripción' }}</div>
@@ -82,7 +86,8 @@
                       {{ item.active ? 'Activo / Anunciado' : 'Pausado' }}
                     </span>
                   </td>
-                  <td class="cell-actions" (click)="$event.stopPropagation()">
+                  <td class="cell-actions" [class.platform-readonly]="isPlatformAdmin()" (click)="$event.stopPropagation()">
+                    <span class="text-xs text-muted" *ngIf="isPlatformAdmin()">Solo supervisión</span>
                     <button
                       class="btn-icon btn-notify"
                       (click)="notificarLlegada(item, $event)"
