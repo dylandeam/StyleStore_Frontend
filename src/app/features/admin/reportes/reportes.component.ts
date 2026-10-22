@@ -60,6 +60,13 @@ export class ReportesComponent implements OnInit {
   cargandoComparativa: boolean = false;
   seccionComparativaAbierta: boolean = true;
 
+  // Alertas Predictivas de Stock (REQ-068)
+  datosAlertasStock: any = null;
+  cargandoAlertasStock: boolean = false;
+  filtroCriticidadAlertas: string = '';
+  filtroSucursalAlertas: number | '' = '';
+  seccionAlertasStockAbierta: boolean = true;
+
   // ========================================================
   // ASISTENTE DE IA PARA REPORTES Y BÚSQUEDA POR VOZ
   // ========================================================
@@ -139,6 +146,7 @@ export class ReportesComponent implements OnInit {
   ngOnInit(): void {
     this.cargarSucursales();
     this.cargarComparativaSucursales();
+    this.cargarAlertasStock();
     this.initSpeechRecognitionIA();
   }
 
@@ -548,6 +556,90 @@ export class ReportesComponent implements OnInit {
           });
         },
       });
+  }
+
+  // ==========================================
+  // ALERTAS PREDICTIVAS DE STOCK (REQ-068)
+  // ==========================================
+
+  cargarAlertasStock(): void {
+    this.cargandoAlertasStock = true;
+    const filters: any = {};
+    if (this.filtroSucursalAlertas) filters.sucursal_id = Number(this.filtroSucursalAlertas);
+    if (this.filtroCriticidadAlertas) filters.criticidad = this.filtroCriticidadAlertas;
+
+    this.reportesService.getAlertasStockPredictivo(filters).subscribe({
+      next: (res) => {
+        this.ngZone.run(() => {
+          this.datosAlertasStock = res;
+          this.cargandoAlertasStock = false;
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.cargandoAlertasStock = false;
+          this.mostrarToast('No se pudieron cargar las alertas predictivas de stock.');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  descargarAlertasStockExcel(): void {
+    this.descargando = true;
+    const filters: any = {};
+    if (this.filtroSucursalAlertas) filters.sucursal_id = Number(this.filtroSucursalAlertas);
+    if (this.filtroCriticidadAlertas) filters.criticidad = this.filtroCriticidadAlertas;
+
+    this.reportesService.exportarAlertasStockExcel(filters).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, 'alertas_stock_predictivo.xlsx');
+          this.mostrarToast('Alertas predictivas de stock exportadas a Excel.');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al exportar alertas predictivas a Excel.');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+    });
+  }
+
+  descargarAlertasStockPDF(): void {
+    this.descargando = true;
+    const filters: any = {};
+    if (this.filtroSucursalAlertas) filters.sucursal_id = Number(this.filtroSucursalAlertas);
+    if (this.filtroCriticidadAlertas) filters.criticidad = this.filtroCriticidadAlertas;
+
+    this.reportesService.exportarAlertasStockPDF(filters).subscribe({
+      next: (blob) => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.guardarArchivo(blob, 'alertas_stock_predictivo.pdf');
+          this.mostrarToast('Alertas predictivas de stock exportadas a PDF.');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+      error: () => {
+        this.ngZone.run(() => {
+          this.descargando = false;
+          this.mostrarToast('Error al exportar alertas predictivas a PDF.');
+          this.cdr.markForCheck();
+          this.cdr.detectChanges();
+        });
+      },
+    });
   }
 
   // ==========================================

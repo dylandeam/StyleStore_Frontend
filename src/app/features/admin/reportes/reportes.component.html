@@ -503,6 +503,166 @@
         </table>
       </div>
     </div>
+  <!-- ========================================================= -->
+  <!-- ALERTAS PREDICTIVAS DE AGOTAMIENTO DE STOCK (REQ-068)    -->
+  <!-- ========================================================= -->
+  <div class="card alertas-stock-card">
+    <div class="card-header-flex">
+      <div class="title-with-badge">
+        <span class="header-icon">⚡</span>
+        <div>
+          <h2>Alertas Predictivas de Agotamiento de Stock</h2>
+          <p class="section-desc">
+            Estimación analítica en tiempo real de velocidad diaria de venta, días de cobertura antes de quiebre y sugerencia de reposición por prenda y sucursal.
+          </p>
+        </div>
+      </div>
+
+      <div class="actions-header-group">
+        <button
+          type="button"
+          class="btn-export btn-export-excel"
+          (click)="descargarAlertasStockExcel()"
+          [disabled]="descargando"
+          title="Descargar alertas en Excel (.xlsx)"
+        >
+          <span class="btn-icon">📗</span> Exportar Excel
+        </button>
+        <button
+          type="button"
+          class="btn-export btn-export-pdf"
+          (click)="descargarAlertasStockPDF()"
+          [disabled]="descargando"
+          title="Descargar alertas en PDF (.pdf)"
+        >
+          <span class="btn-icon">📕</span> Exportar PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Filtros de Alertas -->
+    <div class="filter-bar-grid">
+      <div class="filter-item">
+        <label for="filtro-sucursal-alertas">Sucursal:</label>
+        <select
+          id="filtro-sucursal-alertas"
+          class="form-control"
+          [(ngModel)]="filtroSucursalAlertas"
+          (change)="cargarAlertasStock()"
+        >
+          <option value="">Todas las sucursales</option>
+          <option *ngFor="let suc of sucursales" [value]="suc.id">{{ suc.name }} ({{ suc.city }})</option>
+        </select>
+      </div>
+
+      <div class="filter-item">
+        <label for="filtro-criticidad-alertas">Nivel de Criticidad:</label>
+        <select
+          id="filtro-criticidad-alertas"
+          class="form-control"
+          [(ngModel)]="filtroCriticidadAlertas"
+          (change)="cargarAlertasStock()"
+        >
+          <option value="">Todas las alertas</option>
+          <option value="CRITICO">🚨 Crítico (Agotado o ≤ 3 días)</option>
+          <option value="ALTO">⚠️ Alto (≤ 7 días de cobertura)</option>
+          <option value="MEDIO">⚡ Medio (≤ 15 días o stock bajo)</option>
+          <option value="NORMAL">✅ Normal (> 15 días)</option>
+        </select>
+      </div>
+
+      <div class="filter-item btn-action-cell">
+        <button
+          type="button"
+          class="btn-refresh-alertas"
+          (click)="cargarAlertasStock()"
+          [disabled]="cargandoAlertasStock"
+        >
+          {{ cargandoAlertasStock ? 'Calculando...' : '🔄 Recalcular Alertas' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Summary Pills -->
+    <div class="kpi-alertas-summary" *ngIf="datosAlertasStock">
+      <div class="kpi-card kpi-evaluados">
+        <span class="kpi-num">{{ datosAlertasStock.total_items_evaluados }}</span>
+        <span class="kpi-txt">Prendas Evaluadas</span>
+      </div>
+      <div class="kpi-card kpi-critico">
+        <span class="kpi-num">{{ datosAlertasStock.alertas_criticas }}</span>
+        <span class="kpi-txt">Críticos (≤ 3d)</span>
+      </div>
+      <div class="kpi-card kpi-alto">
+        <span class="kpi-num">{{ datosAlertasStock.alertas_altas }}</span>
+        <span class="kpi-txt">Riesgo Alto (≤ 7d)</span>
+      </div>
+      <div class="kpi-card kpi-medio">
+        <span class="kpi-num">{{ datosAlertasStock.alertas_medias }}</span>
+        <span class="kpi-txt">Riesgo Medio (≤ 15d)</span>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="cargandoAlertasStock">
+      <div class="spinner-sm"></div>
+      <p>Procesando demanda histórica y proyectando días de cobertura...</p>
+    </div>
+
+    <!-- Table of Predictive Alerts -->
+    <div class="table-responsive" *ngIf="!cargandoAlertasStock && datosAlertasStock">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Código</th>
+            <th>Sucursal</th>
+            <th>Color / Talla</th>
+            <th class="text-right">Stock Actual</th>
+            <th class="text-right">Vel. Diaria</th>
+            <th class="text-right">Cobertura Est.</th>
+            <th class="text-center">Criticidad</th>
+            <th class="text-right">Reposición Sugerida</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of datosAlertasStock.items" [class.row-critico]="item.criticidad === 'CRITICO'">
+            <td class="fw-bold">{{ item.producto }}</td>
+            <td><code>{{ item.codigo }}</code></td>
+            <td>{{ item.sucursal }}</td>
+            <td>{{ item.color }} / {{ item.talla }}</td>
+            <td class="text-right fw-bold" [class.text-danger]="item.stock_actual === 0">
+              {{ item.stock_actual }} un.
+            </td>
+            <td class="text-right">{{ item.velocidad_diaria }} /día</td>
+            <td class="text-right">
+              <span *ngIf="item.dias_cobertura < 900">{{ item.dias_cobertura | number:'1.1-1' }} días</span>
+              <span *ngIf="item.dias_cobertura >= 900" class="text-muted">&gt;90 días</span>
+            </td>
+            <td class="text-center">
+              <span
+                class="badge-criticidad"
+                [class.badge-critico]="item.criticidad === 'CRITICO'"
+                [class.badge-alto]="item.criticidad === 'ALTO'"
+                [class.badge-medio]="item.criticidad === 'MEDIO'"
+                [class.badge-normal]="item.criticidad === 'NORMAL'"
+              >
+                {{ item.criticidad }}
+              </span>
+            </td>
+            <td class="text-right fw-bold text-success">
+              <span *ngIf="item.reposicion_sugerida > 0">+{{ item.reposicion_sugerida }} un.</span>
+              <span *ngIf="item.reposicion_sugerida === 0" class="text-muted">—</span>
+            </td>
+          </tr>
+          <tr *ngIf="datosAlertasStock.items.length === 0">
+            <td colspan="9" class="text-center text-muted py-4">
+              No se detectaron prendas en riesgo con los filtros seleccionados.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Sección de Previsualización en Vivo -->

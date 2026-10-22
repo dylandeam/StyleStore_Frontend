@@ -175,5 +175,49 @@ export class ReportesService {
   exportarComparativaPDF(): Observable<Blob> {
     return this.http.get(`${this.apiUrl}/comparativa-sucursales/pdf`, { responseType: 'blob' });
   }
+
+  // Alertas Predictivas de Stock (REQ-068)
+  getAlertasStockPredictivo(filters?: { sucursal_id?: number; criticidad?: string }): Observable<{
+    tenant_id: number | null;
+    sucursal_id: number | null;
+    total_items_evaluados: number;
+    alertas_criticas: number;
+    alertas_altas: number;
+    alertas_medias: number;
+    total_alertas: number;
+    items: Array<{
+      stock_id: number;
+      producto: string;
+      codigo: string;
+      sucursal: string;
+      color: string;
+      talla: string;
+      stock_actual: number;
+      velocidad_diaria: number;
+      dias_cobertura: number;
+      criticidad: 'CRITICO' | 'ALTO' | 'MEDIO' | 'NORMAL';
+      reposicion_sugerida: number;
+    }>;
+  }> {
+    let params = new HttpParams();
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id.toString());
+    if (filters?.criticidad) params = params.set('criticidad', filters.criticidad);
+    return this.http.get<any>(`${this.apiUrl}/alertas-stock-predictivo`, { params });
+  }
+
+  exportarAlertasStockExcel(filters?: { sucursal_id?: number; criticidad?: string }): Observable<Blob> {
+    let params = new HttpParams();
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id.toString());
+    if (filters?.criticidad) params = params.set('criticidad', filters.criticidad);
+    return this.http.get(`${this.apiUrl}/alertas-stock-predictivo/excel`, { params, responseType: 'blob' });
+  }
+
+  exportarAlertasStockPDF(filters?: { sucursal_id?: number; criticidad?: string }): Observable<Blob> {
+    let params = new HttpParams();
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id.toString());
+    if (filters?.criticidad) params = params.set('criticidad', filters.criticidad);
+    return this.http.get(`${this.apiUrl}/alertas-stock-predictivo/pdf`, { params, responseType: 'blob' });
+  }
 }
+
 
