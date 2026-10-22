@@ -138,6 +138,47 @@
         <div class="spinner-sm"></div>
         <span>Actualizando estadísticas...</span>
       </div>
+
+      <section class="ml-panel" *ngIf="predictions || predictionsLocked || loadingPredictions">
+        <div class="ml-panel-header">
+          <div>
+            <span class="ml-eyebrow">ANALÍTICA PREDICTIVA</span>
+            <h3>Pronóstico y segmentos de clientes</h3>
+          </div>
+          <span class="ml-model" *ngIf="predictions">
+            R² {{ predictions.modelo_supervisado.r2 | number:'1.2-2' }} · semilla {{ predictions.modelo_supervisado.seed }}
+          </span>
+        </div>
+
+        <div class="stats-loading" *ngIf="loadingPredictions">
+          <div class="spinner-sm"></div><span>Calculando predicciones...</span>
+        </div>
+
+        <div class="ml-locked" *ngIf="predictionsLocked && !loadingPredictions">
+          <span>🔒</span>
+          <div><strong>Predicciones disponibles en el plan Profesional</strong><p>Actualiza el plan para habilitar pronósticos y segmentación ML.</p></div>
+          <a routerLink="/planes">Ver planes</a>
+        </div>
+
+        <div class="ml-grid" *ngIf="predictions && !loadingPredictions">
+          <article class="ml-card">
+            <span class="ml-card-label">Ingresos estimados · próximos 7 días</span>
+            <strong class="ml-total">Bs. {{ predictions.total_estimado_7_dias | number:'1.2-2' }}</strong>
+            <div class="forecast-row" *ngFor="let item of predictions.pronostico_7_dias">
+              <span>{{ item.fecha | date:'EEE dd' }}</span>
+              <div class="forecast-track"><i [style.width.%]="forecastWidth(item.ingresos_estimados)"></i></div>
+              <b>Bs. {{ item.ingresos_estimados | number:'1.0-0' }}</b>
+            </div>
+          </article>
+          <article class="ml-card">
+            <span class="ml-card-label">Segmentación K-means · {{ predictions.clientes_analizados }} clientes</span>
+            <div class="segment-row"><span>Alto valor</span><strong>{{ predictions.segmentos_clientes.alto_valor }}</strong></div>
+            <div class="segment-row"><span>Frecuentes</span><strong>{{ predictions.segmentos_clientes.frecuente }}</strong></div>
+            <div class="segment-row"><span>Ocasionales</span><strong>{{ predictions.segmentos_clientes.ocasional }}</strong></div>
+            <small class="ml-note">{{ predictions.nota }}</small>
+          </article>
+        </div>
+      </section>
     </section>
 
     <!-- Modules Navigation Section -->

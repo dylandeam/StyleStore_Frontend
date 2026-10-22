@@ -361,3 +361,22 @@
   color: var(--text-muted);
 }
 
+.ml-panel { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 1.4rem; }
+.ml-panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+.ml-panel-header h3 { margin: .25rem 0 0; color: var(--text-primary); }
+.ml-eyebrow { color: #7c3aed; font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
+.ml-model { color: var(--text-muted); font-size: .8rem; background: var(--bg-primary); padding: .45rem .7rem; border-radius: 999px; }
+.ml-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; }
+.ml-card { border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem; background: var(--bg-primary); }
+.ml-card-label { display: block; color: var(--text-muted); font-size: .82rem; font-weight: 700; margin-bottom: .4rem; }
+.ml-total { display: block; color: var(--accent-primary); font-size: 1.55rem; margin-bottom: .9rem; }
+.forecast-row { display: grid; grid-template-columns: 62px 1fr 78px; align-items: center; gap: .6rem; margin: .45rem 0; font-size: .76rem; color: var(--text-secondary); }
+.forecast-row b { text-align: right; color: var(--text-primary); }
+.forecast-track { height: 7px; border-radius: 99px; background: var(--border-subtle); overflow: hidden; }
+.forecast-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7c3aed, #2563eb); }
+.segment-row { display: flex; justify-content: space-between; padding: .75rem 0; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.segment-row strong { color: var(--accent-primary); font-size: 1.1rem; }
+.ml-note { display: block; color: var(--text-muted); line-height: 1.4; margin-top: .8rem; }
+.ml-locked { display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(124, 58, 237, .06); border-radius: 12px; color: var(--text-secondary); }
+.ml-locked span { font-size: 1.7rem; }.ml-locked p { margin: .2rem 0 0; }.ml-locked a { margin-left: auto; color: #7c3aed; font-weight: 700; }
+@media (max-width: 768px) { .ml-grid { grid-template-columns: 1fr; } .ml-panel-header, .ml-locked { flex-wrap: wrap; } .ml-locked a { margin-left: 0; } }

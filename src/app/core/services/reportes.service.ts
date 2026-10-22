@@ -115,6 +115,14 @@ export class ReportesService {
     return this.http.get<any>(`${this.apiUrl}/dashboard-stats`, { params });
   }
 
+  getPredicciones(sucursalId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (sucursalId !== undefined && sucursalId !== null) {
+      params = params.set('sucursal_id', sucursalId.toString());
+    }
+    return this.http.get<any>(`${this.apiUrl}/predicciones`, { params });
+  }
+
   // 8 Reportes Dinámicos
   getReportPreview(tipo: string, sucursalId?: number): Observable<any> {
     let params = new HttpParams();
@@ -147,5 +155,4 @@ export class ReportesService {
     return this.http.post(`${this.apiUrl}/asistente-ia/excel`, { pregunta, respuesta, kpis }, { responseType: 'blob' });
   }
 }
-
 

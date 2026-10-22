@@ -33,6 +33,9 @@ export class DashboardComponent implements OnInit {
   // Estadísticas del Dashboard
   stats: any = null;
   loadingStats: boolean = false;
+  predictions: any = null;
+  predictionsLocked = false;
+  loadingPredictions = false;
 
   ngOnInit(): void {
     if (this.user() && this.isStaff) {
@@ -67,9 +70,35 @@ export class DashboardComponent implements OnInit {
       next: (data) => {
         this.sucursales = data || [];
         this.cdr.markForCheck();
+        this.loadPredictions();
       },
       error: (err) => console.error('Error cargando sucursales en dashboard:', err),
     });
+  }
+
+  loadPredictions(): void {
+    if (!this.isStaff) return;
+    this.loadingPredictions = true;
+    this.reportesService.getPredicciones(this.selectedSucursalId || undefined).subscribe({
+      next: (data) => {
+        this.predictions = data;
+        this.predictionsLocked = false;
+        this.loadingPredictions = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.predictions = null;
+        this.predictionsLocked = err.status === 403;
+        this.loadingPredictions = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  forecastWidth(value: number): number {
+    const rows = this.predictions?.pronostico_7_dias || [];
+    const maximum = Math.max(...rows.map((item: any) => item.ingresos_estimados || 0), 1);
+    return Math.max(3, Math.round((value / maximum) * 100));
   }
 
   loadDashboardStats(): void {
