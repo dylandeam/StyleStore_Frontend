@@ -13,10 +13,21 @@
     <div class="alert alert-error">{{ errorMessage() }}</div>
   }
 
-  <!-- BARRA DE FILTROS PARA EL ENCARGADO / ADMIN -->
+  <!-- BARRA DE FILTROS PARA EL ENCARGADO / ADMIN (REQ-058) -->
   <div class="filter-card">
+    <div class="filter-group filter-search">
+      <label for="buscar-reserva" class="filter-label">🔍 Buscar Reserva:</label>
+      <input
+        id="buscar-reserva"
+        type="text"
+        class="filter-input"
+        placeholder="Cliente, código o prenda..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event); onFilterChange()" />
+    </div>
+
     <div class="filter-group">
-      <label for="filtro-sucursal" class="filter-label">🏬 Filtrar por Sucursal:</label>
+      <label for="filtro-sucursal" class="filter-label">🏬 Sucursal:</label>
       <select
         id="filtro-sucursal"
         class="filter-select"
@@ -30,7 +41,7 @@
     </div>
 
     <div class="filter-group">
-      <label for="filtro-estado" class="filter-label">🏷️ Estado de Reserva:</label>
+      <label for="filtro-estado" class="filter-label">🏷️ Estado:</label>
       <select
         id="filtro-estado"
         class="filter-select"
@@ -40,7 +51,19 @@
         <option value="pendiente">Pendiente de Retiro</option>
         <option value="completada">Completada / Entregada</option>
         <option value="cancelada">Cancelada</option>
+        <option value="vencida">Vencida (Expirada)</option>
       </select>
+    </div>
+
+    <div class="filter-actions">
+      <button
+        type="button"
+        class="btn-expirar"
+        (click)="ejecutarExpirarVencidas()"
+        [disabled]="isLoading()"
+        title="Libera automáticamente las prendas de reservas con más de 3 días sin retirar">
+        🔄 Expirar y Liberar Stock Vencido
+      </button>
     </div>
   </div>
 

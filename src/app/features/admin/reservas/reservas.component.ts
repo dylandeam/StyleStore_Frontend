@@ -31,6 +31,7 @@ export class ReservasComponent implements OnInit {
   // Filtros de visualización
   selectedSucursalId = signal<number | null>(null);
   selectedEstado = signal<string | null>(null);
+  searchTerm = signal<string>('');
 
   // Modales
   selectedReserva = signal<Reserva | null>(null);
@@ -63,6 +64,7 @@ export class ReservasComponent implements OnInit {
       .getReservas({
         sucursal_id: this.selectedSucursalId(),
         estado: this.selectedEstado(),
+        search: this.searchTerm(),
       })
       .subscribe({
         next: (data) => {
@@ -80,6 +82,26 @@ export class ReservasComponent implements OnInit {
 
   onFilterChange(): void {
     this.loadReservas();
+  }
+
+  ejecutarExpirarVencidas(): void {
+    this.isLoading.set(true);
+    this.reservaService.expirarVencidas(this.selectedSucursalId()).subscribe({
+      next: (res) => {
+        this.successMessage.set(res.mensaje || 'Reservas vencidas procesadas.');
+        this.loadReservas();
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.successMessage.set(null);
+          this.cdr.markForCheck();
+        }, 4000);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'Error al procesar reservas vencidas.');
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   openDetail(r: Reserva): void {

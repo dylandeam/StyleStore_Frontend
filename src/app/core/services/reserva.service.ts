@@ -13,7 +13,13 @@ export class ReservaService {
   private offlineOperations = inject(OfflineOperationsService);
   private apiUrl = `${environment.apiUrl}/reservas`;
 
-  getReservas(filters?: { sucursal_id?: number | null; estado?: string | null }): Observable<Reserva[]> {
+  getReservas(filters?: {
+    sucursal_id?: number | null;
+    estado?: string | null;
+    search?: string | null;
+    fecha_desde?: string | null;
+    fecha_hasta?: string | null;
+  }): Observable<Reserva[]> {
     let params = new HttpParams();
     if (filters?.sucursal_id) {
       params = params.set('sucursal_id', filters.sucursal_id.toString());
@@ -21,7 +27,28 @@ export class ReservaService {
     if (filters?.estado) {
       params = params.set('estado', filters.estado);
     }
+    if (filters?.search?.trim()) {
+      params = params.set('search', filters.search.trim());
+    }
+    if (filters?.fecha_desde) {
+      params = params.set('fecha_desde', filters.fecha_desde);
+    }
+    if (filters?.fecha_hasta) {
+      params = params.set('fecha_hasta', filters.fecha_hasta);
+    }
     return this.http.get<Reserva[]>(this.apiUrl, { params });
+  }
+
+  expirarVencidas(sucursalId?: number | null): Observable<{ procesadas: number; stock_restituido: number; mensaje: string }> {
+    let params = new HttpParams();
+    if (sucursalId) {
+      params = params.set('sucursal_id', sucursalId.toString());
+    }
+    return this.http.post<{ procesadas: number; stock_restituido: number; mensaje: string }>(
+      `${this.apiUrl}/expirar-vencidas`,
+      {},
+      { params }
+    );
   }
 
   getMyReservas(): Observable<Reserva[]> {
