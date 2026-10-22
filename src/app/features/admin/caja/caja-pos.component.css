@@ -1961,3 +1961,19 @@
 .pos-discount-code input { flex:1; min-width:0; border:1px solid #CBD5E1; border-radius:7px; padding:9px; text-transform:uppercase; }
 .pos-discount-code button { border:0; border-radius:7px; background:#14263D; color:white; padding:8px 12px; cursor:pointer; }
 .summary-line.discount { color:#15803D; font-weight:700; }
+.buyer-card { margin: 12px 0 16px; padding: 12px; border: 1px solid #dbe3ec; border-radius: 10px; background: #f8fafc; }
+.buyer-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+.buyer-tabs button { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; }
+.buyer-tabs button.active { border-color: #14263d; background: #14263d; color: #fff; }
+.buyer-fields { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.buyer-fields label { font-size: .8rem; font-weight: 700; color: #334155; }
+.buyer-fields input { width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 7px; background: #fff; }
+.buyer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.buyer-grid label { display: flex; flex-direction: column; gap: 5px; }
+.buyer-results { position: absolute; z-index: 5; top: 58px; left: 0; right: 0; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; box-shadow: 0 8px 20px #0f172a1f; overflow: hidden; }
+.buyer-results button { width: 100%; display: flex; justify-content: space-between; gap: 8px; padding: 9px; border: 0; border-bottom: 1px solid #eef2f7; background: #fff; cursor: pointer; text-align: left; }
+.buyer-results button:hover { background: #f1f5f9; }
+.buyer-results span, .buyer-card small { color: #64748b; font-size: .75rem; }
+.buyer-selected { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px; border-radius: 7px; background: #ecfdf5; color: #166534; font-weight: 700; }
+.buyer-selected button { border: 0; background: transparent; color: #14263d; text-decoration: underline; cursor: pointer; }
+@media (max-width: 640px) { .buyer-grid { grid-template-columns: 1fr; } }

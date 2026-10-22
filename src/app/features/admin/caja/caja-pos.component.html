@@ -277,9 +277,10 @@
             <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
             <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
             <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
-            <div class="receipt-line" *ngIf="ordenSeleccionada?.cliente_nombre">
-              Cliente: <strong>{{ ordenSeleccionada.cliente_nombre }}</strong>
+            <div class="receipt-line" *ngIf="ordenSeleccionada?.cliente_nombre || ordenSeleccionada?.comprador_nombre">
+              Cliente: <strong>{{ ordenSeleccionada.cliente_nombre || ordenSeleccionada.comprador_nombre }}</strong>
             </div>
+            <div class="receipt-line" *ngIf="ordenSeleccionada?.comprador_ci">CI: {{ ordenSeleccionada.comprador_ci }}</div>
             <div class="receipt-divider">--------------------------------</div>
           </div>
 
@@ -463,6 +464,35 @@
     <!-- Columna Derecha: Canasta y Cobro de Venta Directa -->
     <div class="pos-cart-panel card">
       <h3>Canasta de Mostrador</h3>
+
+      <section class="buyer-card">
+        <div class="buyer-tabs">
+          <button type="button" [class.active]="compradorModo === 'registrado'" (click)="compradorModo = 'registrado'">Cliente registrado</button>
+          <button type="button" [class.active]="compradorModo === 'mostrador'" (click)="usarCompradorMostrador()">Cliente sin registro</button>
+        </div>
+
+        <div *ngIf="compradorModo === 'registrado'" class="buyer-fields">
+          <label>Buscar por CI, código o nombre</label>
+          <input type="search" [(ngModel)]="clienteBusqueda" placeholder="Ej. 7845123 o Ana Pérez" autocomplete="off" />
+          <div class="buyer-results" *ngIf="clienteBusqueda && !clienteCodigoVentaDirecta">
+            <button type="button" *ngFor="let cliente of clientesCoincidentes" (click)="seleccionarClienteCaja(cliente)">
+              <strong>{{ cliente.nombre }} {{ cliente.apellido }}</strong>
+              <span>CI {{ cliente.ci || 'sin CI' }} · {{ cliente.codigo }}</span>
+            </button>
+            <p *ngIf="clientesCoincidentes.length === 0">No existe un cliente de este tenant con ese dato.</p>
+          </div>
+          <div class="buyer-selected" *ngIf="clienteCodigoVentaDirecta">
+            ✓ {{ compradorNombre }} · CI {{ compradorCi }}
+            <button type="button" (click)="clienteCodigoVentaDirecta = ''; clienteBusqueda = ''">Cambiar</button>
+          </div>
+        </div>
+
+        <div *ngIf="compradorModo === 'mostrador'" class="buyer-fields buyer-grid">
+          <label>Nombre para la factura<input [(ngModel)]="compradorNombre" maxlength="160" placeholder="Nombre completo" /></label>
+          <label>CI / documento<input [(ngModel)]="compradorCi" maxlength="20" placeholder="Documento de identidad" /></label>
+        </div>
+        <small>Estos datos quedan guardados en la orden y el recibo; no crean una cuenta de cliente.</small>
+      </section>
 
       <!-- Selector de Método de Pago Presencial: Efectivo vs QR Simple -->
       <div class="metodo-pago-selector">
@@ -653,7 +683,7 @@
               <span class="text-muted" *ngIf="!p.ticket_numero">-</span>
             </td>
             <td><a class="order-link">#{{ p.orden_venta_id }}</a></td>
-            <td>{{ p.cliente_codigo || 'Público General' }}</td>
+            <td>{{ p.comprador_nombre || p.cliente_codigo || 'Público General' }}<small *ngIf="p.comprador_ci"><br>CI {{ p.comprador_ci }}</small></td>
             <td>
               <span class="badge-tipo" [class.badge-qr]="p.tipo_pago === 'qr'" [class.badge-efectivo]="p.tipo_pago === 'en caja' || p.tipo_pago === 'efectivo'">
                 {{ p.tipo_pago | uppercase }}
@@ -703,7 +733,8 @@
             <div class="receipt-line">N°: <strong>{{ reciboVisualizado.ticket_numero || ('TKT-' + reciboVisualizado.pago_id) }}</strong></div>
             <div class="receipt-line">Fecha: {{ reciboVisualizado.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
             <div class="receipt-line">Orden: #{{ reciboVisualizado.orden_venta_id }}</div>
-            <div class="receipt-line">Cliente: {{ reciboVisualizado.cliente_codigo || 'General' }}</div>
+            <div class="receipt-line">Cliente: {{ reciboVisualizado.comprador_nombre || reciboVisualizado.cliente_codigo || 'General' }}</div>
+            <div class="receipt-line" *ngIf="reciboVisualizado.comprador_ci">CI: {{ reciboVisualizado.comprador_ci }}</div>
             <div class="receipt-divider">--------------------------------</div>
           </div>
 

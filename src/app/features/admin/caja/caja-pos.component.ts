@@ -11,6 +11,8 @@ import { Sucursal } from '../../../core/models/sucursal.model';
 import { InventarioItem } from '../../../core/models/inventario.model';
 import { VentaPresencialCreate } from '../../../core/models/venta.model';
 import { PromocionesService } from '../../../core/services/promociones.service';
+import { ClientesService } from '../../../core/services/clientes.service';
+import { Cliente } from '../../../core/models/cliente.model';
 
 @Component({
   selector: 'app-caja-pos',
@@ -27,6 +29,7 @@ export class CajaPosComponent implements OnInit {
   private uploadService = inject(UploadService);
   private authService = inject(AuthService);
   private promocionesService = inject(PromocionesService);
+  private clientesService = inject(ClientesService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
@@ -63,7 +66,12 @@ export class CajaPosComponent implements OnInit {
   filtroCategoria: string = 'todas';
   filtroTalla: string = 'todas';
   filtroColor: string = 'todos';
-  clienteCodigoVentaDirecta: string = 'GENERICO';
+  clientes: Cliente[] = [];
+  compradorModo: 'registrado' | 'mostrador' = 'mostrador';
+  clienteBusqueda = '';
+  clienteCodigoVentaDirecta = '';
+  compradorNombre = '';
+  compradorCi = '';
   metodoPagoDirecto: 'efectivo' | 'qr' = 'efectivo';
   efectivoRecibidoDirecto: number = 0;
   cartDirecto: { item: InventarioItem; cantidad: number; subtotal: number }[] = [];
@@ -83,6 +91,39 @@ export class CajaPosComponent implements OnInit {
     this.cargarOrdenesPendientes();
     this.cargarSucursales();
     this.cargarQRConfig();
+    this.cargarClientesCaja();
+  }
+
+  cargarClientesCaja(): void {
+    this.clientesService.getClientes().subscribe({
+      next: (clientes) => this.clientes = clientes || [],
+      error: () => this.clientes = [],
+    });
+  }
+
+  get clientesCoincidentes(): Cliente[] {
+    const q = this.clienteBusqueda.trim().toLowerCase();
+    if (!q) return this.clientes.slice(0, 8);
+    return this.clientes.filter((cliente) =>
+      [cliente.ci, cliente.codigo, cliente.nombre, cliente.apellido]
+        .some((valor) => (valor || '').toLowerCase().includes(q))
+    ).slice(0, 8);
+  }
+
+  seleccionarClienteCaja(cliente: Cliente): void {
+    this.compradorModo = 'registrado';
+    this.clienteCodigoVentaDirecta = cliente.codigo;
+    this.compradorNombre = `${cliente.nombre || ''} ${cliente.apellido || ''}`.trim();
+    this.compradorCi = cliente.ci || '';
+    this.clienteBusqueda = `${this.compradorCi} — ${this.compradorNombre}`;
+  }
+
+  usarCompradorMostrador(): void {
+    this.compradorModo = 'mostrador';
+    this.clienteCodigoVentaDirecta = '';
+    this.clienteBusqueda = '';
+    this.compradorNombre = '';
+    this.compradorCi = '';
   }
 
   cargarOrdenesPendientes(): void {
@@ -470,6 +511,8 @@ export class CajaPosComponent implements OnInit {
 
   get puedeCobrarDirecto(): boolean {
     if (this.cartDirecto.length === 0) return false;
+    if (this.compradorModo === 'registrado' && !this.clienteCodigoVentaDirecta) return false;
+    if (this.compradorModo === 'mostrador' && (!this.compradorNombre.trim() || this.compradorCi.trim().length < 4)) return false;
     if (this.metodoPagoDirecto === 'efectivo') {
       return (this.efectivoRecibidoDirecto || 0) >= this.totalVentaDirecta;
     }
@@ -491,7 +534,9 @@ export class CajaPosComponent implements OnInit {
     this.error = null;
 
     const payload: VentaPresencialCreate = {
-      codigo_cliente: this.clienteCodigoVentaDirecta || 'GENERICO',
+      codigo_cliente: this.compradorModo === 'registrado' ? this.clienteCodigoVentaDirecta : undefined,
+      comprador_nombre: this.compradorNombre.trim(),
+      comprador_ci: this.compradorCi.trim(),
       sucursal_id: this.selectedSucursalId,
       metodo_pago: this.metodoPagoDirecto,
       efectivo_recibido: this.metodoPagoDirecto === 'efectivo' ? this.efectivoRecibidoDirecto : this.totalVentaDirecta,

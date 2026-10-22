@@ -28,7 +28,9 @@ export interface OrdenVenta {
   sucursal_id?: number;
   sucursal_nombre?: string;
   sucursal_direccion?: string;
-  codigo_cliente: string;
+  codigo_cliente?: string | null;
+  comprador_nombre?: string;
+  comprador_ci?: string;
   cliente_nombre?: string;
   cliente_email?: string;
   cliente_telefono?: string;
@@ -44,7 +46,9 @@ export interface VentaItemCreate {
 }
 
 export interface VentaPresencialCreate {
-  codigo_cliente: string;
+  codigo_cliente?: string;
+  comprador_nombre?: string;
+  comprador_ci?: string;
   sucursal_id: number;
   items: VentaItemCreate[];
   metodo_pago?: string;
