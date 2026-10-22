@@ -39,7 +39,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let pago of pagos">
-            <td><strong class="font-mono">#{{ pago.id }}</strong></td>
+            <td><strong class="font-mono">{{ pago.recibo_numero || ('#' + pago.id) }}</strong></td>
             <td>{{ pago.created_at | date:'mediumDate' }}</td>
             <td>Orden #{{ pago.orden_venta_id }}</td>
             <td>
@@ -47,7 +47,7 @@
                 {{ pago.tipo_pago === 'en linea' ? 'PayPal Orders v2' : (pago.tipo_pago | uppercase) }}
               </span>
             </td>
-            <td><strong class="monto-destacado">${{ pago.monto | number:'1.2-2' }}</strong></td>
+            <td><strong class="monto-destacado">Bs. {{ pago.monto | number:'1.2-2' }}</strong></td>
             <td>
               <span class="badge-pago-estado" [ngClass]="pago.estado === 'aprobado' ? 'estado-aprobado' : 'estado-pendiente'">
                 {{ pago.estado | uppercase }}
@@ -85,7 +85,7 @@
             <p>Moda y Confección Exclusiva</p>
           </div>
           <div class="recibo-meta-right">
-            <span class="recibo-num font-mono">RECIBO #{{ selectedRecibo.pago_id }}</span>
+            <span class="recibo-num font-mono">{{ selectedRecibo.recibo_numero || ('RECIBO #' + selectedRecibo.pago_id) }}</span>
             <span class="recibo-fecha">{{ selectedRecibo.fecha | date:'medium' }}</span>
           </div>
         </div>
@@ -94,6 +94,9 @@
 
         <div class="recibo-info-grid">
           <div>
+            <span *ngIf="selectedRecibo.empresa_nombre">
+              <strong>Empresa:</strong> {{ selectedRecibo.empresa_nombre }}<br />
+            </span>
             <strong>Orden de Venta:</strong> #{{ selectedRecibo.orden_venta_id }}<br />
             <strong>Método de Pago:</strong> {{ selectedRecibo.tipo_pago | uppercase }}<br />
             <strong>Estado:</strong> {{ selectedRecibo.estado | uppercase }}
@@ -106,8 +109,8 @@
               <strong>ID Captura PayPal:</strong> <code class="small">{{ selectedRecibo.paypal_capture_id }}</code><br />
             </span>
             <span *ngIf="selectedRecibo.efectivo_recibido">
-              <strong>Efectivo Recibido:</strong> ${{ selectedRecibo.efectivo_recibido | number:'1.2-2' }}<br />
-              <strong>Cambio Devuelto:</strong> ${{ selectedRecibo.cambio_devuelto | number:'1.2-2' }}<br />
+              <strong>Efectivo Recibido:</strong> Bs. {{ selectedRecibo.efectivo_recibido | number:'1.2-2' }}<br />
+              <strong>Cambio Devuelto:</strong> Bs. {{ selectedRecibo.cambio_devuelto | number:'1.2-2' }}<br />
             </span>
           </div>
         </div>
@@ -128,14 +131,14 @@
                 <div class="small text-muted">{{ it.talla }} / {{ it.color }}</div>
               </td>
               <td class="text-center">{{ it.cantidad }}</td>
-              <td class="text-right">${{ it.precio_unitario | number:'1.2-2' }}</td>
-              <td class="text-right">${{ it.subtotal | number:'1.2-2' }}</td>
+              <td class="text-right">Bs. {{ it.precio_unitario | number:'1.2-2' }}</td>
+              <td class="text-right">Bs. {{ it.subtotal | number:'1.2-2' }}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr>
               <td colspan="3" class="text-right"><strong>TOTAL PAGADO:</strong></td>
-              <td class="text-right"><strong class="total-recibo">${{ selectedRecibo.total | number:'1.2-2' }}</strong></td>
+              <td class="text-right"><strong class="total-recibo">Bs. {{ selectedRecibo.total | number:'1.2-2' }}</strong></td>
             </tr>
           </tfoot>
         </table>

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PagosService } from '../../../core/services/pagos.service';
 
 @Component({
@@ -13,6 +13,8 @@ import { PagosService } from '../../../core/services/pagos.service';
 export class MisPagosComponent implements OnInit {
   private pagosService = inject(PagosService);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+  private reciboPendiente = Number(this.route.snapshot.queryParamMap.get('recibo')) || null;
 
   loading = true;
   pagos: any[] = [];
@@ -32,6 +34,11 @@ export class MisPagosComponent implements OnInit {
       next: (data) => {
         this.pagos = data || [];
         this.loading = false;
+        if (this.reciboPendiente && this.pagos.some((p) => p.id === this.reciboPendiente)) {
+          const pagoId = this.reciboPendiente;
+          this.reciboPendiente = null;
+          this.verRecibo(pagoId);
+        }
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },

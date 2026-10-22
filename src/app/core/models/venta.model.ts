@@ -55,9 +55,12 @@ export interface VentaPresencialCreate {
 export interface PagoResponse {
   id: number;
   orden_venta_id: number;
+  empresa_id?: number;
   monto: number;
   tipo_pago: string;
   estado: string;
   paypal_order_id?: string;
+  recibo_numero?: string;
+  email_confirmacion_enviado_at?: string;
   created_at: string;
 }
