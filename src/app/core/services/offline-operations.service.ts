@@ -14,6 +14,36 @@ export interface OfflineQueuedResult {
   clientCreatedAt: string;
 }
 
+export interface SyncDiagnosticoItem {
+  operation_uuid: string;
+  fecha: string;
+  operation_type: string;
+  status: string;
+  sucursal_id?: number | null;
+  reason?: string | null;
+  refund_id?: number | null;
+  refund_status?: string | null;
+}
+
+export interface SyncMetricas {
+  empresa_id: number | null;
+  total_operaciones: number;
+  total_confirmadas: number;
+  total_conflictos: number;
+  total_rechazadas: number;
+  total_procesando: number;
+  tasa_exito_porcentaje: number;
+  operaciones_por_tipo: Record<string, number>;
+  reembolsos_asociados: {
+    total_reembolsos: number;
+    monto_total: number;
+    pendientes: number;
+    entregados: number;
+  };
+  conflictos_recientes: SyncDiagnosticoItem[];
+}
+
+
 @Injectable({ providedIn: 'root' })
 export class OfflineOperationsService {
   private readonly db = inject(OfflineDbService);
@@ -49,6 +79,12 @@ export class OfflineOperationsService {
   async refreshPendingCount(): Promise<void> {
     await this.listCurrent();
   }
+
+  getMetricas(sucursalId?: number): Promise<SyncMetricas> {
+    const params = sucursalId ? `?sucursal_id=${sucursalId}` : '';
+    return firstValueFrom(this.http.get<SyncMetricas>(`${environment.apiUrl}/sync/metricas${params}`));
+  }
+
 
   async syncPending(): Promise<void> {
     if (this.syncing || !this.state.online()) return;
