@@ -49,6 +49,7 @@ import { PlanesComponent } from './features/planes/planes.component';
 import { OfflineOperationsComponent } from './features/offline/offline-operations.component';
 import { TenantsComponent } from './features/admin/tenants/tenants.component';
 import { ReembolsosComponent } from './features/admin/reembolsos/reembolsos.component';
+import { ExperienciaComponent } from './features/cuenta/experiencia/experiencia.component';
 
 export const routes: Routes = [
   {
@@ -91,6 +92,15 @@ export const routes: Routes = [
       {
         path: 'cuenta/favoritos',
         component: CatalogoListComponent,
+      },
+      {
+        path: 'cuenta/experiencia',
+        component: ExperienciaComponent,
+      },
+      {
+        path: 'admin/experiencia',
+        component: ExperienciaComponent,
+        canActivate: [roleGuard(['administrador', 'encargado_sucursal'])],
       },
       {
         path: 'promociones',

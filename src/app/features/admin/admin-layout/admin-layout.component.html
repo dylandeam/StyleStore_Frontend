@@ -65,6 +65,9 @@
           <a routerLink="/cuenta/favoritos" routerLinkActive="active" class="nav-item icon-only" title="Mis Favoritos">
             <span class="nav-icon">♥</span>
           </a>
+          <a routerLink="/cuenta/experiencia" routerLinkActive="active" class="nav-item icon-only" title="Calificaciones y Reclamos">
+            <span class="nav-icon">★</span>
+          </a>
           <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item icon-only" title="Cambios y Devoluciones">
             <span class="nav-icon">🔄</span>
           </a>
@@ -108,6 +111,9 @@
           </a>
           <a routerLink="/admin/cambios" routerLinkActive="active" class="nav-item icon-only" title="Cambios y Devoluciones">
             <span class="nav-icon">🔄</span>
+          </a>
+          <a routerLink="/admin/experiencia" routerLinkActive="active" class="nav-item icon-only" title="Calificaciones y Reclamos">
+            <span class="nav-icon">★</span>
           </a>
           <a routerLink="/admin/reembolsos" routerLinkActive="active" class="nav-item icon-only" title="Reembolsos offline">
             <span class="nav-icon">💸</span>
@@ -288,6 +294,11 @@
                 <span class="nav-label">Mis Favoritos</span>
               </a>
 
+              <a routerLink="/cuenta/experiencia" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">★</span>
+                <span class="nav-label">Calificaciones y Reclamos</span>
+              </a>
+
               <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" routerLinkActive="active" class="nav-item">
                 <span class="nav-icon">🔄</span>
                 <span class="nav-label">Cambios y Devoluciones</span>
@@ -413,6 +424,11 @@
               <a routerLink="/admin/reembolsos" routerLinkActive="active" class="nav-item">
                 <span class="nav-icon">💸</span>
                 <span class="nav-label">Reembolsos offline</span>
+              </a>
+
+              <a routerLink="/admin/experiencia" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">★</span>
+                <span class="nav-label">Calificaciones y Reclamos</span>
               </a>
 
               <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
@@ -628,14 +644,15 @@
                 *ngFor="let notif of notificaciones()" 
                 class="notif-dropdown-item" 
                 [class.unread]="!notif.leida"
-                (click)="marcarNotificacionLeida(notif)"
+                (click)="abrirNotificacion(notif)"
               >
                 <div class="notif-item-top">
                   <strong class="notif-titulo">{{ notif.titulo }}</strong>
                   <span class="notif-time">{{ notif.created_at | date:'shortTime' }}</span>
                 </div>
                 <p class="notif-msg">{{ notif.mensaje }}</p>
-                <span *ngIf="!notif.leida" class="mark-read-hint">Click para marcar como leída</span>
+                <span *ngIf="notif.url_accion" class="mark-read-hint">Abrir detalle</span>
+                <span *ngIf="!notif.url_accion && !notif.leida" class="mark-read-hint">Click para marcar como leída</span>
               </div>
             </div>
           </div>

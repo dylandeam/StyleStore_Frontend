@@ -118,6 +118,12 @@ export class AdminLayoutComponent implements OnInit {
     });
   }
 
+  abrirNotificacion(notif: any): void {
+    if (!notif.leida) this.marcarNotificacionLeida(notif);
+    this.showNotificacionesDropdown.set(false);
+    if (notif.url_accion) this.router.navigateByUrl(notif.url_accion);
+  }
+
   private updateHeaderMeta(url: string): void {
     if (url.includes('/catalogo') && !url.includes('/admin')) {
       this.currentTitle.set('Catálogo de Prendas');
@@ -125,6 +131,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/cuenta/mis-compras')) {
       this.currentTitle.set('Mis Compras');
       this.currentSubtitle.set('Historial de pedidos, tickets POS y solicitud de cambios en 7 días');
+    } else if (url.includes('/experiencia')) {
+      this.currentTitle.set('Calificaciones y Reclamos');
+      this.currentSubtitle.set('Experiencia poscompra, seguimiento y respuesta al cliente');
     } else if (url.includes('/cuenta/mis-pagos')) {
       this.currentTitle.set('Historial de Pagos');
       this.currentSubtitle.set('Comprobantes de pago, transacciones PayPal y notas de venta');

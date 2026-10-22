@@ -1,0 +1,65 @@
+<section class="experience-page">
+  <header class="experience-hero">
+    <div><span class="eyebrow">EXPERIENCIA POSCOMPRA</span><h1>Calificaciones y reclamos</h1></div>
+    <p *ngIf="esCliente">Tu calificación siempre se conserva, aunque decidas no registrar un reclamo.</p>
+    <p *ngIf="!esCliente">Supervisa la experiencia del cliente y responde cada reclamo del tenant.</p>
+  </header>
+
+  <div class="tabs">
+    <button [class.active]="tab === 'calificaciones'" (click)="tab = 'calificaciones'">★ Calificaciones</button>
+    <button [class.active]="tab === 'reclamos'" (click)="tab = 'reclamos'">Reclamos</button>
+  </div>
+  <p class="success" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <ng-container *ngIf="tab === 'calificaciones'">
+    <form *ngIf="esCliente" class="form-card" (ngSubmit)="guardarCalificacion()">
+      <h2>Califica el servicio</h2>
+      <label>Compra completada<select [(ngModel)]="calificacion.orden_venta_id" name="orden" required>
+        <option [ngValue]="0">Selecciona una compra</option>
+        <option *ngFor="let order of compras" [ngValue]="order.id">Orden #{{ order.id }} — {{ order.fecha }} — Bs. {{ order.total }}</option>
+      </select></label>
+      <label>Puntuación<div class="stars"><button type="button" *ngFor="let star of [1,2,3,4,5]" (click)="calificacion.puntuacion = star" [class.on]="star <= calificacion.puntuacion">★</button></div></label>
+      <label>Comentario<textarea [(ngModel)]="calificacion.comentario" name="comentario" rows="3" placeholder="Cuéntanos cómo fue tu experiencia"></textarea></label>
+      <button class="primary" type="submit">Guardar calificación</button>
+      <button *ngIf="calificacion.puntuacion <= 2" class="secondary" type="button" (click)="abrirReclamoDesdeCalificacion()">Registrar también un reclamo</button>
+    </form>
+
+    <div class="list-card"><h2>{{ esCliente ? 'Mis calificaciones' : 'Calificaciones recibidas' }}</h2>
+      <p class="empty" *ngIf="!calificaciones.length">Todavía no hay calificaciones.</p>
+      <article *ngFor="let item of calificaciones" class="entry">
+        <div><strong>{{ '★'.repeat(item.puntuacion) }}{{ '☆'.repeat(5 - item.puntuacion) }}</strong><span>Orden #{{ item.orden_venta_id }}</span></div>
+        <p>{{ item.comentario || 'Sin comentario' }}</p>
+        <small>{{ item.empresa_nombre }} {{ item.sucursal_nombre ? '· ' + item.sucursal_nombre : '' }} {{ item.cliente_nombre ? '· ' + item.cliente_nombre : '' }}</small>
+      </article>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="tab === 'reclamos'">
+    <form *ngIf="esCliente" class="form-card" (ngSubmit)="guardarReclamo()">
+      <h2>Registrar reclamo</h2>
+      <div class="form-grid">
+        <label>Sucursal<select [(ngModel)]="reclamo.sucursal_id" name="sucursal" required><option *ngFor="let branch of sucursales" [ngValue]="branch.id">{{ branch.nombre || branch.name }}</option></select></label>
+        <label>Fecha del incidente<input type="date" [(ngModel)]="reclamo.fecha_incidente" name="fecha" required /></label>
+        <label>Motivo<select [(ngModel)]="reclamo.motivo" name="motivo"><option value="atencion">Atención</option><option value="producto">Producto</option><option value="entrega">Entrega</option><option value="pago">Pago</option><option value="otro">Otro</option></select></label>
+        <label>Compra relacionada<select [(ngModel)]="reclamo.orden_venta_id" name="ordenReclamo"><option [ngValue]="0">Sin compra específica</option><option *ngFor="let order of compras" [ngValue]="order.id">Orden #{{ order.id }}</option></select></label>
+      </div>
+      <label>¿Qué sucedió?<textarea [(ngModel)]="reclamo.descripcion" name="descripcion" rows="5" required></textarea></label>
+      <button class="primary" type="submit">Enviar reclamo</button>
+    </form>
+
+    <div class="list-card"><h2>{{ esCliente ? 'Seguimiento de mis reclamos' : 'Gestión de reclamos' }}</h2>
+      <p class="empty" *ngIf="!reclamos.length">No hay reclamos registrados.</p>
+      <article *ngFor="let item of reclamos" class="entry claim">
+        <header><strong>Reclamo #{{ item.id }} · {{ item.motivo | titlecase }}</strong><span class="status" [attr.data-state]="item.estado">{{ item.estado.replace('_', ' ') }}</span></header>
+        <p>{{ item.descripcion }}</p><small>{{ item.fecha_incidente }} · {{ item.sucursal_nombre }} {{ item.cliente_nombre ? '· ' + item.cliente_nombre : '' }} {{ item.empresa_nombre ? '· ' + item.empresa_nombre : '' }}</small>
+        <div *ngIf="item.respuesta" class="response"><strong>Respuesta:</strong> {{ item.respuesta }}</div>
+        <div *ngIf="puedeGestionar" class="manage-row">
+          <select [(ngModel)]="estados[item.id]"><option value="recibido">Recibido</option><option value="en_revision">En revisión</option><option value="resuelto">Resuelto</option><option value="rechazado">Rechazado</option></select>
+          <input [(ngModel)]="respuestas[item.id]" placeholder="Respuesta para el cliente" />
+          <button class="primary" type="button" (click)="actualizarReclamo(item)">Actualizar y notificar</button>
+        </div>
+      </article>
+    </div>
+  </ng-container>
+</section>
