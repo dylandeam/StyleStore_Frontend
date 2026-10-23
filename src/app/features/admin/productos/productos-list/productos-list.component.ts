@@ -619,6 +619,11 @@ export class ProductosListComponent implements OnInit {
       .subscribe({
         next: () => {
           this.stockModalSuccess.set('Stock actualizado.');
+          // Mantener sincronizada la tarjeta/tabla que queda detrás del modal.
+          // Sin esta recarga el inventario ya estaba guardado en el servidor,
+          // pero la vista continuaba mostrando el total anterior hasta salir.
+          this.loadProductStock(this.selectedProductForStock!.codigo);
+          this.loadProductos();
           setTimeout(() => this.stockModalSuccess.set(''), 1500);
         },
         error: (err) => {
@@ -663,6 +668,7 @@ export class ProductosListComponent implements OnInit {
           this.isSubmittingStock.set(false);
           this.stockModalSuccess.set('Inventario guardado con éxito.');
           this.loadProductStock(this.selectedProductForStock!.codigo);
+          this.loadProductos();
           setTimeout(() => this.stockModalSuccess.set(''), 2000);
         },
         error: (err) => {
