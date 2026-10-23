@@ -117,8 +117,16 @@
   box-shadow: 0 4px 15px rgba(20, 38, 61, 0.04);
 }
 
+.table-responsive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
 .admin-table {
   width: 100%;
+  min-width: 920px;
   border-collapse: collapse;
   font-size: 14px;
 }

@@ -115,6 +115,7 @@
   </section>
 
   <section *ngIf="!isLoading() && !error()" class="table-card">
+    <div class="table-responsive" role="region" aria-label="Listado de promociones" tabindex="0">
     <table class="admin-table">
       <thead>
         <tr>
@@ -178,6 +179,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
   </section>
 
   <!-- MODAL DE CONFIGURACIÓN DE PROMOCIÓN -->

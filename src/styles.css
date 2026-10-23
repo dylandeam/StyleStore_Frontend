@@ -493,6 +493,55 @@ h1, .brand-header h2, .section-title {
   border: 1px solid #FDE68A;
 }
 
+/* Tablas administrativas: nunca se recortan en pantallas estrechas. */
+.table-responsive,
+.table-container,
+.matrix-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
+}
+
+.table-responsive table,
+.table-container table,
+.matrix-wrapper table {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .table-responsive,
+  .table-container,
+  .matrix-wrapper {
+    border-radius: 12px;
+  }
+
+  .table-responsive table,
+  .table-container table,
+  .matrix-wrapper table {
+    min-width: 760px;
+  }
+
+  .table-responsive th,
+  .table-responsive td,
+  .table-container th,
+  .table-container td {
+    white-space: nowrap;
+  }
+
+  .actions-col,
+  th.actions-col,
+  td.actions-col {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    background: var(--bg-card, #fff);
+    box-shadow: -8px 0 14px rgba(20, 38, 61, 0.08);
+  }
+}
+
 /* ==========================================================================
    Global Print Styles (POS Thermal Receipts)
    ========================================================================== */
