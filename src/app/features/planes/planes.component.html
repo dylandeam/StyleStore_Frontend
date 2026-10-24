@@ -20,6 +20,13 @@
   @if (message()) { <div class="notice success">{{ message() }}</div> }
   @if (error()) { <div class="notice error">{{ error() }}</div> }
 
+  @if (!isAdminView && plans().length) {
+    <div class="payment-note">
+      <strong>Pago seguro de prueba con PayPal Sandbox.</strong>
+      Los precios se mantienen en bolivianos; cuando PayPal no admite BOB, el sistema convierte el cobro a USD con la tasa configurada y valida el importe antes de activar el plan.
+    </div>
+  }
+
   @if (!isAdminView && myContract(); as contract) {
     <div class="current-plan">
       <span>Plan activo</span>

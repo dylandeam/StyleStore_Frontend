@@ -24,7 +24,9 @@ li { display:flex; gap:.55rem; color:#384055; } li span { color:var(--plan-color
 .client-note { display:block; padding:.8rem 1rem; border-radius:12px; background:#f2eff8; color:#665d79; text-align:center; font-size:.82rem; font-weight:750; }
 button { border:0; border-radius:13px; padding:.85rem 1rem; font-weight:800; cursor:pointer; }
 button:disabled { opacity:.55; cursor:not-allowed; }.primary { color:#fff; background:var(--plan-color, #7c3aed); box-shadow:0 10px 22px color-mix(in srgb, var(--plan-color, #7c3aed) 24%, transparent); }.secondary { background:#efedf5; color:#4b4560; }
-.notice, .current-plan, .loading { max-width:1120px; margin:0 auto 1rem; padding:1rem 1.3rem; border-radius:14px; background:#fff; }.success { color:#08735b; border:1px solid #a7f3d0; }.error { color:#a52828; border:1px solid #fecaca; }
+.notice, .current-plan, .loading, .payment-note { max-width:1120px; margin:0 auto 1rem; padding:1rem 1.3rem; border-radius:14px; background:#fff; }.success { color:#08735b; border:1px solid #a7f3d0; }.error { color:#a52828; border:1px solid #fecaca; }
+.payment-note { color:#43386b; border:1px solid #ddd2ff; background:#faf8ff; line-height:1.55; }
+.payment-note strong { display:block; margin-bottom:.2rem; color:#32265d; }
 .current-plan { display:flex; gap:1rem; align-items:center; background:#20143a; color:white; }.current-plan span { color:#c4b5fd; }.current-plan small { margin-left:auto; color:#ddd6fe; }
 .modal-backdrop { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:1rem; background:rgba(20,15,35,.7); backdrop-filter:blur(5px); }
 .editor { width:min(760px, 96vw); max-height:92vh; overflow:auto; padding:1.5rem; border-radius:24px; background:#fff; box-shadow:0 30px 90px rgba(0,0,0,.3); }
