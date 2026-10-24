@@ -147,6 +147,14 @@ export class ReportesService {
     return this.http.post<any>(`${this.apiUrl}/asistente-ia`, { pregunta });
   }
 
+  getEstadoAsistenteIA(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/asistente-ia/estado`);
+  }
+
+  getSnapshotAsistenteIA(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/asistente-ia/snapshot`);
+  }
+
   exportarConsultaIAPDF(pregunta: string, respuesta: string, kpis: any[] = []): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/asistente-ia/pdf`, { pregunta, respuesta, kpis }, { responseType: 'blob' });
   }

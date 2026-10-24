@@ -7,7 +7,9 @@
         <div class="chatbot-avatar">✨</div>
         <div>
           <h4 class="chatbot-title">StyleStore Assistant</h4>
-          <span class="chatbot-status">En línea | IA Groq & Búsqueda por Voz</span>
+          <span class="chatbot-status">
+            {{ aiMode === 'online_groq' ? 'En línea · Groq + datos del tenant' : aiMode === 'online_local' ? 'En línea · Motor local' : 'Sin conexión · Ayuda local' }}
+          </span>
         </div>
       </div>
       <button type="button" class="btn-close-chat" (click)="toggleChat()" title="Cerrar chat">✕</button>

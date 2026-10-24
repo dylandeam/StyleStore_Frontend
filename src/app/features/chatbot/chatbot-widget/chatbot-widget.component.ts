@@ -32,6 +32,7 @@ export class ChatbotWidgetComponent implements OnInit {
   isLoading = false;
   isListening = false;
   speechSupported = false;
+  aiMode: 'online_groq' | 'online_local' | 'offline_local' = 'online_local';
   private recognition: any = null;
 
   messages: ChatMessage[] = [
@@ -50,6 +51,10 @@ export class ChatbotWidgetComponent implements OnInit {
 
   ngOnInit(): void {
     this.initSpeechRecognition();
+    this.chatbotService.getEstado().subscribe({
+      next: (state) => this.aiMode = state.modo_preferido === 'online_groq' ? 'online_groq' : 'online_local',
+      error: () => this.aiMode = 'offline_local',
+    });
   }
 
   private initSpeechRecognition(): void {
@@ -167,6 +172,7 @@ export class ChatbotWidgetComponent implements OnInit {
       next: (res) => {
         this.ngZone.run(() => {
           this.isLoading = false;
+          this.aiMode = res.modo_ia || 'online_local';
           const botMsg: ChatMessage = {
             remitente: 'bot',
             texto: res.respuesta,

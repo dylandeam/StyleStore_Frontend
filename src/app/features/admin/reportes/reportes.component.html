@@ -25,6 +25,13 @@
         <p class="ai-desc">
           Pregunta en tiempo real sobre ventas del día, recaudación de sucursales, pedidos por delivery, inventario crítico o métodos de pago escribiendo o usando el micrófono.
         </p>
+        <div class="ai-runtime-status" [attr.data-mode]="modoIA">
+          <span class="status-dot"></span>
+          <strong>
+            {{ modoIA === 'online_groq' ? 'Groq conectado' : modoIA === 'online_local' ? 'Motor local del servidor' : modoIA === 'offline_local' ? 'Modo local sin conexión' : 'IA no disponible' }}
+          </strong>
+          <small *ngIf="datosIAActualizadosEn">Datos: {{ datosIAActualizadosEn | date:'short' }}</small>
+        </div>
       </div>
 
       <button type="button" class="btn-instrucciones-modal" (click)="abrirModalGuia()">
@@ -89,7 +96,7 @@
     <!-- Indicador de Carga IA -->
     <div class="ai-loading-state" *ngIf="isLoadingIA">
       <div class="spinner-ai"></div>
-      <span>Procesando datos con Inteligencia Artificial Groq en tiempo real...</span>
+      <span>{{ groqConfigurado ? 'Consultando Groq con datos reales del tenant…' : 'Analizando con el motor local del servidor…' }}</span>
     </div>
 
     <!-- Resultado de la Consulta IA -->
@@ -109,6 +116,9 @@
           <p class="ai-formatted-text" style="white-space: pre-line;">{{ respuestaIA }}</p>
         </div>
       </div>
+      <p class="offline-disclaimer" *ngIf="modoIA === 'offline_local'">
+        Respuesta generada sin conexión con el último corte guardado. Verifica la fecha de datos antes de tomar decisiones.
+      </p>
 
       <!-- Barra de Exportación Directa de la Consulta IA -->
       <div class="ai-export-actions">

@@ -24,6 +24,8 @@ export interface ChatbotResponse {
     talla_nombre?: string;
     cantidad: number;
   };
+  modo_ia?: 'online_groq' | 'online_local' | 'offline_local';
+  proveedor_ia?: string;
 }
 
 @Injectable({
@@ -39,9 +41,17 @@ export class ChatbotService {
       catchError(() => {
         // Fallback local inmediato ante demoras de red o cold-start de backend
         const localResp = this.procesarRespuestaLocal(mensaje);
-        return of(localResp);
+        return of({
+          ...localResp,
+          modo_ia: 'offline_local' as const,
+          proveedor_ia: 'reglas_locales_del_navegador',
+        });
       })
     );
+  }
+
+  getEstado(): Observable<{ modo_preferido: string; groq_configurado: boolean }> {
+    return this.http.get<{ modo_preferido: string; groq_configurado: boolean }>(`${this.apiUrl}/estado`);
   }
 
   procesarRespuestaLocal(mensaje: string): ChatbotResponse {
@@ -89,7 +99,7 @@ export class ChatbotService {
     ) {
       return {
         respuesta:
-          '🏬 **Nuestras Sucursales StyleStore:**\n\n• **Sucursal Central**: Av. América #450 (Cochabamba)\n• **Sucursal Equipetrol**: Av. San Martín #120 (Santa Cruz)\n• **Sucursal Sur**: Calacoto Calle 15 (La Paz)\n\nAtendemos de lunes a sábado de 09:00 a 20:00.',
+          '🏬 Estás usando el asistente local sin conexión. Para no mostrar información de otro tenant ni inventar direcciones, conecta el dispositivo y abre **Sucursales** para consultar ubicaciones y horarios actualizados.',
         chips: [
           { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
           { label: '👗 Ver Catálogo', action: 'navigate', route: '/catalogo' },
@@ -154,6 +164,8 @@ export class ChatbotService {
         { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
         { label: '📦 Mis Compras', action: 'navigate', route: '/cuenta/mis-compras' },
       ],
+      modo_ia: 'offline_local',
+      proveedor_ia: 'reglas_locales_del_navegador',
     };
   }
 }

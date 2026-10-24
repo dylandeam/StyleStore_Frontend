@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ReportesService } from '../../../core/services/reportes.service';
 import { SucursalService } from '../../../core/services/sucursal.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { OfflineAiService } from '../../../core/services/offline-ai.service';
 
 @Component({
   selector: 'app-reportes',
@@ -17,6 +19,8 @@ export class ReportesComponent implements OnInit {
   private sucursalService = inject(SucursalService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  private authService = inject(AuthService);
+  private offlineAi = inject(OfflineAiService);
 
   sucursales: Sucursal[] = [];
   mensajeToast: string | null = null;
@@ -80,6 +84,10 @@ export class ReportesComponent implements OnInit {
   speechSupportedIA: boolean = false;
   private recognitionIA: any = null;
   isModalGuiaOpen: boolean = false;
+  modoIA: 'online_groq' | 'online_local' | 'offline_local' | 'error' = 'online_local';
+  proveedorIA: string = 'motor_analitico_local';
+  datosIAActualizadosEn: string | null = null;
+  groqConfigurado = false;
 
   // Guía de consultas e instrucciones categorizadas para el modal
   categoriasGuia = [
@@ -148,6 +156,29 @@ export class ReportesComponent implements OnInit {
     this.cargarComparativaSucursales();
     this.cargarAlertasStock();
     this.initSpeechRecognitionIA();
+    this.actualizarEstadoIA();
+    this.actualizarSnapshotOffline();
+  }
+
+  private actualizarEstadoIA(): void {
+    this.reportesService.getEstadoAsistenteIA().subscribe({
+      next: (state) => {
+        this.groqConfigurado = !!state.groq_configurado;
+        this.modoIA = state.modo_preferido || 'online_local';
+      },
+      error: () => {
+        if (!navigator.onLine) this.modoIA = 'offline_local';
+      },
+    });
+  }
+
+  private actualizarSnapshotOffline(): void {
+    const tenantId = this.authService.currentUser()?.empresa_id;
+    if (!tenantId || !navigator.onLine) return;
+    this.reportesService.getSnapshotAsistenteIA().subscribe({
+      next: (snapshot) => this.offlineAi.save(snapshot),
+      error: () => undefined,
+    });
   }
 
   initSpeechRecognitionIA(): void {
@@ -258,6 +289,10 @@ export class ReportesComponent implements OnInit {
           this.isLoadingIA = false;
           this.respuestaIA = res.respuesta;
           this.kpisIA = res.kpis || [];
+          this.modoIA = res.modo_ia || (res.ia_powered ? 'online_groq' : 'online_local');
+          this.proveedorIA = res.proveedor_ia || (res.ia_powered ? 'groq' : 'motor_analitico_local');
+          this.datosIAActualizadosEn = res.datos_actualizados_en || null;
+          this.actualizarSnapshotOffline();
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         });
@@ -265,8 +300,19 @@ export class ReportesComponent implements OnInit {
       error: (err) => {
         this.ngZone.run(() => {
           this.isLoadingIA = false;
-          this.respuestaIA = err?.error?.detail
-            || 'Ocurrió un error al procesar tu consulta con el asistente de IA. Por favor intenta nuevamente.';
+          const tenantId = this.authService.currentUser()?.empresa_id;
+          const local = tenantId ? this.offlineAi.answer(q, tenantId) : null;
+          if (local) {
+            this.respuestaIA = local.respuesta;
+            this.kpisIA = local.kpis;
+            this.modoIA = 'offline_local';
+            this.proveedorIA = local.proveedor_ia;
+            this.datosIAActualizadosEn = local.datos_actualizados_en;
+          } else {
+            this.modoIA = 'error';
+            this.respuestaIA = err?.error?.detail
+              || 'No hay conexión ni un corte local de datos disponible. Conéctate una vez para preparar el modo offline.';
+          }
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         });
