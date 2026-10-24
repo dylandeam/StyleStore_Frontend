@@ -51,7 +51,7 @@ export class PlanesComponent implements OnInit {
   }
 
   get canContract(): boolean {
-    return this.authService.currentUser()?.role === 'administrador';
+    return this.authService.currentUser()?.role === 'administrador' && !this.isPlatformAdmin;
   }
 
   ngOnInit(): void {
