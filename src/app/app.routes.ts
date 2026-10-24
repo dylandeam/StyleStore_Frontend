@@ -50,6 +50,7 @@ import { OfflineOperationsComponent } from './features/offline/offline-operation
 import { TenantsComponent } from './features/admin/tenants/tenants.component';
 import { ReembolsosComponent } from './features/admin/reembolsos/reembolsos.component';
 import { ExperienciaComponent } from './features/cuenta/experiencia/experiencia.component';
+import { CampanasComponent } from './features/admin/notificaciones/campanas.component';
 
 export const routes: Routes = [
   {
@@ -279,6 +280,11 @@ export const routes: Routes = [
         path: 'admin/tenants',
         component: TenantsComponent,
         canActivate: [platformAdminGuard],
+      },
+      {
+        path: 'admin/notificaciones',
+        component: CampanasComponent,
+        canActivate: [roleGuard(['administrador'])],
       },
       {
         path: 'admin/usuarios',

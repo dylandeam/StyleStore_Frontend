@@ -41,6 +41,11 @@
             <span class="nav-icon">🏢</span>
           </a>
         }
+        @if (isAdmin) {
+          <a routerLink="/admin/notificaciones" routerLinkActive="active" class="nav-item icon-only" title="Notificaciones y campañas">
+            <span class="nav-icon">📣</span>
+          </a>
+        }
         <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()" class="nav-item icon-only" title="Dashboard">
           <span class="nav-icon">📊</span>
         </a>
@@ -230,6 +235,10 @@
               <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item">
                 <span class="nav-icon">💎</span>
                 <span class="nav-label">Planes Globales</span>
+              </a>
+              <a routerLink="/admin/notificaciones" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📣</span>
+                <span class="nav-label">Avisos a Tenants</span>
               </a>
             </div>
           }
@@ -484,6 +493,11 @@
                 }
 
                 @if (isAdmin && !isPlatformAdmin) {
+                  <a routerLink="/admin/notificaciones" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">📣</span>
+                    <span class="nav-label">Notificaciones y Campañas</span>
+                  </a>
+
                   <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
                     <span class="nav-icon">👤</span>
                     <span class="nav-label">Usuarios</span>

@@ -18,6 +18,37 @@ export interface MisNotificacionesResponse {
   total_no_leidas: number;
 }
 
+export interface CampanaNotificacion {
+  id: number;
+  titulo: string;
+  mensaje: string;
+  audiencia: string;
+  proxima_ejecucion: string;
+  recurrencia_dias?: number;
+  estado: string;
+  total_destinatarios: number;
+  total_enviados: number;
+  enviar_email: boolean;
+}
+
+export interface DestinatariosCampana {
+  modo: 'saas' | 'tenant';
+  empresas: Array<{ id: number; nombre: string; active: boolean }>;
+  usuarios: Array<{ id: number; nombre: string; email: string; role: string }>;
+}
+
+export interface CampanaPayload {
+  titulo: string;
+  mensaje: string;
+  url_accion?: string;
+  audiencia: string;
+  target_user_ids: number[];
+  target_empresa_ids: number[];
+  programada_para?: string;
+  recurrencia_dias?: number;
+  enviar_email: boolean;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -53,5 +84,21 @@ export class NotificacionesService {
     return this.http.post<any>(`${this.apiUrl}/suscribir-stock`, {
       stock_inventario_id: stockInventarioId,
     });
+  }
+
+  getDestinatariosCampana(): Observable<DestinatariosCampana> {
+    return this.http.get<DestinatariosCampana>(`${this.apiUrl}/campanas/destinatarios`);
+  }
+
+  getCampanas(): Observable<CampanaNotificacion[]> {
+    return this.http.get<CampanaNotificacion[]>(`${this.apiUrl}/campanas`);
+  }
+
+  crearCampana(payload: CampanaPayload): Observable<CampanaNotificacion> {
+    return this.http.post<CampanaNotificacion>(`${this.apiUrl}/campanas`, payload);
+  }
+
+  cancelarCampana(id: number): Observable<CampanaNotificacion> {
+    return this.http.post<CampanaNotificacion>(`${this.apiUrl}/campanas/${id}/cancelar`, {});
   }
 }

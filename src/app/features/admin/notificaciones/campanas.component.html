@@ -1,0 +1,77 @@
+<section class="campaign-page">
+  <header class="hero">
+    <div>
+      <span class="eyebrow">COMUNICACIÓN</span>
+      <h2>Notificaciones y campañas</h2>
+      <p>
+        {{ isPlatformAdmin
+          ? 'Informa a todos los administradores de empresas o selecciona tenants específicos.'
+          : 'Envía avisos personalizados a tus usuarios o programa promociones recurrentes.' }}
+      </p>
+    </div>
+    <div class="channel-badges"><span>En la app</span><span>Push móvil</span><span>Email opcional</span></div>
+  </header>
+
+  <div class="layout-grid">
+    <form class="panel composer" (ngSubmit)="submit()">
+      <div class="section-heading"><span>1</span><div><h3>Contenido</h3><p>Mensaje claro y breve para tus destinatarios.</p></div></div>
+      <label>Título<input [(ngModel)]="title" name="title" maxlength="200" placeholder="Ej. Nueva colección disponible" /></label>
+      <label>Mensaje<textarea [(ngModel)]="message" name="message" maxlength="2000" rows="5" placeholder="Escribe el anuncio o recordatorio…"></textarea></label>
+      <label>Enlace al abrir la notificación <input [(ngModel)]="actionUrl" name="actionUrl" placeholder="/catalogo o /planes" /></label>
+
+      <div class="section-heading"><span>2</span><div><h3>Destinatarios</h3><p>El alcance está protegido por el tenant activo.</p></div></div>
+      @if (!isPlatformAdmin) {
+        <div class="choice-grid">
+          <label class="choice"><input type="radio" name="audience" [(ngModel)]="audience" value="todos" /><span>Todos los usuarios</span></label>
+          <label class="choice"><input type="radio" name="audience" [(ngModel)]="audience" value="clientes" /><span>Solo clientes</span></label>
+          <label class="choice"><input type="radio" name="audience" [(ngModel)]="audience" value="administradores" /><span>Administradores</span></label>
+          <label class="choice"><input type="radio" name="audience" [(ngModel)]="audience" value="usuarios_seleccionados" /><span>Usuarios específicos</span></label>
+        </div>
+        @if (audience === 'usuarios_seleccionados') {
+          <div class="target-list">
+            @for (user of targets.usuarios; track user.id) {
+              <label>
+                <input type="checkbox" [checked]="selectedUserIds.includes(user.id)" (change)="toggleUser(user.id, $any($event.target).checked)" />
+                <span><strong>{{ user.nombre }}</strong><small>{{ user.email }} · {{ user.role }}</small></span>
+              </label>
+            }
+          </div>
+        }
+      } @else {
+        <div class="scope-note">Si no seleccionas empresas, se notificará a los administradores de todos los tenants.</div>
+        <div class="target-list">
+          @for (company of targets.empresas; track company.id) {
+            <label>
+              <input type="checkbox" [checked]="selectedCompanyIds.includes(company.id)" (change)="toggleCompany(company.id, $any($event.target).checked)" />
+              <span><strong>{{ company.nombre }}</strong><small>{{ company.active ? 'Tenant activo' : 'Tenant inactivo' }}</small></span>
+            </label>
+          }
+        </div>
+      }
+
+      <div class="section-heading"><span>3</span><div><h3>Programación</h3><p>Envía ahora, una vez más tarde o de forma recurrente.</p></div></div>
+      <div class="switch-row"><label><input type="checkbox" [(ngModel)]="schedule" name="schedule" /> Programar fecha y hora</label></div>
+      @if (schedule) { <label>Primer envío<input type="datetime-local" [(ngModel)]="scheduledFor" name="scheduledFor" /></label> }
+      <div class="switch-row"><label><input type="checkbox" [(ngModel)]="recurring" name="recurring" /> Repetir automáticamente</label></div>
+      @if (recurring) { <label>Repetir cada <span class="inline-input"><input type="number" min="1" max="365" [(ngModel)]="recurrenceDays" name="recurrenceDays" /> días</span></label> }
+      <div class="switch-row"><label><input type="checkbox" [(ngModel)]="sendEmail" name="sendEmail" /> Enviar también por correo</label></div>
+
+      @if (error) { <div class="alert error">{{ error }}</div> }
+      @if (feedback) { <div class="alert success">{{ feedback }}</div> }
+      <button class="primary" type="submit" [disabled]="loading">{{ loading ? 'Guardando…' : (schedule ? 'Programar campaña' : 'Enviar ahora') }}</button>
+    </form>
+
+    <aside class="panel history">
+      <div class="history-title"><div><h3>Campañas recientes</h3><p>Estado y alcance de cada envío.</p></div><button type="button" (click)="reload()">Actualizar</button></div>
+      @if (!campaigns.length) { <div class="empty">Todavía no hay campañas.</div> }
+      @for (campaign of campaigns; track campaign.id) {
+        <article class="campaign-card">
+          <div class="campaign-top"><strong>{{ campaign.titulo }}</strong><span [attr.data-status]="campaign.estado">{{ campaign.estado }}</span></div>
+          <p>{{ campaign.mensaje }}</p>
+          <dl><div><dt>Próxima ejecución</dt><dd>{{ campaign.proxima_ejecucion | date:'medium' }}</dd></div><div><dt>Enviados</dt><dd>{{ campaign.total_enviados }}</dd></div><div><dt>Frecuencia</dt><dd>{{ campaign.recurrencia_dias ? 'Cada ' + campaign.recurrencia_dias + ' días' : 'Una vez' }}</dd></div></dl>
+          @if (campaign.estado === 'programada' || campaign.estado === 'activa') { <button class="danger-link" type="button" (click)="cancel(campaign)">Cancelar programación</button> }
+        </article>
+      }
+    </aside>
+  </div>
+</section>
