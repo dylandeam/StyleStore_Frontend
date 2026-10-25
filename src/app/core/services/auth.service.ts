@@ -123,7 +123,10 @@ export class AuthService {
     foto?: string;
   }): Observable<User> {
     return this.http.patch<User>(`${this.API_URL}/users/me`, data).pipe(
-      tap((updatedUser) => this.currentUser.set(updatedUser))
+      tap((updatedUser) => {
+        this.currentUser.set(updatedUser);
+        this.saveStoredUser(updatedUser);
+      })
     );
   }
 

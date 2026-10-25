@@ -4,13 +4,13 @@
       <div class="avatar-section">
         <div class="avatar-wrapper">
           <img
-            [src]="foto() || 'assets/images/placeholder-avatar.png'"
+            [src]="getProfilePhotoUrl()"
             alt="Avatar de usuario"
             class="avatar-image"
           />
           <label class="avatar-upload-btn" title="Subir imagen">
             📷
-            <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onFileSelected($event)" />
           </label>
         </div>
         <div class="avatar-meta">
@@ -127,15 +127,19 @@
             class="form-control"
             placeholder="https://ejemplo.com/mifoto.jpg"
             [ngModel]="foto()"
-            (ngModelChange)="foto.set($event)"
+            (ngModelChange)="onPhotoUrlChange($event)"
             name="foto"
+            maxlength="255"
           />
+          <small class="field-hint">
+            {{ isUploadingPhoto() ? 'Subiendo foto de forma segura...' : 'Puedes subir una imagen con el botón de cámara o usar una URL de hasta 255 caracteres.' }}
+          </small>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
-          {{ isSaving() ? 'Guardando...' : '💾 Guardar Cambios' }}
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving() || isUploadingPhoto()">
+          {{ isUploadingPhoto() ? 'Subiendo foto...' : (isSaving() ? 'Guardando...' : '💾 Guardar Cambios') }}
         </button>
       </div>
     </form>

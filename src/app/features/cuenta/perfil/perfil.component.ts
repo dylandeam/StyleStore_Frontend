@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { BitacoraService } from '../../../core/services/bitacora.service';
 import { User } from '../../../core/models/user.model';
+import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
   selector: 'app-perfil',
@@ -15,10 +16,12 @@ import { User } from '../../../core/models/user.model';
 export class PerfilComponent implements OnInit {
   private authService = inject(AuthService);
   private bitacoraService = inject(BitacoraService);
+  private uploadService = inject(UploadService);
 
   user = signal<User | null>(null);
   isLoading = signal<boolean>(false);
   isSaving = signal<boolean>(false);
+  isUploadingPhoto = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
 
@@ -30,6 +33,7 @@ export class PerfilComponent implements OnInit {
   telefono = signal<string>('');
   direccion = signal<string>('');
   foto = signal<string>('');
+  fotoPreview = signal<string>('');
   rol = signal<string>('');
   isAdmin = signal<boolean>(false);
 
@@ -65,6 +69,7 @@ export class PerfilComponent implements OnInit {
     this.telefono.set((u as any).telefono || '');
     this.direccion.set((u as any).direccion || '');
     this.foto.set((u as any).foto || '');
+    this.fotoPreview.set('');
     this.rol.set(u.role || 'Usuario');
     const adminRole = u.role?.toLowerCase() === 'administrador';
     this.isAdmin.set(adminRole);
@@ -85,15 +90,72 @@ export class PerfilComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        this.errorMessage.set('Formato no permitido. Usa una imagen JPG, PNG, WEBP o GIF.');
+        input.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage.set('La foto de perfil no puede superar 5 MB.');
+        input.value = '';
+        return;
+      }
+
+      this.errorMessage.set(null);
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.foto.set(e.target.result);
+        this.fotoPreview.set(e.target.result);
       };
       reader.readAsDataURL(file);
+
+      this.isUploadingPhoto.set(true);
+      this.uploadService.uploadImage(file, 'perfiles').subscribe({
+        next: (response) => {
+          this.foto.set(response.url);
+          this.fotoPreview.set(this.uploadService.getImageUrl(response.url, 'perfiles'));
+          this.isUploadingPhoto.set(false);
+        },
+        error: (err) => {
+          this.isUploadingPhoto.set(false);
+          this.fotoPreview.set('');
+          this.errorMessage.set(this.formatErrorMessage(err, 'No se pudo subir la foto de perfil.'));
+        },
+      });
     }
   }
 
+  getProfilePhotoUrl(): string {
+    return this.fotoPreview() || this.uploadService.getImageUrl(this.foto(), 'perfiles') || 'assets/images/placeholder-avatar.png';
+  }
+
+  onPhotoUrlChange(value: string): void {
+    this.fotoPreview.set('');
+    this.foto.set(value);
+  }
+
+  private formatErrorMessage(err: any, fallback: string): string {
+    const detail = err?.error?.detail ?? err?.message;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+      return detail
+        .map((item: any) => {
+          const field = Array.isArray(item?.loc) ? item.loc[item.loc.length - 1] : null;
+          return `${field ? `${field}: ` : ''}${item?.msg || 'Valor inválido'}`;
+        })
+        .join(' · ');
+    }
+    if (detail && typeof detail === 'object') {
+      return detail.message || detail.msg || fallback;
+    }
+    return fallback;
+  }
+
   saveProfile(): void {
+    if (this.isUploadingPhoto()) {
+      this.errorMessage.set('Espera a que termine de subir la foto de perfil.');
+      return;
+    }
     if (!this.nombre().trim() || !this.apellido().trim() || !this.email().trim()) {
       this.errorMessage.set('Nombre, apellido y correo electrónico son obligatorios.');
       return;
@@ -104,7 +166,7 @@ export class PerfilComponent implements OnInit {
     this.successMessage.set(null);
 
     const updatePayload = {
-      nombre: this.nombre().trim(),
+      name: this.nombre().trim(),
       apellido: this.apellido().trim(),
       email: this.email().trim(),
       telefono: this.telefono().trim() || undefined,
@@ -114,13 +176,13 @@ export class PerfilComponent implements OnInit {
 
     this.authService.updateProfile(updatePayload).subscribe({
       next: (updatedUser) => {
-        this.user.set(updatedUser);
+        this.populateUserData(updatedUser);
         this.successMessage.set('Perfil actualizado exitosamente.');
         this.isSaving.set(false);
         setTimeout(() => this.successMessage.set(null), 3500);
       },
       error: (err) => {
-        this.errorMessage.set(err.error?.detail || 'Error al actualizar el perfil.');
+        this.errorMessage.set(this.formatErrorMessage(err, 'Error al actualizar el perfil.'));
         this.isSaving.set(false);
       },
     });
