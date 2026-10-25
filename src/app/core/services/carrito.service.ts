@@ -35,6 +35,16 @@ export interface Carrito {
   created_at: string;
 }
 
+export interface CheckoutResponse {
+  message: string;
+  orden_venta_id: number;
+  total: number;
+  estado: string;
+  costo_envio: number;
+  token_seguimiento?: string | null;
+  tracking_url?: string | null;
+}
+
 export interface CatalogoItem {
   codigo: string;
   nombre: string;
@@ -124,6 +134,24 @@ export class CarritoService {
       `${this.apiUrl}/confirmar`,
       payload
     );
+  }
+
+  checkout(data: {
+    metodo_pago: string;
+    distancia_km?: number;
+    direccion_envio?: string;
+    latitud_destino?: number;
+    longitud_destino?: number;
+    ubicacion_url?: string;
+    ciudad?: string;
+    referencia?: string;
+    sucursal_id?: number;
+    tipo_entrega?: 'delivery' | 'recojo';
+    fecha_recojo?: string;
+    hora_recojo?: string;
+    codigo_descuento?: string;
+  }): Observable<CheckoutResponse> {
+    return this.http.post<CheckoutResponse>(`${this.apiUrl}/checkout`, data);
   }
 
   getCatalogo(filters?: {

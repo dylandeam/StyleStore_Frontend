@@ -76,11 +76,12 @@ export class CalibrarPrendaComponent implements OnInit {
   }
 
   loadProductoAndLandmarks(code: string): void {
-    this.http.get<any>(`${environment.apiUrl}/v1/productos/${code}`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/productos/${code}`).subscribe({
       next: (prod) => {
         this.producto.set(prod);
         const img = prod.foto_vestidor_frontal || prod.foto || '';
-        this.imageUrl.set(img.startsWith('http') ? img : `${environment.apiUrl.replace('/api', '')}${img}`);
+        const publicBase = environment.apiUrl.replace(/\/api\/v1\/?$/, '');
+        this.imageUrl.set(img.startsWith('http') ? img : `${publicBase}${img.startsWith('/') ? '' : '/'}${img}`);
 
         const catTipo = (prod.tipo_prenda || '').toLowerCase();
         let arType = 'superior';
@@ -112,7 +113,7 @@ export class CalibrarPrendaComponent implements OnInit {
   }
 
   fetchExistingLandmarks(code: string): void {
-    this.http.get<any>(`${environment.apiUrl}/v1/productos/${code}/landmarks`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/productos/${code}/landmarks`).subscribe({
       next: (res) => {
         if (res && res.landmarks) {
           this.isCalibrated.set(res.calibrado);
@@ -170,7 +171,7 @@ export class CalibrarPrendaComponent implements OnInit {
       landmarks: landmarkDict,
     };
 
-    this.http.post<any>(`${environment.apiUrl}/v1/productos/${this.codigo()}/landmarks`, body).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/productos/${this.codigo()}/landmarks`, body).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.isCalibrated.set(true);

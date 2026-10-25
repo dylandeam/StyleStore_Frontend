@@ -29,8 +29,8 @@
       </div>
     </div>
     <div class="success-actions">
-      <button class="btn-primary" routerLink="/admin/ventas">Ver Mis Pedidos</button>
-      <button class="btn-secondary" routerLink="/admin/productos">Seguir Comprando</button>
+      <button class="btn-primary" routerLink="/cuenta/mis-compras">Ver Mis Pedidos</button>
+      <button class="btn-secondary" routerLink="/catalogo">Seguir Comprando</button>
     </div>
   </div>
 
@@ -39,7 +39,7 @@
     <span class="empty-cart-icon">🛍️</span>
     <h2>Tu bolsa está vacía</h2>
     <p>Aún no has añadido prendas a tu bolsa de compras.</p>
-    <button class="btn-primary" routerLink="/admin/productos">Explorar Catálogo de Moda</button>
+    <button class="btn-primary" routerLink="/catalogo">Explorar Catálogo de Moda</button>
   </div>
 
   <!-- Contenido con Artículos -->
@@ -90,7 +90,7 @@
       </div>
 
       <div class="cart-footer-actions">
-        <button class="btn-continue" routerLink="/admin/productos">
+        <button class="btn-continue" routerLink="/catalogo">
           ← Continuar Comprando
         </button>
       </div>
@@ -263,25 +263,14 @@
                 </div>
               </div>
 
-              <!-- Calculador Dinámico de Distancia -->
+              <!-- Distancia validada por el servidor -->
               <div class="distancia-calculo-box">
                 <div class="distancia-header">
                   <span>Distancia recorrida entre ambas ubicaciones:</span>
                   <strong>{{ distanciaKm | number:'1.1-2' }} km</strong>
                 </div>
-                <div class="distancia-slider-wrap">
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="35"
-                    step="0.5"
-                    [(ngModel)]="distanciaKm"
-                    (input)="onSliderChange()"
-                    class="distancia-slider"
-                  />
-                </div>
                 <div class="tarifa-desglose-calculada">
-                  Costo de delivery: <strong>Bs. {{ costoEnvio | number:'1.2-2' }}</strong>
+                  Costo de delivery: <strong>{{ costoEnvio > 0 ? ('Bs. ' + (costoEnvio | number:'1.2-2')) : 'Pendiente de ubicación válida' }}</strong>
                   <small class="text-muted">(Fijo Bs. 5.00 + {{ distanciaKm | number:'1.1-2' }} km × Bs. 0.60/km)</small>
                 </div>
               </div>

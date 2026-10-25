@@ -11,6 +11,8 @@ import { EnvioService } from '../../../core/services/envio.service';
   styleUrl: './conductor-tracker.component.css',
 })
 export class ConductorTrackerComponent implements OnInit, OnDestroy {
+  readonly allowRouteSimulation = typeof window !== 'undefined' &&
+    ['localhost', '127.0.0.1'].includes(window.location.hostname);
   private route = inject(ActivatedRoute);
   private envioService = inject(EnvioService);
 

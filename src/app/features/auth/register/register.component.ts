@@ -47,6 +47,7 @@ export class RegisterComponent implements OnInit {
 
   // Foto de perfil opcional
   readonly fotoUrl = signal<string>('');
+  readonly fotoFile = signal<File | null>(null);
   readonly isUploadingFoto = signal<boolean>(false);
 
   readonly registerForm: FormGroup = this.fb.group(
@@ -95,24 +96,61 @@ export class RegisterComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      this.isUploadingFoto.set(true);
       this.errorMessage.set(null);
-
-      this.uploadService.uploadImage(file, 'clientes').subscribe({
-        next: (res) => {
-          this.fotoUrl.set(res.url);
-          this.isUploadingFoto.set(false);
-        },
-        error: (err) => {
-          this.isUploadingFoto.set(false);
-          this.errorMessage.set(err.error?.detail || 'Error al subir la foto de perfil.');
-        },
-      });
+      if (!file.type.startsWith('image/')) {
+        this.errorMessage.set('Selecciona un archivo de imagen válido.');
+        input.value = '';
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.errorMessage.set('La foto no puede superar 5 MB.');
+        input.value = '';
+        return;
+      }
+      const previous = this.fotoUrl();
+      if (previous.startsWith('blob:')) URL.revokeObjectURL(previous);
+      this.fotoFile.set(file);
+      this.fotoUrl.set(URL.createObjectURL(file));
     }
   }
 
   getFotoPreview(): string {
-    return this.uploadService.getImageUrl(this.fotoUrl(), 'clientes');
+    return this.fotoUrl();
+  }
+
+  private finalizarRegistro(mensaje: string): void {
+    this.isUploadingFoto.set(false);
+    this.successMessage.set(mensaje);
+    setTimeout(() => this.router.navigate(['/auth/login']), 1500);
+  }
+
+  private guardarFotoTrasRegistro(email: string, password: string): void {
+    const file = this.fotoFile();
+    if (!file) {
+      this.finalizarRegistro('¡Cuenta de cliente creada exitosamente! Redirigiendo al inicio de sesión...');
+      return;
+    }
+
+    this.isUploadingFoto.set(true);
+    this.authService.login({ email, password }).subscribe({
+      next: () => this.uploadService.uploadImage(file, 'perfiles').subscribe({
+        next: (upload) => this.authService.updateProfile({ foto: upload.url }).subscribe({
+          next: () => {
+            this.authService.logout();
+            this.finalizarRegistro('¡Cuenta y foto de perfil guardadas! Ya puedes iniciar sesión.');
+          },
+          error: () => {
+            this.authService.logout();
+            this.finalizarRegistro('La cuenta fue creada. Podrás configurar la foto desde tu perfil.');
+          },
+        }),
+        error: () => {
+          this.authService.logout();
+          this.finalizarRegistro('La cuenta fue creada. Podrás configurar la foto desde tu perfil.');
+        },
+      }),
+      error: () => this.finalizarRegistro('La cuenta fue creada. Inicia sesión para configurar la foto.'),
+    });
   }
 
   onSubmit(): void {
@@ -142,18 +180,13 @@ export class RegisterComponent implements OnInit {
         ci: val.ci!.trim(),
         telefono: val.telefono!.trim(),
         direccion: val.direccion!.trim(),
-        foto: this.fotoUrl() || null,
+        foto: null,
         email: val.email!.trim(),
         password: val.password!,
         empresa_codigos: this.selectedCompanyCodes(),
       })
       .subscribe({
-        next: () => {
-          this.successMessage.set('¡Cuenta de cliente creada exitosamente! Redirigiendo al inicio de sesión...');
-          setTimeout(() => {
-            this.router.navigate(['/auth/login']);
-          }, 1500);
-        },
+        next: () => this.guardarFotoTrasRegistro(val.email!.trim(), val.password!),
         error: (err) => {
           const detail =
             err.error?.detail || 'Error al registrar usuario. Intenta de nuevo.';

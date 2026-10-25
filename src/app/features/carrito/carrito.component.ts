@@ -41,7 +41,7 @@ export class CarritoComponent implements OnInit {
   direccionState = signal<string>('');
   ciudadState = signal<string>('Santa Cruz');
   referenciaState = signal<string>('');
-  distanciaKmState = signal<number>(4.5);
+  distanciaKmState = signal<number>(0);
   costoEnvioState = signal<number>(0);
   fechaRecojo = '';
   minFechaRecojo = '';
@@ -81,10 +81,12 @@ export class CarritoComponent implements OnInit {
   set conEnvio(val: boolean) {
     this.conEnvioState.set(val);
     if (val) {
-      if (!this.distanciaKmState() || this.distanciaKmState() < 0.5) {
-        this.distanciaKmState.set(3.5);
+      if (this.ubicacionUrl.trim() || (this.latitudCliente() !== null && this.longitudCliente() !== null)) {
+        this.recalcularTarifaEnvio();
+      } else {
+        this.distanciaKmState.set(0);
+        this.costoEnvioState.set(0);
       }
-      this.recalcularTarifaEnvio();
     } else {
       this.costoEnvioState.set(0);
       this.cargarBloquesRecojo();
@@ -174,13 +176,6 @@ export class CarritoComponent implements OnInit {
     this.fechaRecojo = fecha;
     this.horaRecojo = '';
     this.cargarBloquesRecojo();
-  }
-
-  onSliderChange(): void {
-    const dist = Math.max(0.5, this.distanciaKm || 0.5);
-    this.costoEnvioState.set(Math.round((5.00 + dist * 0.60) * 100) / 100);
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
   }
 
   latitudCliente = signal<number | null>(null);
@@ -299,8 +294,8 @@ export class CarritoComponent implements OnInit {
         this.costoEnvioState.set(Math.round((5.00 + d * 0.60) * 100) / 100);
       }
     } else {
-      const distActual = Math.max(0.5, this.distanciaKm || 3.5);
-      this.costoEnvioState.set(Math.round((5.00 + distActual * 0.60) * 100) / 100);
+      this.distanciaKmState.set(0);
+      this.costoEnvioState.set(0);
     }
 
     // 2. Cotizar y comparar ubicaciones en el Backend
@@ -330,10 +325,11 @@ export class CarritoComponent implements OnInit {
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         },
-        error: () => {
+        error: (err) => {
           this.calculandoDistanciaState.set(false);
-          const dist = Math.max(0.5, this.distanciaKm || 3.5);
-          this.costoEnvioState.set(Math.round((5.00 + dist * 0.60) * 100) / 100);
+          this.distanciaKmState.set(0);
+          this.costoEnvioState.set(0);
+          this.mostrarToast(err?.error?.detail || 'No se pudo validar la distancia. Revisa la ubicación de la sucursal y tu destino.');
           this.cdr.markForCheck();
           this.cdr.detectChanges();
         },
@@ -477,8 +473,9 @@ export class CarritoComponent implements OnInit {
     }
 
     if (this.conEnvio) {
-      if (!this.ubicacionUrl.trim() && !this.direccion.trim()) {
-        this.mostrarToast('Por favor pega el enlace de Google Maps / Apple Maps o tu dirección para el despacho.');
+      const tieneCoordenadas = this.latitudCliente() !== null && this.longitudCliente() !== null;
+      if (!tieneCoordenadas && !this.extraerCoordsDeUrl(this.ubicacionUrl.trim())) {
+        this.mostrarToast('Usa tu ubicación GPS o pega un enlace de Maps que contenga coordenadas exactas.');
         return;
       }
       if (!this.ciudad.trim()) {
@@ -493,27 +490,24 @@ export class CarritoComponent implements OnInit {
     this.isProcesando.set(true);
     this.cdr.markForCheck();
 
-    // Snapshot robusto del monto total esperado (prendas + delivery) antes de confirmar el carrito
-    const subtotalPrendas = Number(this.carrito?.total) || 0;
-    const costoDelivery = this.conEnvio
-      ? (Number(this.costoEnvio) || Math.round((5.00 + (Number(this.distanciaKm) || 0) * 0.60) * 100) / 100)
-      : 0;
-    const totalEsperado = Math.round((subtotalPrendas + costoDelivery) * 100) / 100;
-
     const dirFinal = this.conEnvio
       ? (this.direccion.trim() || (this.ubicacionUrl.trim() ? 'Ubicación GPS (según enlace de mapas)' : 'Entrega a domicilio'))
       : undefined;
 
-    // 1. Confirmar el carrito con la sucursal de procedencia del inventario
+    // Checkout atómico: el backend vuelve a calcular el delivery y guarda un único total cobrable.
     const sucIdFinal = this.sucursalDespacho?.id || this.branchService.getSucursalId();
 
     this.carritoService
-      .confirmarCarrito({
+      .checkout({
         sucursal_id: sucIdFinal,
         metodo_pago: this.metodoPago,
         direccion_envio: dirFinal,
-        despacho_delivery: this.conEnvio,
-        despacho_yango: this.conEnvio,
+        distancia_km: this.conEnvio ? this.distanciaKm : undefined,
+        latitud_destino: this.conEnvio ? (this.latitudCliente() ?? undefined) : undefined,
+        longitud_destino: this.conEnvio ? (this.longitudCliente() ?? undefined) : undefined,
+        ubicacion_url: this.conEnvio ? (this.ubicacionUrl.trim() || undefined) : undefined,
+        ciudad: this.conEnvio ? this.ciudad.trim() : undefined,
+        referencia: this.conEnvio ? (this.referencia.trim() || undefined) : undefined,
         tipo_entrega: this.conEnvio ? 'delivery' : 'recojo',
         fecha_recojo: this.conEnvio ? undefined : this.fechaRecojo,
         hora_recojo: this.conEnvio ? undefined : this.horaRecojo,
@@ -522,34 +516,8 @@ export class CarritoComponent implements OnInit {
       .subscribe({
         next: (res) => {
           const ordenId = res.orden_venta_id;
-
-          // 2. Si hay envío, registrar el despacho con Delivery StyleStore con la tarifa calculada
-          if (this.conEnvio) {
-            const ciudadDespacho = this.ciudad.trim() || this.sucursalDespacho?.ciudad || this.branchService.selectedSucursal()?.city || 'Santa Cruz';
-            const costoDeliveryFinal = this.costoEnvio || Math.round((5.00 + (this.distanciaKm || 0) * 0.60) * 100) / 100;
-            this.envioService
-              .createEnvio({
-                orden_venta_id: ordenId,
-                direccion: dirFinal || 'Entrega a domicilio',
-                ciudad: ciudadDespacho,
-                referencia: this.referencia.trim() || undefined,
-                ubicacion_url: this.ubicacionUrl.trim() || undefined,
-                distancia_km: this.distanciaKm,
-                costo: costoDeliveryFinal,
-                latitud_destino: this.latitudCliente() ?? undefined,
-                longitud_destino: this.longitudCliente() ?? undefined,
-              })
-              .subscribe({
-                next: () => {
-                  this.procederConPago(ordenId, totalEsperado);
-                },
-                error: () => {
-                  this.procederConPago(ordenId, totalEsperado);
-                },
-              });
-          } else {
-            this.procederConPago(ordenId, totalEsperado);
-          }
+          this.costoEnvioState.set(Number(res.costo_envio) || 0);
+          this.procederConPago(ordenId, Number(res.total));
         },
       error: (err) => {
         this.isProcesando.set(false);
