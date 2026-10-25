@@ -142,7 +142,31 @@ export class ProductosListComponent implements OnInit {
     this.coleccionService.getColecciones().subscribe((data) => this.colecciones.set(data));
     this.coloresService.getColores().subscribe((data) => this.colores.set(data));
     this.tallasService.getTallas().subscribe((data) => this.tallas.set(data));
-    this.sucursalService.getSucursales(true).subscribe((data) => this.sucursales.set(data));
+    this.sucursalService.getSucursales(true).subscribe((data) => {
+      this.sucursales.set(data);
+
+      // La sucursal se guarda en localStorage para conservar la preferencia del
+      // usuario. Si la sucursal fue editada o la base de datos fue regenerada,
+      // ese objeto puede quedar desactualizado. Lo reconciliamos con la lista
+      // vigente para no consultar stock con un id antiguo y mostrar un falso 0.
+      const selected = this.branchService.selectedSucursal();
+      if (selected) {
+        const current = data.find((branch) => branch.id === selected.id);
+        const sameBranchWithNewId = data.find(
+          (branch) => branch.name === selected.name && branch.city === selected.city
+        );
+        const resolved = current || sameBranchWithNewId;
+
+        if (resolved) {
+          this.branchService.selectSucursal(resolved);
+        } else {
+          this.branchService.clearSelection();
+          this.branchService.openModal();
+        }
+
+        this.loadProductos();
+      }
+    });
   }
 
   loadProductos(): void {
@@ -554,7 +578,15 @@ export class ProductosListComponent implements OnInit {
     this.showStockModal.set(true);
     this.loadProductStock(p.codigo);
 
-    if (this.sucursales().length > 0) this.newStockSucursalId = this.sucursales()[0].id;
+    const activeBranchId = this.branchService.selectedSucursal()?.id;
+    const activeBranchExists = this.sucursales().some((branch) => branch.id === activeBranchId);
+    if (activeBranchExists && activeBranchId) {
+      // Evita guardar por accidente en la primera sucursal mientras la tarjeta
+      // está mostrando el inventario de otra.
+      this.newStockSucursalId = activeBranchId;
+    } else if (this.sucursales().length > 0) {
+      this.newStockSucursalId = this.sucursales()[0].id;
+    }
     if (this.tallas().length > 0) this.newStockTallaId = this.tallas()[0].id;
     if (p.colores && p.colores.length > 0) {
       this.newStockColorId = p.colores[0].id;
@@ -666,7 +698,10 @@ export class ProductosListComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSubmittingStock.set(false);
-          this.stockModalSuccess.set('Inventario guardado con éxito.');
+          const branch = this.sucursales().find((item) => item.id === sucursalIdNum);
+          this.stockModalSuccess.set(
+            `Inventario guardado: ${cantidadNum} uds. en ${branch?.name || 'la sucursal seleccionada'}.`
+          );
           this.loadProductStock(this.selectedProductForStock!.codigo);
           this.loadProductos();
           setTimeout(() => this.stockModalSuccess.set(''), 2000);

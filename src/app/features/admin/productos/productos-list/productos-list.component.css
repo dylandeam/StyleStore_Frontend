@@ -157,6 +157,17 @@
   border-radius: var(--radius-md);
 }
 
+.stock-context-note {
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-left: 4px solid #c9a96e;
+  border-radius: 0 8px 8px 0;
+  background: rgba(201, 169, 110, 0.12);
+  color: #42516a;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .p-3 { padding: 0.875rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 .mb-3 { margin-bottom: 0.875rem; }

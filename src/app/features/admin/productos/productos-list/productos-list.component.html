@@ -165,7 +165,8 @@
                 </div>
                 <div class="card-stock-pill" [class.low-stock]="(p.stock_total || 0) < 5">
                   <span class="stock-indicator"></span>
-                  {{ p.stock_total || 0 }} uds. en stock
+                  {{ p.stock_total || 0 }}
+                  {{ branchService.isAllBranches() ? 'uds. en total' : 'uds. en esta sucursal' }}
                 </div>
               </div>
 
@@ -278,7 +279,8 @@
                   <td class="cell-price">Bs. {{ p.precio | number:'1.2-2' }}</td>
                   <td>
                     <span class="badge-stock" [class.low-stock]="(p.stock_total || 0) < 5">
-                      {{ p.stock_total || 0 }} uds.
+                      {{ p.stock_total || 0 }}
+                      {{ branchService.isAllBranches() ? 'uds. total' : 'uds. en sucursal' }}
                     </span>
                   </td>
                   <td>
@@ -713,6 +715,13 @@
         <!-- Formulario rápido para añadir/modificar inventario -->
         <div class="card p-3 mb-3 bg-subtle">
           <h4 class="mb-2 font-bold text-navy">Asignar / Actualizar Stock</h4>
+          <p class="stock-context-note">
+            @if (branchService.selectedSucursal(); as activeBranch) {
+              La tarjeta muestra el inventario de <strong>{{ activeBranch.name }}</strong> y esa sucursal está preseleccionada aquí.
+            } @else {
+              La tarjeta muestra el total de todas las sucursales. Confirma abajo en cuál deseas guardar las unidades.
+            }
+          </p>
           <div class="form-grid">
             <div class="form-group">
               <label>Sucursal</label>
