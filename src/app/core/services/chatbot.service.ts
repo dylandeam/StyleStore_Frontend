@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { timeout, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { BrandingService } from './branding.service';
 
 export interface ChatbotChip {
   label: string;
@@ -33,6 +34,7 @@ export interface ChatbotResponse {
 })
 export class ChatbotService {
   private http = inject(HttpClient);
+  private branding = inject(BrandingService);
   private apiUrl = `${environment.apiUrl}/chatbot`;
 
   enviarMensaje(mensaje: string): Observable<ChatbotResponse> {
@@ -55,6 +57,7 @@ export class ChatbotService {
   }
 
   procesarRespuestaLocal(mensaje: string): ChatbotResponse {
+    const brandName = this.branding.brand()?.nombre_marca || 'tu tienda';
     const norm = mensaje
       .toLowerCase()
       .normalize('NFD')
@@ -65,10 +68,10 @@ export class ChatbotService {
     if (norm.includes('pantalon') || norm.includes('jeans') || norm.includes('pantalones')) {
       return {
         respuesta:
-          '👗 **¡Sí! Tenemos pantalones disponibles en StyleStore.**\n\nContamos con modelos en tendencia como **Pantalón Shein** y prendas de temporada. Puedes revisar existencias, colores y tallas en el catálogo interactivo.',
+          `👗 **¡Sí! Tenemos pantalones disponibles en ${brandName}.**\n\nConsulta los modelos guardados en el catálogo local. Cuando recuperes conexión podrás verificar existencias, colores y tallas actualizadas.`,
         chips: [
           { label: '👗 Ver Catálogo de Ropa', action: 'navigate', route: '/catalogo' },
-          { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
+          { label: '📍 Ver Sucursales', action: 'navigate', route: '/sucursales' },
           { label: '🛍️ Ir al Carrito', action: 'navigate', route: '/carrito' },
         ],
       };
@@ -82,10 +85,10 @@ export class ChatbotService {
     ) {
       return {
         respuesta:
-          '👗 **¡Sí! Disponemos de camisas, polos y prendas superiores en StyleStore.**\n\nTenemos prendas como **Camisa Formal**, **Manga Larga Térmica** y **Polo**. Explora colores y existencias disponibles en el catálogo.',
+          `👕 **Puedes explorar las prendas superiores de ${brandName}.**\n\nEl catálogo local conserva los productos consultados anteriormente. Con conexión podrás comprobar stock, colores y tallas en tiempo real.`,
         chips: [
           { label: '👗 Explorar Catálogo', action: 'navigate', route: '/catalogo' },
-          { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
+          { label: '📍 Ver Sucursales', action: 'navigate', route: '/sucursales' },
         ],
       };
     }
@@ -101,7 +104,7 @@ export class ChatbotService {
         respuesta:
           '🏬 Estás usando el asistente local sin conexión. Para no mostrar información de otro tenant ni inventar direcciones, conecta el dispositivo y abre **Sucursales** para consultar ubicaciones y horarios actualizados.',
         chips: [
-          { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
+          { label: '📍 Ver Sucursales', action: 'navigate', route: '/sucursales' },
           { label: '👗 Ver Catálogo', action: 'navigate', route: '/catalogo' },
         ],
       };
@@ -126,7 +129,7 @@ export class ChatbotService {
     if (norm.includes('envio') || norm.includes('delivery') || norm.includes('despacho') || norm.includes('yango')) {
       return {
         respuesta:
-          '🛵 **Delivery StyleStore Oficial:**\n\nRealizamos despachos a domicilio con nuestro servicio propio de Delivery StyleStore. Proporciona tu enlace de Google Maps o Apple Maps al finalizar tu pedido para seguimiento en tiempo real y asignación de repartidor.',
+          `🛵 **Delivery de ${brandName}:**\n\nEn el checkout puedes indicar tu ubicación para calcular la tarifa desde la sucursal. La confirmación y el seguimiento requieren conexión.`,
         chips: [
           { label: '📦 Mis Compras', action: 'navigate', route: '/cuenta/mis-compras' },
           { label: '🛍️ Ir al Carrito', action: 'navigate', route: '/carrito' },
@@ -137,7 +140,7 @@ export class ChatbotService {
     if (norm.includes('reserva')) {
       return {
         respuesta:
-          '🔖 **Reservas en Tienda:**\n\nDisponible para clientes con al menos 1 compra previa pagada. Puedes reservar cualquier prenda por hasta 7 días indicando la sucursal de retiro.',
+          '🔖 **Reservas en tienda:**\n\nDisponible para clientes con al menos una compra previa pagada. Puedes reservar una prenda por hasta 3 días e indicar la sucursal de retiro.',
         chips: [
           { label: '👗 Ver Catálogo', action: 'navigate', route: '/catalogo' },
           { label: '📦 Mis Pedidos', action: 'navigate', route: '/cuenta/mis-compras' },
@@ -151,17 +154,17 @@ export class ChatbotService {
           '🔄 **Garantía de Cambios y Devoluciones:**\n\nTienes un plazo de hasta 7 días posteriores a tu compra para solicitar cambio de prenda o devolución desde la sección Mis Compras.',
         chips: [
           { label: '🔄 Solicitar en Mis Compras', action: 'navigate', route: '/cuenta/mis-compras' },
-          { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
+          { label: '📍 Ver Sucursales', action: 'navigate', route: '/sucursales' },
         ],
       };
     }
 
     return {
       respuesta:
-        '¡Hola! Como asistente virtual de StyleStore puedo colaborarte con sucursales, ropa disponible (pantalones, camisas, polos), envíos con Delivery StyleStore, reservas o cambios. ¿Qué te gustaría consultar?',
+        `¡Hola! Soy el asistente virtual de ${brandName}. Puedo ayudarte con el catálogo guardado, compras, entregas, reservas o cambios. ¿Qué deseas consultar?`,
       chips: [
         { label: '👗 Catálogo de Ropa', action: 'navigate', route: '/catalogo' },
-        { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
+        { label: '📍 Ver Sucursales', action: 'navigate', route: '/sucursales' },
         { label: '📦 Mis Compras', action: 'navigate', route: '/cuenta/mis-compras' },
       ],
       modo_ia: 'offline_local',

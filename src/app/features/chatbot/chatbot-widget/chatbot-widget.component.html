@@ -1,18 +1,22 @@
-<!-- Botón Flotante del Chatbot -->
 <div class="chatbot-floating-wrapper">
-  <!-- Ventana de Chat Desplegable -->
-  <div class="chatbot-window" *ngIf="isOpen">
+  <section class="chatbot-window" *ngIf="isOpen" aria-label="Asistente virtual">
     <div class="chatbot-header">
       <div class="chatbot-header-info">
-        <div class="chatbot-avatar">✨</div>
-        <div>
-          <h4 class="chatbot-title">{{ branding.brand()?.nombre_marca || 'StyleStore' }} Assistant</h4>
+        <div class="chatbot-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3l1.25 4.1L17 8.5l-3.75 1.4L12 14l-1.25-4.1L7 8.5l3.75-1.4L12 3Zm6 10 .8 2.2L21 16l-2.2.8L18 19l-.8-2.2L15 16l2.2-.8L18 13ZM5 12l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3Z"/></svg>
+        </div>
+        <div class="chatbot-heading">
+          <span class="assistant-kicker">ASISTENTE VIRTUAL</span>
+          <h4 class="chatbot-title">{{ branding.brand()?.nombre_marca || 'StyleStore' }}</h4>
           <span class="chatbot-status">
-            {{ aiMode === 'online_groq' ? 'En línea · Groq + datos del tenant' : aiMode === 'online_local' ? 'En línea · Motor local' : 'Sin conexión · Ayuda local' }}
+            <i class="status-dot" [class.offline]="aiMode === 'offline_local'"></i>
+            {{ modeLabel() }}
           </span>
         </div>
       </div>
-      <button type="button" class="btn-close-chat" (click)="toggleChat()" title="Cerrar chat">✕</button>
+      <button type="button" class="btn-close-chat" (click)="toggleChat()" aria-label="Cerrar chat">
+        <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
     </div>
 
     <div class="chatbot-messages" id="chatbot-messages-container">
@@ -22,10 +26,23 @@
         [ngClass]="msg.remitente === 'user' ? 'message-user' : 'message-bot'"
       >
         <div class="message-bubble">
-          <p class="message-text" style="white-space: pre-line;">{{ msg.texto }}</p>
-          <span class="message-time">{{ msg.hora }}</span>
+          <div class="message-text">
+            <div
+              class="message-line"
+              *ngFor="let line of formatMessage(msg.texto)"
+              [class.message-bullet]="line.bullet"
+              [class.message-spacer]="line.segments.length === 0"
+            >
+              <span *ngIf="line.bullet" class="bullet-mark" aria-hidden="true"></span>
+              <span class="line-content">
+                <ng-container *ngFor="let segment of line.segments">
+                  <strong *ngIf="segment.strong">{{ segment.text }}</strong>
+                  <span *ngIf="!segment.strong">{{ segment.text }}</span>
+                </ng-container>
+              </span>
+            </div>
+          </div>
 
-          <!-- Chips de navegación interactivos -->
           <div class="chips-container" *ngIf="msg.chips && msg.chips.length > 0">
             <button
               type="button"
@@ -33,23 +50,24 @@
               *ngFor="let chip of msg.chips"
               (click)="clickChip(chip)"
             >
-              {{ chip.label }} →
+              <span>{{ chip.label }}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
             </button>
           </div>
+          <span class="message-time">{{ msg.hora }}</span>
         </div>
       </div>
 
       <div class="message-row message-bot" *ngIf="isLoading">
         <div class="message-bubble loading-dots">
           <span></span><span></span><span></span>
+          <small>Preparando una respuesta…</small>
         </div>
       </div>
     </div>
 
-    <!-- Banner de escucha por voz -->
     <div class="voice-listening-banner" *ngIf="isListening">
-      <div class="voice-pulse-ring"></div>
-      <span class="pulse-mic">🎙️</span>
+      <span class="pulse-mic" aria-hidden="true">●</span>
       <span class="voice-listening-text">Escuchando tu voz... Habla ahora</span>
       <button type="button" class="btn-voice-cancel" (click)="toggleVoiceSearch()">✕</button>
     </div>
@@ -61,38 +79,41 @@
         [class.listening]="isListening"
         (click)="toggleVoiceSearch()"
         [title]="isListening ? 'Detener micrófono' : 'Consultar por voz (micrófono)'"
+        aria-label="Consultar por voz"
       >
-        🎙️
+        <svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
       </button>
       <input
         type="text"
         [(ngModel)]="inputText"
         (keyup.enter)="sendMessage()"
-        [placeholder]="isListening ? 'Escuchando tu voz...' : 'Escribe o habla (ej: qué sucursales hay?)...'"
+        [placeholder]="isListening ? 'Escuchando tu voz…' : 'Pregúntame sobre prendas, compras o envíos'"
         class="chat-input"
         [disabled]="isLoading"
+        aria-label="Mensaje para el asistente"
       />
       <button
         type="button"
         class="btn-send"
         (click)="sendMessage()"
         [disabled]="isLoading || !inputText.trim()"
+        aria-label="Enviar mensaje"
       >
-        ➤
+        <svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4 20-7Z"/><path d="M22 2 11 13"/></svg>
       </button>
     </div>
-  </div>
+    <div class="chatbot-privacy">Las respuestas usan únicamente los datos de esta tienda.</div>
+  </section>
 
-  <!-- Botón Circular Activador -->
   <button
     type="button"
     class="chatbot-launcher-btn"
     (click)="toggleChat()"
     [class.active]="isOpen"
-    title="Asistente Virtual StyleStore"
+    [attr.aria-label]="isOpen ? 'Cerrar asistente' : 'Abrir asistente virtual'"
   >
-    <span *ngIf="!isOpen" class="launcher-icon">💬</span>
-    <span *ngIf="isOpen" class="launcher-icon">✕</span>
+    <svg *ngIf="!isOpen" class="launcher-icon" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z"/><path d="M8 9h8M8 13h5"/></svg>
+    <svg *ngIf="isOpen" class="launcher-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg>
     <span class="launcher-badge" *ngIf="!isOpen">IA</span>
   </button>
 </div>

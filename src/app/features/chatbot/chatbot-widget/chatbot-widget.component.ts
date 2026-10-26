@@ -14,6 +14,16 @@ interface ChatMessage {
   accionEjecutada?: boolean;
 }
 
+interface MessageSegment {
+  text: string;
+  strong: boolean;
+}
+
+interface MessageLine {
+  segments: MessageSegment[];
+  bullet: boolean;
+}
+
 @Component({
   selector: 'app-chatbot-widget',
   standalone: true,
@@ -40,7 +50,7 @@ export class ChatbotWidgetComponent implements OnInit {
   messages: ChatMessage[] = [
     {
       remitente: 'bot',
-      texto: '¡Hola! 👋 Soy el asistente virtual inteligente de StyleStore potenciado por IA. Puedo responder preguntas sobre nuestras prendas, precios, sucursales, envíos o agregar prendas a tu carrito si me dices por ejemplo: "agrega el vestido rojo al carrito". ¡También puedes pulsar el micrófono 🎙️ para consultarme por voz!',
+      texto: '¡Hola! 👋 Soy el asistente virtual de StyleStore. Puedo ayudarte con prendas, precios, sucursales, compras y entregas. También puedes escribirme “agrega el polo al carrito” o usar el micrófono.',
       hora: this.getHoraActual(),
       chips: [
         { label: '📍 Ver Sucursales', action: 'navigate', route: '/admin/sucursales' },
@@ -179,7 +189,7 @@ export class ChatbotWidgetComponent implements OnInit {
           this.aiMode = res.modo_ia || 'online_local';
           const botMsg: ChatMessage = {
             remitente: 'bot',
-            texto: res.respuesta,
+            texto: this.sanitizeBotText(res.respuesta),
             hora: this.getHoraActual(),
             chips: res.chips,
             accionEjecutada: !!res.accion_ejecutable,
@@ -250,6 +260,48 @@ export class ChatbotWidgetComponent implements OnInit {
     if (chip.action === 'navigate') {
       this.router.navigate([chip.route]);
     }
+  }
+
+  modeLabel(): string {
+    if (this.aiMode === 'online_groq') return 'IA en línea · Información actualizada';
+    if (this.aiMode === 'online_local') return 'Asistente local · En línea';
+    return 'Modo sin conexión · Ayuda básica';
+  }
+
+  formatMessage(text: string): MessageLine[] {
+    return this.sanitizeBotText(text)
+      .split('\n')
+      .map((rawLine) => {
+        const trimmed = rawLine.trim();
+        const bullet = /^[-•]\s+/.test(trimmed);
+        const content = trimmed.replace(/^[-•]\s+/, '');
+        const parts = content.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+        return {
+          bullet,
+          segments: parts.map((part) => ({
+            text: part.startsWith('**') && part.endsWith('**') ? part.slice(2, -2) : part,
+            strong: part.startsWith('**') && part.endsWith('**'),
+          })),
+        };
+      })
+      .filter((line, index, lines) =>
+        line.segments.some((segment) => segment.text.trim()) ||
+        (index > 0 && index < lines.length - 1)
+      );
+  }
+
+  private sanitizeBotText(text: string): string {
+    return (text || 'No pude generar una respuesta. Intenta nuevamente.')
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .filter((line) => {
+        const marker = line.replace(/[\s*_#`]/g, '').toLowerCase();
+        if (/^(chips|acciones|rutas):/.test(marker)) return false;
+        if (/\[[^\]]+\|\s*\/(?:catalogo|sucursales|admin|cuenta|carrito)/i.test(line)) return false;
+        return !/^\s*[-—–_*]{3,}\s*$/.test(line);
+      })
+      .join('\n')
+      .trim();
   }
 
   scrollToBottom(): void {
