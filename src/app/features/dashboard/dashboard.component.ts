@@ -8,6 +8,7 @@ import { ReportesService } from '../../core/services/reportes.service';
 import { SucursalService } from '../../core/services/sucursal.service';
 import { User } from '../../core/models/user.model';
 import { Sucursal } from '../../core/models/sucursal.model';
+import { BrandingService } from '../../core/services/branding.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +22,7 @@ export class DashboardComponent implements OnInit {
   private reportesService = inject(ReportesService);
   private sucursalService = inject(SucursalService);
   private cdr = inject(ChangeDetectorRef);
+  readonly branding = inject(BrandingService);
 
   user = signal<User | null>(this.authService.currentUser());
   isLoading = signal<boolean>(!this.authService.currentUser());

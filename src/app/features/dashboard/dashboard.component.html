@@ -17,7 +17,7 @@
         </div>
         <h1 class="hero-title">¡Bienvenido(a), {{ user()?.name }}!</h1>
         <p class="hero-description">
-          Panel de control inteligente y gestión integral de <strong>StyleStore</strong>. Monitorea métricas en tiempo real y gestiona tus operaciones.
+          Panel de control inteligente y gestión integral de <strong>{{ branding.brand()?.nombre_marca || 'StyleStore' }}</strong>. Monitorea métricas en tiempo real y gestiona tus operaciones.
         </p>
         <div class="hero-actions">
           <a routerLink="/catalogo" class="btn-hero-action" *ngIf="isCliente">

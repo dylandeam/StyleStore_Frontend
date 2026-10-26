@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ChatbotService, ChatbotChip } from '../../../core/services/chatbot.service';
 import { CarritoService } from '../../../core/services/carrito.service';
+import { BrandingService } from '../../../core/services/branding.service';
 
 interface ChatMessage {
   remitente: 'bot' | 'user';
@@ -26,6 +27,7 @@ export class ChatbotWidgetComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  readonly branding = inject(BrandingService);
 
   isOpen = false;
   inputText = '';
@@ -50,6 +52,8 @@ export class ChatbotWidgetComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    const brandName = this.branding.brand()?.nombre_marca || 'StyleStore';
+    this.messages[0].texto = this.messages[0].texto.replace('StyleStore', brandName);
     this.initSpeechRecognition();
     this.chatbotService.getEstado().subscribe({
       next: (state) => this.aiMode = state.modo_preferido === 'online_groq' ? 'online_groq' : 'online_local',

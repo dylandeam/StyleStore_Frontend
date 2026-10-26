@@ -13,6 +13,7 @@ import { Categoria } from '../../../core/models/categoria.model';
 import { Temporada } from '../../../core/models/temporada.model';
 import { Coleccion } from '../../../core/models/coleccion.model';
 import { Sucursal } from '../../../core/models/sucursal.model';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'app-catalogo-list',
@@ -30,6 +31,7 @@ export class CatalogoListComponent implements OnInit {
   private sucursalService = inject(SucursalService);
   public branchService = inject(BranchSelectionService);
   public uploadService = inject(UploadService);
+  readonly branding = inject(BrandingService);
 
   productos = signal<CatalogoItem[]>([]);
   recomendadosParaTi = signal<any[]>([]);

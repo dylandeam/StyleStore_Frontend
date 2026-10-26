@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { PromocionesService } from '../../core/services/promociones.service';
 import { Producto } from '../../core/models/producto.model';
 import { environment } from '../../../environments/environment';
+import { BrandingService } from '../../core/services/branding.service';
 
 @Component({
   selector: 'app-promociones-cliente',
@@ -16,6 +17,7 @@ import { environment } from '../../../environments/environment';
 export class PromocionesClienteComponent implements OnInit {
   private promocionesService = inject(PromocionesService);
   private router = inject(Router);
+  readonly branding = inject(BrandingService);
 
   promociones = signal<Producto[]>([]);
   isLoading = signal<boolean>(true);
