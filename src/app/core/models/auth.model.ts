@@ -17,6 +17,7 @@ export interface RegisterRequest {
 }
 
 export interface RegistrationCompany {
+  id: number;
   codigo: string;
   nombre: string;
 }

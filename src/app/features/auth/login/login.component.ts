@@ -5,6 +5,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { RegistrationCompany } from '../../../core/models/auth.model';
+import { PlatformTenantContextService } from '../../../core/services/platform-tenant-context.service';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class LoginComponent implements OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly platformTenantContext = inject(PlatformTenantContextService);
 
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -110,6 +112,11 @@ export class LoginComponent implements OnDestroy {
         this.lockoutBlocks.set(0);
         if (this.tenant()) {
           localStorage.setItem('stylestore_login_tenant', this.tenant()!.codigo);
+          this.platformTenantContext.select({
+            id: this.tenant()!.id,
+            codigo: this.tenant()!.codigo,
+            nombre: this.tenant()!.nombre,
+          });
         }
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
         this.router.navigateByUrl(returnUrl);
