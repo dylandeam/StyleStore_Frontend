@@ -19,10 +19,14 @@
     } @else {
       <div class="tenant-grid">
         @for (company of filteredCompanies(); track company.codigo) {
-          <article class="tenant-card">
-            <div class="tenant-mark">{{ company.nombre.charAt(0).toUpperCase() }}</div>
+          <article class="tenant-card" [style.border-color]="company.color_acento || '#d8d1c5'">
+            <div class="tenant-mark" [style.background]="company.color_primario || '#142b47'">
+              @if (companyLogo(company)) { <img [src]="companyLogo(company)" [alt]="company.nombre" /> }
+              @else { {{ (company.nombre_marca || company.nombre).charAt(0).toUpperCase() }} }
+            </div>
             <div class="tenant-copy">
-              <h2>{{ company.nombre }}</h2>
+              <h2>{{ company.nombre_marca || company.nombre }}</h2>
+              @if (company.nombre_marca && company.nombre_marca !== company.nombre) { <small>{{ company.nombre }}</small> }
               <span>Código: {{ company.codigo }}</span>
             </div>
             <button type="button" (click)="openTenant(company)">Ingresar <span>→</span></button>

@@ -217,3 +217,9 @@
 .tenant-option span { display: grid; }
 .tenant-option small { color: var(--text-secondary); }
 @media (max-width: 560px) { .tenant-options { grid-template-columns: 1fr; } }
+.tenant-locked { display:flex; align-items:center; gap:.75rem; padding:.85rem 1rem; margin:1rem 0; border:1px solid var(--border-subtle); border-radius:14px; background:var(--bg-card); }
+.tenant-locked div { display:grid; flex:1; gap:.1rem; }
+.tenant-locked small { color:var(--text-secondary); font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+.tenant-locked strong { color:var(--text-primary); }
+.tenant-locked code { color:var(--accent-link); font-size:.72rem; }
+.tenant-locked .lock { opacity:.7; }

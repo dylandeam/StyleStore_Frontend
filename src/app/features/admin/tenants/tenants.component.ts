@@ -130,7 +130,7 @@ export class TenantsComponent implements OnInit {
   }
 
   async copyLoginLink(tenant: TenantSummary): Promise<void> {
-    const url = `${window.location.origin}/auth/login?tenant=${encodeURIComponent(tenant.codigo)}`;
+    const url = `${window.location.origin}/t/${encodeURIComponent(tenant.codigo)}/login`;
     try {
       await navigator.clipboard.writeText(url);
       this.success.set(`Enlace de acceso de “${tenant.nombre}” copiado.`);

@@ -5,6 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { RegistrationCompany } from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { BrandingService } from '../../../core/services/branding.service';
+import { UploadService } from '../../../core/services/upload.service';
 
 @Component({
   selector: 'app-tenant-selector',
@@ -17,6 +19,8 @@ export class TenantSelectorComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   readonly route = inject(ActivatedRoute);
+  private readonly branding = inject(BrandingService);
+  private readonly uploads = inject(UploadService);
 
   readonly companies = signal<RegistrationCompany[]>([]);
   readonly search = signal('');
@@ -30,6 +34,7 @@ export class TenantSelectorComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.branding.reset();
     this.authService.getRegistrationCompanies().subscribe({
       next: (items) => {
         this.companies.set(items);
@@ -43,11 +48,12 @@ export class TenantSelectorComponent implements OnInit {
   }
 
   openTenant(company: RegistrationCompany): void {
-    this.router.navigate(['/auth/login'], {
-      queryParams: {
-        tenant: company.codigo,
-        returnUrl: this.route.snapshot.queryParamMap.get('returnUrl') || undefined,
-      },
+    this.router.navigate(['/t', company.codigo, 'login'], {
+      queryParams: { returnUrl: this.route.snapshot.queryParamMap.get('returnUrl') || undefined },
     });
+  }
+
+  companyLogo(company: RegistrationCompany): string {
+    return this.uploads.getImageUrl(company.logo_url, 'logos');
   }
 }

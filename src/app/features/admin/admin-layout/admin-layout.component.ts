@@ -11,6 +11,7 @@ import { TenantAccess } from '../../../core/models/auth.model';
 import { TenantSummary } from '../../../core/models/tenant.model';
 import { TenantService } from '../../../core/services/tenant.service';
 import { PlatformTenantContextService } from '../../../core/services/platform-tenant-context.service';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -25,6 +26,7 @@ export class AdminLayoutComponent implements OnInit {
   private readonly notificacionesService = inject(NotificacionesService);
   private readonly tenantService = inject(TenantService);
   readonly platformTenantContext = inject(PlatformTenantContextService);
+  readonly branding = inject(BrandingService);
 
   readonly isSidebarCollapsed = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
@@ -84,6 +86,11 @@ export class AdminLayoutComponent implements OnInit {
 
   private loadTenants(): void {
     if (this.user()?.is_platform_admin) {
+      if (this.platformTenantContext.selected()) {
+        this.branding.loadCurrent().subscribe({ error: () => this.branding.reset() });
+      } else {
+        this.branding.reset();
+      }
       this.tenantService.list().subscribe({
         next: (items) => {
           this.platformTenants.set(items);
@@ -93,11 +100,22 @@ export class AdminLayoutComponent implements OnInit {
         error: () => this.platformTenants.set([]),
       });
     } else if (this.user()?.role === 'cliente') {
+      this.branding.loadCurrent().subscribe({ error: () => this.branding.reset() });
       this.authService.getMyTenants().subscribe({
         next: (items) => this.tenants.set(items),
         error: () => this.tenants.set([]),
       });
+    } else {
+      this.branding.loadCurrent().subscribe({ error: () => this.branding.reset() });
     }
+  }
+
+  get brandName(): string {
+    return this.branding.brand()?.nombre_marca || 'StyleStore';
+  }
+
+  get brandLogo(): string {
+    return this.branding.logoUrl();
   }
 
   switchPlatformTenant(event: Event): void {
@@ -171,6 +189,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/admin/notificaciones')) {
       this.currentTitle.set('Notificaciones y Campañas');
       this.currentSubtitle.set('Mensajes personalizados, promociones y recordatorios programados');
+    } else if (url.includes('/admin/identidad')) {
+      this.currentTitle.set('Identidad de Marca');
+      this.currentSubtitle.set('Logo, nombre comercial y colores propios del portal');
     } else if (url.includes('/admin/planes')) {
       this.currentTitle.set('Configuración de Planes');
       this.currentSubtitle.set('Precios, moneda, beneficios y presentación por empresa');

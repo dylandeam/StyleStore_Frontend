@@ -20,6 +20,21 @@ export interface RegistrationCompany {
   id: number;
   codigo: string;
   nombre: string;
+  nombre_marca?: string | null;
+  logo_url?: string | null;
+  color_primario?: string;
+  color_acento?: string;
+}
+
+export interface TenantBranding extends RegistrationCompany {
+  nombre_marca: string;
+  eslogan?: string | null;
+  logo_url?: string | null;
+  color_primario: string;
+  color_secundario: string;
+  color_acento: string;
+  color_fondo: string;
+  color_texto: string;
 }
 
 export interface TenantAccess {

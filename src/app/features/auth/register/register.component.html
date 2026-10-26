@@ -3,11 +3,11 @@
     <div class="brand-header">
       <div class="brand-logo-container">
         <div class="logo-navy-wrapper">
-          <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="brand-logo-img" />
+          <img [src]="tenantLogo()" [alt]="(tenantPortal()?.nombre_marca || 'Tienda') + ' Logo'" class="brand-logo-img" />
         </div>
       </div>
-      <h2>Crear cuenta</h2>
-      <p class="subtitle">Únete a StyleStore y accede a nuestro catálogo y servicios exclusivos</p>
+      <h2>Crear cuenta en {{ tenantPortal()?.nombre_marca || 'la tienda' }}</h2>
+      <p class="subtitle">{{ tenantPortal()?.eslogan || 'Tu cuenta quedará asociada exclusivamente a esta empresa.' }}</p>
     </div>
 
     @if (successMessage()) {
@@ -23,20 +23,11 @@
     }
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
-      <fieldset class="form-group tenant-selector">
-        <legend class="form-label">Empresas donde deseas registrarte *</legend>
-        <p class="foto-help-text">Puedes elegir una o varias. La primera seleccionada será tu tienda inicial.</p>
-        <div class="tenant-options">
-          @for (company of companies(); track company.codigo) {
-            <label class="tenant-option">
-              <input type="checkbox" [checked]="selectedCompanyCodes().includes(company.codigo)" (change)="toggleCompany(company.codigo, $any($event.target).checked)" />
-              <span><strong>{{ company.nombre }}</strong><small>{{ company.codigo }}</small></span>
-            </label>
-          } @empty {
-            <span class="foto-help-text">Cargando empresas disponibles…</span>
-          }
-        </div>
-      </fieldset>
+      <div class="tenant-locked">
+        <span>🏢</span>
+        <div><small>Registro exclusivo</small><strong>{{ tenantPortal()?.nombre_marca || 'Validando portal…' }}</strong><code>{{ tenantPortal()?.codigo }}</code></div>
+        <span class="lock">🔒</span>
+      </div>
 
       <!-- Nombres y Apellidos en dos columnas -->
       <div class="form-row-2col">

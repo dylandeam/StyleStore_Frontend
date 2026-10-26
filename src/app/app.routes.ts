@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { platformAdminGuard } from './core/guards/platform-admin.guard';
+import { guestGuard } from './core/guards/guest.guard';
 import { AdminLayoutComponent } from './features/admin/admin-layout/admin-layout.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { UsuariosListComponent } from './features/admin/usuarios/usuarios-list/usuarios-list.component';
@@ -51,8 +52,19 @@ import { TenantsComponent } from './features/admin/tenants/tenants.component';
 import { ReembolsosComponent } from './features/admin/reembolsos/reembolsos.component';
 import { ExperienciaComponent } from './features/cuenta/experiencia/experiencia.component';
 import { CampanasComponent } from './features/admin/notificaciones/campanas.component';
+import { BrandingComponent } from './features/admin/branding/branding.component';
 
 export const routes: Routes = [
+  {
+    path: 't/:tenant/login',
+    loadComponent: () => import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+    canActivate: [guestGuard],
+  },
+  {
+    path: 't/:tenant/registro',
+    loadComponent: () => import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+    canActivate: [guestGuard],
+  },
   {
     path: '',
     redirectTo: 'dashboard',
@@ -284,6 +296,11 @@ export const routes: Routes = [
       {
         path: 'admin/notificaciones',
         component: CampanasComponent,
+        canActivate: [roleGuard(['administrador'])],
+      },
+      {
+        path: 'admin/identidad',
+        component: BrandingComponent,
         canActivate: [roleGuard(['administrador'])],
       },
       {

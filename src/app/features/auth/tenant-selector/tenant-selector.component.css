@@ -11,7 +11,9 @@ h1 { margin:0; font-size:clamp(2rem,5vw,3.5rem); line-height:1.05; }
 .tenant-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; }
 .tenant-card { display:grid; grid-template-columns:auto 1fr; gap:.85rem; align-items:center; padding:1.2rem; border:1px solid #d8d1c5; border-radius:20px; background:#fffcf7; box-shadow:0 10px 30px #142b470d; }
 .tenant-mark { display:grid; place-items:center; width:52px; height:52px; border-radius:16px; background:#142b47; color:#fff; font-size:1.35rem; font-weight:900; }
+.tenant-mark img { width:44px; height:44px; object-fit:contain; border-radius:11px; background:#fff; }
 .tenant-copy h2 { margin:0 0 .25rem; font-size:1.05rem; }
+.tenant-copy small { display:block; margin-bottom:.15rem; color:#667085; }
 .tenant-copy span { color:#7b705f; font-size:.78rem; }
 .tenant-card button { grid-column:1/-1; display:flex; justify-content:space-between; width:100%; padding:.75rem .9rem; border:0; border-radius:12px; background:#142b47; color:#fff; font-weight:800; cursor:pointer; }
 .tenant-card button:hover { background:#203f63; transform:translateY(-1px); }

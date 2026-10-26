@@ -6,7 +6,7 @@ import { Observable, tap, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
 import { User, UserCreateByAdmin } from '../models/user.model';
-import { LoginRequest, RegisterRequest, RegistrationCompany, TenantAccess, TokenResponse, MessageResponse } from '../models/auth.model';
+import { LoginRequest, RegisterRequest, RegistrationCompany, TenantAccess, TenantBranding, TokenResponse, MessageResponse } from '../models/auth.model';
 import { PlatformTenantContextService } from './platform-tenant-context.service';
 
 @Injectable({
@@ -57,6 +57,21 @@ export class AuthService {
 
   getRegistrationCompanies(): Observable<RegistrationCompany[]> {
     return this.http.get<RegistrationCompany[]>(`${this.API_URL}/empresas/publicas/registro`);
+  }
+
+  getTenantPortal(code: string): Observable<TenantBranding> {
+    return this.http.get<TenantBranding>(`${this.API_URL}/empresas/publicas/${encodeURIComponent(code)}/portal`);
+  }
+
+  registerForTenant(code: string, payload: RegisterRequest): Observable<User> {
+    this.isLoading.set(true);
+    return this.http.post<User>(`${this.API_URL}/auth/register/tenant/${encodeURIComponent(code)}`, payload).pipe(
+      tap(() => this.isLoading.set(false)),
+      catchError((error) => {
+        this.isLoading.set(false);
+        return throwError(() => error);
+      })
+    );
   }
 
   getMyTenants(): Observable<TenantAccess[]> {

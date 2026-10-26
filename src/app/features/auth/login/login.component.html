@@ -3,18 +3,20 @@
     <div class="brand-header">
       <div class="brand-logo-container">
         <div class="logo-navy-wrapper">
-          <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="brand-logo-img" />
+          <img [src]="tenantLogo()" [alt]="(tenant()?.nombre_marca || 'StyleStore') + ' Logo'" class="brand-logo-img" />
         </div>
       </div>
-      <h2>Bienvenido de nuevo</h2>
-      <p class="subtitle">Inicia sesión para continuar</p>
+      <h2>Bienvenido a {{ tenant()?.nombre_marca || 'StyleStore' }}</h2>
+      <p class="subtitle">{{ tenant()?.eslogan || 'Inicia sesión para continuar' }}</p>
     </div>
 
     @if (tenant()) {
       <div class="tenant-login-context">
         <span class="tenant-login-icon">🏢</span>
         <span><small>Acceso de empresa</small><strong>{{ tenant()?.nombre }}</strong><code>{{ tenant()?.codigo }}</code></span>
-        <a routerLink="/auth/tenant" title="Elegir otra empresa">Cambiar</a>
+        @if (!isTenantPortal()) {
+          <a routerLink="/auth/tenant" title="Elegir otra empresa">Cambiar</a>
+        }
       </div>
     } @else {
       <div class="tenant-login-context global">
@@ -86,7 +88,7 @@
         }
       </div>
 
-      <button type="submit" class="btn-primary w-full submit-btn" [disabled]="isLoading() || lockoutRemaining() > 0">
+      <button type="submit" class="btn-primary w-full submit-btn" [disabled]="isLoading() || lockoutRemaining() > 0 || (isTenantPortal() && !tenant())">
         @if (isLoading()) {
           <span class="spinner"></span>
           <span>Verificando...</span>
@@ -99,8 +101,10 @@
       </button>
     </form>
 
-    <div class="auth-footer">
-      <p>¿No tienes una cuenta? <a [routerLink]="['/auth/register']" [queryParams]="tenantCode() ? { tenant: tenantCode() } : {}" class="auth-link">Crear una cuenta</a></p>
-    </div>
+    @if (isTenantPortal() && tenantCode()) {
+      <div class="auth-footer">
+        <p>¿No tienes una cuenta? <a [routerLink]="['/t', tenantCode(), 'registro']" class="auth-link">Crear cuenta en {{ tenant()?.nombre_marca }}</a></p>
+      </div>
+    }
   </div>
 </div>

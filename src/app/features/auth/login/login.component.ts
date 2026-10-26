@@ -4,8 +4,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { RegistrationCompany } from '../../../core/models/auth.model';
+import { TenantBranding } from '../../../core/models/auth.model';
 import { PlatformTenantContextService } from '../../../core/services/platform-tenant-context.service';
+import { BrandingService } from '../../../core/services/branding.service';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly platformTenantContext = inject(PlatformTenantContextService);
+  readonly branding = inject(BrandingService);
 
   readonly loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -31,7 +33,8 @@ export class LoginComponent implements OnDestroy {
   readonly isLoading = this.authService.isLoading;
   readonly showPassword = signal<boolean>(false);
   readonly tenantCode = signal<string | null>(null);
-  readonly tenant = signal<RegistrationCompany | null>(null);
+  readonly tenant = signal<TenantBranding | null>(null);
+  readonly isTenantPortal = signal(false);
 
   // Intentos fallidos y temporizador de bloqueo progresivo en cliente
   readonly failedAttempts = signal<number>(0);
@@ -44,19 +47,25 @@ export class LoginComponent implements OnDestroy {
       if (params['sessionExpired'] === 'true') {
         this.sessionExpiredMessage.set(true);
       }
-      const code = String(params['tenant'] || '').trim().toLowerCase();
+      const code = String(this.route.snapshot.paramMap.get('tenant') || params['tenant'] || '').trim().toLowerCase();
+      this.isTenantPortal.set(!!this.route.snapshot.paramMap.get('tenant'));
       this.tenantCode.set(code || null);
       if (code) {
-        this.authService.getRegistrationCompanies().subscribe({
-          next: (companies) => {
-            const selected = companies.find((item) => item.codigo.toLowerCase() === code) || null;
+        this.authService.getTenantPortal(code).subscribe({
+          next: (selected) => {
             this.tenant.set(selected);
-            if (!selected) this.errorMessage.set('El acceso compartido corresponde a un tenant no disponible.');
+            this.branding.apply(selected);
           },
           error: () => this.errorMessage.set('No se pudo validar el tenant seleccionado.'),
         });
+      } else {
+        this.branding.reset();
       }
     });
+  }
+
+  tenantLogo(): string {
+    return this.branding.logoUrl(this.tenant());
   }
 
   ngOnDestroy(): void {
@@ -91,6 +100,10 @@ export class LoginComponent implements OnDestroy {
   }
 
   onSubmit(): void {
+    if (this.isTenantPortal() && !this.tenant()) {
+      this.errorMessage.set('Este portal no está disponible para iniciar sesión.');
+      return;
+    }
     if (this.lockoutRemaining() > 0) {
       return;
     }

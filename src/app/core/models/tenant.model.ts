@@ -34,6 +34,14 @@ export interface TenantSummary {
   id: number;
   codigo: string;
   nombre: string;
+  nombre_marca?: string | null;
+  eslogan?: string | null;
+  logo_url?: string | null;
+  color_primario?: string;
+  color_secundario?: string;
+  color_acento?: string;
+  color_fondo?: string;
+  color_texto?: string;
   active: boolean;
   inactive_reason?: string | null;
   created_at: string;

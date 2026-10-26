@@ -8,9 +8,9 @@
   <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen()">
     <div class="sidebar-header">
       <div class="sidebar-logo-container">
-        <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="sidebar-logo-img" />
+        <img [src]="brandLogo" [alt]="brandName + ' Logo'" class="sidebar-logo-img" />
         @if (!isSidebarCollapsed()) {
-          <span class="sidebar-brand-name">StyleStore</span>
+          <span class="sidebar-brand-name">{{ brandName }}</span>
         }
       </div>
       <div class="sidebar-header-actions">
@@ -188,6 +188,9 @@
           }
 
           @if (isAdmin && !isPlatformAdmin) {
+            <a routerLink="/admin/identidad" routerLinkActive="active" class="nav-item icon-only" title="Identidad de Marca">
+              <span class="nav-icon">🎨</span>
+            </a>
             <a routerLink="/planes" routerLinkActive="active" class="nav-item icon-only" title="Mi plan y facturación">
               <span class="nav-icon">💎</span>
             </a>
@@ -498,6 +501,11 @@
                     <span class="nav-label">Notificaciones y Campañas</span>
                   </a>
 
+                  <a routerLink="/admin/identidad" routerLinkActive="active" class="nav-item">
+                    <span class="nav-icon">🎨</span>
+                    <span class="nav-label">Identidad de Marca</span>
+                  </a>
+
                   <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
                     <span class="nav-icon">👤</span>
                     <span class="nav-label">Usuarios</span>
@@ -606,8 +614,8 @@
           <span class="hamburger-icon">☰</span>
         </button>
         <div class="mobile-brand">
-          <img src="/assets/images/logo.jpg" alt="StyleStore Logo" class="mobile-logo-img" />
-          <span class="mobile-brand-name">StyleStore</span>
+          <img [src]="brandLogo" [alt]="brandName + ' Logo'" class="mobile-logo-img" />
+          <span class="mobile-brand-name">{{ brandName }}</span>
         </div>
         @if (user()) {
           <div class="mobile-user-avatar" [title]="user()?.name">

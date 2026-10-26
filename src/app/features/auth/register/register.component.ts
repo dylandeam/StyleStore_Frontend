@@ -14,6 +14,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 import { UploadService } from '../../../core/services/upload.service';
+import { TenantBranding } from '../../../core/models/auth.model';
+import { BrandingService } from '../../../core/services/branding.service';
 
 export const passwordsMatchValidator: ValidatorFn = (
   control: AbstractControl
@@ -37,6 +39,7 @@ export class RegisterComponent implements OnInit {
   private readonly uploadService = inject(UploadService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  readonly branding = inject(BrandingService);
 
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
@@ -45,6 +48,8 @@ export class RegisterComponent implements OnInit {
   readonly showConfirmPassword = signal<boolean>(false);
   readonly companies = signal<Array<{ codigo: string; nombre: string }>>([]);
   readonly selectedCompanyCodes = signal<string[]>([]);
+  readonly tenantPortal = signal<TenantBranding | null>(null);
+  readonly isTenantPortal = signal(false);
 
   // Foto de perfil opcional
   readonly fotoUrl = signal<string>('');
@@ -73,14 +78,20 @@ export class RegisterComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.authService.getRegistrationCompanies().subscribe({
-      next: (companies) => {
-        this.companies.set(companies);
-        const requested = (this.route.snapshot.queryParamMap.get('tenant') || '').toLowerCase();
-        const match = companies.find((item) => item.codigo.toLowerCase() === requested);
-        if (match) this.selectedCompanyCodes.set([match.codigo]);
+    const portalCode = (this.route.snapshot.paramMap.get('tenant') || '').trim().toLowerCase();
+    this.isTenantPortal.set(!!portalCode);
+    if (!portalCode) {
+      this.router.navigate(['/auth/tenant']);
+      return;
+    }
+    this.authService.getTenantPortal(portalCode).subscribe({
+      next: (tenant) => {
+        this.tenantPortal.set(tenant);
+        this.companies.set([tenant]);
+        this.selectedCompanyCodes.set([tenant.codigo]);
+        this.branding.apply(tenant);
       },
-      error: () => this.errorMessage.set('No se pudieron cargar las empresas disponibles.'),
+      error: () => this.errorMessage.set('Este portal de registro no existe o no está disponible.'),
     });
   }
 
@@ -128,7 +139,7 @@ export class RegisterComponent implements OnInit {
     this.isUploadingFoto.set(false);
     this.successMessage.set(mensaje);
     const tenant = this.selectedCompanyCodes()[0];
-    setTimeout(() => this.router.navigate(['/auth/login'], { queryParams: tenant ? { tenant } : {} }), 1500);
+    setTimeout(() => this.router.navigate(tenant ? ['/t', tenant, 'login'] : ['/auth/tenant']), 1500);
   }
 
   private guardarFotoTrasRegistro(email: string, password: string): void {
@@ -180,8 +191,7 @@ export class RegisterComponent implements OnInit {
       name = name.slice(0, -apellido.length).trim();
     }
 
-    this.authService
-      .register({
+    const payload = {
         name,
         apellido,
         ci: val.ci!.trim(),
@@ -191,7 +201,12 @@ export class RegisterComponent implements OnInit {
         email: val.email!.trim(),
         password: val.password!,
         empresa_codigos: this.selectedCompanyCodes(),
-      })
+      };
+    const tenantCode = this.tenantPortal()?.codigo;
+    const request = tenantCode
+      ? this.authService.registerForTenant(tenantCode, payload)
+      : this.authService.register(payload);
+    request
       .subscribe({
         next: () => this.guardarFotoTrasRegistro(val.email!.trim(), val.password!),
         error: (err) => {
@@ -200,5 +215,9 @@ export class RegisterComponent implements OnInit {
           this.errorMessage.set(typeof detail === 'string' ? detail : 'Error al procesar el registro.');
         },
       });
+  }
+
+  tenantLogo(): string {
+    return this.branding.logoUrl(this.tenantPortal());
   }
 }
