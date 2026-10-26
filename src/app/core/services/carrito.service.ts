@@ -191,6 +191,22 @@ export class CarritoService {
     );
   }
 
+  downloadCatalogPdf(filters?: {
+    categoria_id?: number;
+    temporada_id?: number;
+    coleccion_id?: number;
+    sucursal_id?: number;
+    search?: string;
+  }): Observable<Blob> {
+    let params = new HttpParams();
+    if (filters?.categoria_id) params = params.set('categoria_id', filters.categoria_id);
+    if (filters?.temporada_id) params = params.set('temporada_id', filters.temporada_id);
+    if (filters?.coleccion_id) params = params.set('coleccion_id', filters.coleccion_id);
+    if (filters?.sucursal_id) params = params.set('sucursal_id', filters.sucursal_id);
+    if (filters?.search) params = params.set('search', filters.search);
+    return this.http.get(`${this.catalogoUrl}/exportar-pdf`, { params, responseType: 'blob' });
+  }
+
   private offlineScope(): string {
     const user = this.auth.currentUser();
     return user ? `empresa-${user.empresa_id ?? 'plataforma'}:usuario-${user.id}` : 'publico';

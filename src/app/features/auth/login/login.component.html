@@ -13,7 +13,7 @@
     @if (tenant()) {
       <div class="tenant-login-context">
         <span class="tenant-login-icon">🏢</span>
-        <span><small>Acceso de empresa</small><strong>{{ tenant()?.nombre }}</strong><code>{{ tenant()?.codigo }}</code></span>
+        <span><small>Clientes, empleados y administrador del tenant</small><strong>{{ tenant()?.nombre }}</strong><code>{{ tenant()?.codigo }}</code></span>
         @if (!isTenantPortal()) {
           <a routerLink="/auth/tenant" title="Elegir otra empresa">Cambiar</a>
         }
@@ -21,7 +21,7 @@
     } @else {
       <div class="tenant-login-context global">
         <span class="tenant-login-icon">🌐</span>
-        <span><small>Acceso general</small><strong>StyleStore SaaS</strong></span>
+        <span><small>Acceso exclusivo del administrador general</small><strong>StyleStore SaaS</strong></span>
         <a routerLink="/auth/tenant">Elegir empresa</a>
       </div>
     }

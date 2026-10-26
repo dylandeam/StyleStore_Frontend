@@ -3,6 +3,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import { OfflineStateService } from './core/services/offline-state.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
 import { OfflineOperationsService } from './core/services/offline-operations.service';
+import { PwaInstallService } from './core/services/pwa-install.service';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ export class App {
   readonly offlineState = inject(OfflineStateService);
   private readonly pwaUpdates = inject(PwaUpdateService);
   private readonly offlineOperations = inject(OfflineOperationsService);
+  readonly pwaInstall = inject(PwaInstallService);
 
   constructor() {
     this.pwaUpdates.initialize();
@@ -23,6 +25,10 @@ export class App {
 
   applyUpdate(): void {
     void this.pwaUpdates.activate();
+  }
+
+  installApp(): void {
+    void this.pwaInstall.install();
   }
 
   formatSyncDate(value: string | null): string {

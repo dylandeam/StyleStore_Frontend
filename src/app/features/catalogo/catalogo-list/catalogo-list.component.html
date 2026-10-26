@@ -153,11 +153,17 @@
         <h2 *ngIf="mostrarSoloFavoritos" class="favorites-title">Mis favoritos</h2>
         <p class="results-count">Mostrando <strong>{{ productosFiltrados.length }}</strong> prendas {{ mostrarSoloFavoritos ? 'guardadas' : 'disponibles' }}</p>
       </div>
-      <a *ngIf="!mostrarSoloFavoritos" routerLink="/cuenta/favoritos" class="btn-favorites-view">♥ Ver mis favoritos</a>
+      <div class="catalog-actions" *ngIf="!mostrarSoloFavoritos">
+        <button type="button" class="btn-download-catalog" (click)="descargarCatalogoPdf()" [disabled]="exportingPdf()">
+          {{ exportingPdf() ? 'Generando PDF…' : '↓ Descargar catálogo PDF' }}
+        </button>
+        <a routerLink="/cuenta/favoritos" class="btn-favorites-view">♥ Ver mis favoritos</a>
+      </div>
       <a *ngIf="mostrarSoloFavoritos" routerLink="/catalogo" class="btn-favorites-view">← Volver al catálogo</a>
     </div>
 
     <p *ngIf="favoriteError()" class="favorite-error">{{ favoriteError() }}</p>
+    <p *ngIf="exportError()" class="favorite-error">{{ exportError() }}</p>
 
     <div *ngIf="productosFiltrados.length === 0" class="empty-results">
       <span class="empty-icon">👗</span>

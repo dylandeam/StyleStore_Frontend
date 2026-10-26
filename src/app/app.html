@@ -18,4 +18,11 @@
     }
   </aside>
 }
+@if (pwaInstall.canInstall()) {
+  <aside class="install-banner" role="status">
+    <span class="install-icon">▣</span>
+    <span><strong>Instala este portal</strong><small>Acceso rápido, catálogo en caché y experiencia tipo aplicación.</small></span>
+    <button type="button" (click)="installApp()">Instalar PWA</button>
+  </aside>
+}
 <router-outlet></router-outlet>

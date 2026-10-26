@@ -38,8 +38,8 @@
     }
 
     <footer>
-      <span>¿Administras la plataforma?</span>
-      <a [routerLink]="['/auth/login']" [queryParams]="{ returnUrl: route.snapshot.queryParamMap.get('returnUrl') || undefined }">Acceso general SaaS</a>
+      <span>¿Eres el administrador general de la plataforma?</span>
+      <a [routerLink]="['/auth/login']" [queryParams]="{ returnUrl: route.snapshot.queryParamMap.get('returnUrl') || undefined }">Acceso exclusivo SaaS</a>
     </footer>
   </section>
 </main>

@@ -4,6 +4,24 @@
   padding: 24px;
 }
 
+.catalog-actions { display: flex; flex-wrap: wrap; gap: .65rem; justify-content: flex-end; }
+.btn-download-catalog {
+  border: 0;
+  border-radius: 12px;
+  padding: .72rem 1rem;
+  color: var(--text-on-navy, #fff);
+  background: var(--accent-primary, #14263d);
+  box-shadow: 0 7px 18px rgb(20 38 61 / 18%);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.btn-download-catalog:disabled { opacity: .65; cursor: wait; }
+@media (max-width: 700px) {
+  .catalog-actions, .btn-download-catalog, .catalog-actions .btn-favorites-view { width: 100%; }
+  .btn-download-catalog, .catalog-actions .btn-favorites-view { text-align: center; }
+}
+
 /* Hero Section */
 .catalogo-hero {
   background: linear-gradient(135deg, var(--color-navy, #14263D) 0%, #1D3553 100%);

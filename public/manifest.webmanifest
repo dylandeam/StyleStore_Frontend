@@ -1,20 +1,37 @@
 {
-  "name": "StyleStore",
+  "name": "StyleStore - Portal de tu tienda",
   "short_name": "StyleStore",
-  "description": "Gestión de moda, ventas y reservas para cada sucursal.",
+  "description": "Catálogo, compras, reservas y seguimiento de tu tienda en una aplicación instalable.",
   "lang": "es-BO",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f8fafc",
-  "theme_color": "#6d28d9",
+  "background_color": "#EEE7D8",
+  "theme_color": "#14263D",
+  "categories": ["shopping", "business", "lifestyle"],
+  "shortcuts": [
+    { "name": "Abrir catálogo", "short_name": "Catálogo", "url": "/catalogo", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mis compras", "short_name": "Compras", "url": "/cuenta/mis-compras", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ],
   "icons": [
     {
-      "src": "/logo.jpg",
-      "sizes": "1024x1024",
-      "type": "image/jpeg",
-      "purpose": "any maskable"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

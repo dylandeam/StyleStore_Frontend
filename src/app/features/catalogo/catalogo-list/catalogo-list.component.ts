@@ -44,6 +44,8 @@ export class CatalogoListComponent implements OnInit {
   isLoading = signal<boolean>(true);
   error = signal<string | null>(null);
   favoriteError = signal<string | null>(null);
+  exportError = signal<string | null>(null);
+  exportingPdf = signal(false);
   mostrarSoloFavoritos = false;
 
   // Filtros
@@ -133,6 +135,33 @@ export class CatalogoListComponent implements OnInit {
     this.selectedTemporadaId = null;
     this.selectedColeccionId = null;
     this.cargarCatalogo();
+  }
+
+  descargarCatalogoPdf(): void {
+    this.exportingPdf.set(true);
+    this.exportError.set(null);
+    this.carritoService.downloadCatalogPdf({
+      categoria_id: this.selectedCategoriaId ?? undefined,
+      temporada_id: this.selectedTemporadaId ?? undefined,
+      coleccion_id: this.selectedColeccionId ?? undefined,
+      sucursal_id: this.branchService.selectedBranchId() ?? undefined,
+      search: this.searchTerm.trim() || undefined,
+    }).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const tenant = this.branding.brand()?.codigo || 'stylestore';
+        anchor.download = `catalogo-${tenant}.pdf`;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        this.exportingPdf.set(false);
+      },
+      error: (error) => {
+        this.exportError.set(error?.error?.detail || 'No se pudo generar el catálogo PDF.');
+        this.exportingPdf.set(false);
+      },
+    });
   }
 
   get productosFiltrados(): CatalogoItem[] {
