@@ -129,6 +129,17 @@ export class TenantsComponent implements OnInit {
     this.expandedTenantId.update((current) => current === tenant.id ? null : tenant.id);
   }
 
+  async copyLoginLink(tenant: TenantSummary): Promise<void> {
+    const url = `${window.location.origin}/auth/login?tenant=${encodeURIComponent(tenant.codigo)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      this.success.set(`Enlace de acceso de “${tenant.nombre}” copiado.`);
+    } catch {
+      window.prompt('Copia el enlace de acceso del tenant:', url);
+    }
+    setTimeout(() => this.success.set(null), 3500);
+  }
+
   subscriptionClass(tenant: TenantSummary): string {
     const end = tenant.suscripcion?.fecha_fin;
     if (!tenant.active || tenant.suscripcion?.estado !== 'activa') return 'danger';

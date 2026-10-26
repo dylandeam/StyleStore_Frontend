@@ -136,3 +136,21 @@
 .auth-link:hover {
   text-decoration: underline;
 }
+.tenant-login-context {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin: 0 0 1rem;
+  padding: .8rem .9rem;
+  border: 1px solid #d8c9a9;
+  border-radius: 14px;
+  background: #fbf7ee;
+  color: #142b47;
+}
+.tenant-login-context.global { background: #f4f7fb; border-color: #d8e0ea; }
+.tenant-login-context > span:nth-child(2) { display: grid; flex: 1; gap: .1rem; }
+.tenant-login-context small { color: #6b7280; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+.tenant-login-context strong { font-size: .95rem; }
+.tenant-login-context code { color: #76551c; font-size: .72rem; }
+.tenant-login-context a { color: #173453; font-size: .78rem; font-weight: 700; }
+.tenant-login-icon { font-size: 1.35rem; }

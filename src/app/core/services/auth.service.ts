@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { TokenService } from './token.service';
 import { User, UserCreateByAdmin } from '../models/user.model';
 import { LoginRequest, RegisterRequest, RegistrationCompany, TenantAccess, TokenResponse, MessageResponse } from '../models/auth.model';
+import { PlatformTenantContextService } from './platform-tenant-context.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +16,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
   private router = inject(Router);
+  private platformTenantContext = inject(PlatformTenantContextService);
 
   private readonly API_URL = environment.apiUrl;
 
@@ -146,6 +148,7 @@ export class AuthService {
     this.saveStoredUser(null);
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
-    this.router.navigate(['/auth/login']);
+    this.platformTenantContext.clear();
+    this.router.navigate(['/auth/tenant']);
   }
 }

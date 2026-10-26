@@ -8,6 +8,9 @@ import { NotificacionesService, NotificacionItem, MisNotificacionesResponse } fr
 import { ChatbotWidgetComponent } from '../../chatbot/chatbot-widget/chatbot-widget.component';
 import { User } from '../../../core/models/user.model';
 import { TenantAccess } from '../../../core/models/auth.model';
+import { TenantSummary } from '../../../core/models/tenant.model';
+import { TenantService } from '../../../core/services/tenant.service';
+import { PlatformTenantContextService } from '../../../core/services/platform-tenant-context.service';
 
 @Component({
   selector: 'app-admin-layout',
@@ -20,12 +23,15 @@ export class AdminLayoutComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notificacionesService = inject(NotificacionesService);
+  private readonly tenantService = inject(TenantService);
+  readonly platformTenantContext = inject(PlatformTenantContextService);
 
   readonly isSidebarCollapsed = signal<boolean>(false);
   readonly isMobileMenuOpen = signal<boolean>(false);
   readonly user = this.authService.currentUser;
   readonly tenants = signal<TenantAccess[]>([]);
   readonly isSwitchingTenant = signal(false);
+  readonly platformTenants = signal<TenantSummary[]>([]);
 
   // Categorías colapsables en la barra lateral
   readonly collapsedCategories = signal<Record<string, boolean>>({});
@@ -77,11 +83,30 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   private loadTenants(): void {
-    if (this.user()?.role !== 'cliente') return;
-    this.authService.getMyTenants().subscribe({
-      next: (items) => this.tenants.set(items),
-      error: () => this.tenants.set([]),
-    });
+    if (this.user()?.is_platform_admin) {
+      this.tenantService.list().subscribe({
+        next: (items) => {
+          this.platformTenants.set(items);
+          const selected = this.platformTenantContext.selected();
+          if (selected && !items.some((item) => item.id === selected.id)) this.platformTenantContext.clear();
+        },
+        error: () => this.platformTenants.set([]),
+      });
+    } else if (this.user()?.role === 'cliente') {
+      this.authService.getMyTenants().subscribe({
+        next: (items) => this.tenants.set(items),
+        error: () => this.tenants.set([]),
+      });
+    }
+  }
+
+  switchPlatformTenant(event: Event): void {
+    const empresaId = Number((event.target as HTMLSelectElement).value);
+    const selected = this.platformTenants().find((item) => item.id === empresaId);
+    this.platformTenantContext.select(
+      selected ? { id: selected.id, codigo: selected.codigo, nombre: selected.nombre } : null
+    );
+    window.location.reload();
   }
 
   switchTenant(event: Event): void {

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { RegistrationCompany } from '../../../core/models/auth.model';
 
 @Component({
   selector: 'app-login',
@@ -27,6 +28,8 @@ export class LoginComponent implements OnDestroy {
   readonly sessionExpiredMessage = signal<boolean>(false);
   readonly isLoading = this.authService.isLoading;
   readonly showPassword = signal<boolean>(false);
+  readonly tenantCode = signal<string | null>(null);
+  readonly tenant = signal<RegistrationCompany | null>(null);
 
   // Intentos fallidos y temporizador de bloqueo progresivo en cliente
   readonly failedAttempts = signal<number>(0);
@@ -38,6 +41,18 @@ export class LoginComponent implements OnDestroy {
     this.route.queryParams.subscribe((params) => {
       if (params['sessionExpired'] === 'true') {
         this.sessionExpiredMessage.set(true);
+      }
+      const code = String(params['tenant'] || '').trim().toLowerCase();
+      this.tenantCode.set(code || null);
+      if (code) {
+        this.authService.getRegistrationCompanies().subscribe({
+          next: (companies) => {
+            const selected = companies.find((item) => item.codigo.toLowerCase() === code) || null;
+            this.tenant.set(selected);
+            if (!selected) this.errorMessage.set('El acceso compartido corresponde a un tenant no disponible.');
+          },
+          error: () => this.errorMessage.set('No se pudo validar el tenant seleccionado.'),
+        });
       }
     });
   }
@@ -88,10 +103,14 @@ export class LoginComponent implements OnDestroy {
 
     const { email, password } = this.loginForm.value;
 
-    this.authService.login({ email: email!, password: password! }).subscribe({
+    const empresaCodigo = this.tenant()?.codigo;
+    this.authService.login({ email: email!, password: password!, empresa_codigo: empresaCodigo }).subscribe({
       next: () => {
         this.failedAttempts.set(0);
         this.lockoutBlocks.set(0);
+        if (this.tenant()) {
+          localStorage.setItem('stylestore_login_tenant', this.tenant()!.codigo);
+        }
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
         this.router.navigateByUrl(returnUrl);
       },

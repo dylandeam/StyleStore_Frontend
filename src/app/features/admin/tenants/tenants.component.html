@@ -125,6 +125,7 @@
                   </button>
                   <button type="button" class="btn-sm" (click)="openCompany(tenant)">Editar</button>
                   <button type="button" class="btn-sm" (click)="openAdmin(tenant)">Admin</button>
+                  <button type="button" class="btn-sm" (click)="copyLoginLink(tenant)">Copiar login</button>
                   <button type="button" class="btn-sm" [class.btn-danger]="tenant.active" [class.btn-success]="!tenant.active" (click)="toggleActive(tenant)">
                     {{ tenant.active ? 'Suspender' : 'Reactivar' }}
                   </button>
@@ -228,6 +229,7 @@
             </button>
             <button type="button" (click)="openCompany(tenant)">Empresa</button>
             <button type="button" (click)="openAdmin(tenant)">Administrador</button>
+            <button type="button" (click)="copyLoginLink(tenant)">Copiar acceso</button>
             <a routerLink="/admin/planes">Configurar precios</a>
             <button type="button" class="state-action" [class.activate]="!tenant.active" (click)="toggleActive(tenant)">
               {{ tenant.active ? 'Suspender' : 'Reactivar' }}

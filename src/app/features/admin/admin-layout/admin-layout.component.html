@@ -622,6 +622,17 @@
       </div>
 
       <div class="header-right-actions">
+        @if (isPlatformAdmin) {
+          <label class="tenant-switcher platform-context" title="Este tenant limita los datos visibles en todos los módulos">
+            <span class="context-label"><small>Contexto SaaS</small><b>🏢</b></span>
+            <select [value]="platformTenantContext.selected()?.id || ''" (change)="switchPlatformTenant($event)">
+              <option value="">Todos los tenants</option>
+              @for (tenant of platformTenants(); track tenant.id) {
+                <option [value]="tenant.id">{{ tenant.nombre }} · {{ tenant.codigo }}</option>
+              }
+            </select>
+          </label>
+        }
         @if (isCliente && tenants().length > 1) {
           <label class="tenant-switcher" title="Cambiar tienda activa">
             <span>🏢</span>

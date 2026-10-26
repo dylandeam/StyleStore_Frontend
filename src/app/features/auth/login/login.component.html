@@ -10,6 +10,20 @@
       <p class="subtitle">Inicia sesión para continuar</p>
     </div>
 
+    @if (tenant()) {
+      <div class="tenant-login-context">
+        <span class="tenant-login-icon">🏢</span>
+        <span><small>Acceso de empresa</small><strong>{{ tenant()?.nombre }}</strong><code>{{ tenant()?.codigo }}</code></span>
+        <a routerLink="/auth/tenant" title="Elegir otra empresa">Cambiar</a>
+      </div>
+    } @else {
+      <div class="tenant-login-context global">
+        <span class="tenant-login-icon">🌐</span>
+        <span><small>Acceso general</small><strong>StyleStore SaaS</strong></span>
+        <a routerLink="/auth/tenant">Elegir empresa</a>
+      </div>
+    }
+
     @if (sessionExpiredMessage()) {
       <div class="alert alert-info">
         <span>⚠️ Tu sesión ha expirado o fue cerrada. Por favor ingresa nuevamente.</span>
@@ -86,7 +100,7 @@
     </form>
 
     <div class="auth-footer">
-      <p>¿No tienes una cuenta? <a routerLink="/auth/register" class="auth-link">Crear una cuenta</a></p>
+      <p>¿No tienes una cuenta? <a [routerLink]="['/auth/register']" [queryParams]="tenantCode() ? { tenant: tenantCode() } : {}" class="auth-link">Crear una cuenta</a></p>
     </div>
   </div>
 </div>

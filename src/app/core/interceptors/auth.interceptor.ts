@@ -47,7 +47,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401 && !req.url.includes('/auth/login')) {
         tokenService.clearTokens();
-        router.navigate(['/auth/login']);
+        localStorage.removeItem('stylestore_platform_tenant_context');
+        const tenant = localStorage.getItem('stylestore_login_tenant');
+        router.navigate(['/auth/login'], {
+          queryParams: { sessionExpired: true, tenant: tenant || undefined },
+        });
       }
       const payload = error.error;
       if (payload && typeof payload === 'object' && 'detail' in payload) {

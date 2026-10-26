@@ -9,7 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -36,6 +36,7 @@ export class RegisterComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly uploadService = inject(UploadService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly errorMessage = signal<string | null>(null);
   readonly successMessage = signal<string | null>(null);
@@ -73,7 +74,12 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.getRegistrationCompanies().subscribe({
-      next: (companies) => this.companies.set(companies),
+      next: (companies) => {
+        this.companies.set(companies);
+        const requested = (this.route.snapshot.queryParamMap.get('tenant') || '').toLowerCase();
+        const match = companies.find((item) => item.codigo.toLowerCase() === requested);
+        if (match) this.selectedCompanyCodes.set([match.codigo]);
+      },
       error: () => this.errorMessage.set('No se pudieron cargar las empresas disponibles.'),
     });
   }
@@ -121,7 +127,8 @@ export class RegisterComponent implements OnInit {
   private finalizarRegistro(mensaje: string): void {
     this.isUploadingFoto.set(false);
     this.successMessage.set(mensaje);
-    setTimeout(() => this.router.navigate(['/auth/login']), 1500);
+    const tenant = this.selectedCompanyCodes()[0];
+    setTimeout(() => this.router.navigate(['/auth/login'], { queryParams: tenant ? { tenant } : {} }), 1500);
   }
 
   private guardarFotoTrasRegistro(email: string, password: string): void {
@@ -132,7 +139,7 @@ export class RegisterComponent implements OnInit {
     }
 
     this.isUploadingFoto.set(true);
-    this.authService.login({ email, password }).subscribe({
+    this.authService.login({ email, password, empresa_codigo: this.selectedCompanyCodes()[0] }).subscribe({
       next: () => this.uploadService.uploadImage(file, 'perfiles').subscribe({
         next: (upload) => this.authService.updateProfile({ foto: upload.url }).subscribe({
           next: () => {

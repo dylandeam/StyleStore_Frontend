@@ -1,0 +1,41 @@
+<main class="tenant-page">
+  <section class="tenant-shell">
+    <header class="selector-header">
+      <img src="/assets/images/logo.jpg" alt="StyleStore" />
+      <span class="eyebrow">PORTAL MULTITENANT</span>
+      <h1>¿A qué tienda deseas ingresar?</h1>
+      <p>Cada empresa tiene un acceso independiente. Elige una para iniciar sesión o registrarte en su espacio.</p>
+    </header>
+
+    <label class="search-box">
+      <span>⌕</span>
+      <input type="search" placeholder="Buscar por empresa o código…" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </label>
+
+    @if (loading()) {
+      <div class="state-card">Cargando empresas disponibles…</div>
+    } @else if (error()) {
+      <div class="state-card error">{{ error() }}</div>
+    } @else {
+      <div class="tenant-grid">
+        @for (company of filteredCompanies(); track company.codigo) {
+          <article class="tenant-card">
+            <div class="tenant-mark">{{ company.nombre.charAt(0).toUpperCase() }}</div>
+            <div class="tenant-copy">
+              <h2>{{ company.nombre }}</h2>
+              <span>Código: {{ company.codigo }}</span>
+            </div>
+            <button type="button" (click)="openTenant(company)">Ingresar <span>→</span></button>
+          </article>
+        } @empty {
+          <div class="state-card">No encontramos empresas con ese criterio.</div>
+        }
+      </div>
+    }
+
+    <footer>
+      <span>¿Administras la plataforma?</span>
+      <a [routerLink]="['/auth/login']" [queryParams]="{ returnUrl: route.snapshot.queryParamMap.get('returnUrl') || undefined }">Acceso general SaaS</a>
+    </footer>
+  </section>
+</main>
