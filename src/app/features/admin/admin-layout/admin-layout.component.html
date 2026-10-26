@@ -187,39 +187,7 @@
             </a>
           }
 
-          @if (isAdmin && !isPlatformAdmin) {
-            <a routerLink="/admin/identidad" routerLinkActive="active" class="nav-item icon-only" title="Identidad de Marca">
-              <span class="nav-icon">🎨</span>
-            </a>
-            <a routerLink="/planes" routerLinkActive="active" class="nav-item icon-only" title="Mi plan y facturación">
-              <span class="nav-icon">💎</span>
-            </a>
-            <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item icon-only" title="Usuarios">
-              <span class="nav-icon">👤</span>
-            </a>
-            <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item icon-only" title="Roles y Permisos">
-              <span class="nav-icon">🛡️</span>
-            </a>
-            <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item icon-only" title="Backups SHA-256">
-              <span class="nav-icon">💾</span>
-            </a>
-          }
         }
-
-        <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
-        @if (!isCliente) {
-          <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item icon-only" title="Bitácora de Auditoría (Protegida)">
-            <span class="nav-icon">📒</span>
-          </a>
-        }
-
-        <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item icon-only" title="Mi Perfil">
-          <span class="nav-icon">👤</span>
-        </a>
-
-        <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item icon-only" title="Cambiar Contraseña">
-          <span class="nav-icon">🔑</span>
-        </a>
       </nav>
     } @else {
       <!-- MODO DESPLEGADO: Agrupación en CATÁLOGO, VENTAS, ADMINISTRACIÓN y SISTEMA -->
@@ -500,102 +468,29 @@
                     <span class="nav-icon">📣</span>
                     <span class="nav-label">Notificaciones y Campañas</span>
                   </a>
-
-                  <a routerLink="/admin/identidad" routerLinkActive="active" class="nav-item">
-                    <span class="nav-icon">🎨</span>
-                    <span class="nav-label">Identidad de Marca</span>
-                  </a>
-
-                  <a routerLink="/admin/usuarios" routerLinkActive="active" class="nav-item">
-                    <span class="nav-icon">👤</span>
-                    <span class="nav-label">Usuarios</span>
-                  </a>
-
-                  <a routerLink="/admin/roles" routerLinkActive="active" class="nav-item">
-                    <span class="nav-icon">🛡️</span>
-                    <span class="nav-label">Roles y Permisos</span>
-                  </a>
-
-                  <a routerLink="/admin/backups" routerLinkActive="active" class="nav-item">
-                    <span class="nav-icon">💾</span>
-                    <span class="nav-label">Backups (SHA-256)</span>
-                  </a>
                 }
               </div>
             }
           }
-
-          @if (isAdmin && !isPlatformAdmin) {
-            <div class="nav-group-header mt-group" (click)="toggleCategory('suscripcion')">
-              <span class="nav-group-title">SUSCRIPCIÓN Y FACTURACIÓN</span>
-              <span class="nav-group-chevron" [class.collapsed]="isCategoryCollapsed('suscripcion')">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </span>
-            </div>
-            @if (!isCategoryCollapsed('suscripcion')) {
-              <div class="nav-group-items">
-                <a routerLink="/planes" routerLinkActive="active" class="nav-item">
-                  <span class="nav-icon">💎</span>
-                  <span class="nav-label">Mi plan y facturación</span>
-                </a>
-              </div>
-            }
-          }
-        }
-
-        <!-- Sección: SISTEMA -->
-        <div class="nav-group-header mt-group" (click)="toggleCategory('sistema')">
-          <span class="nav-group-title">SISTEMA</span>
-          <span class="nav-group-chevron" [class.collapsed]="isCategoryCollapsed('sistema')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-        @if (!isCategoryCollapsed('sistema')) {
-          <div class="nav-group-items">
-            <!-- Bitácora de Auditoría (Protegida con Llave Maestra - Solo Staff) -->
-            @if (!isCliente) {
-              <a routerLink="/admin/bitacora" routerLinkActive="active" class="nav-item">
-                <span class="nav-icon">📒</span>
-                <span class="nav-label">Bitácora de Auditoría</span>
-              </a>
-            }
-
-            <a routerLink="/cuenta/perfil" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">👤</span>
-              <span class="nav-label">Mi Perfil</span>
-            </a>
-
-            <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" class="nav-item">
-              <span class="nav-icon">🔑</span>
-              <span class="nav-label">Cambiar Contraseña</span>
-            </a>
-          </div>
         }
       </nav>
     }
 
-    <!-- Sidebar Footer: Avatar circular beige + nombre + correo + cerrar sesión -->
     <div class="sidebar-footer">
-      @if (user() && !isSidebarCollapsed()) {
-        <div class="user-profile-preview">
+      @if (user()) {
+        <button type="button" class="user-profile-preview" (click)="toggleProfileMenu()" [attr.aria-expanded]="showProfileMenu()" aria-label="Abrir cuenta y configuración">
           <div class="user-avatar-circle">
-            {{ user()?.name?.charAt(0)?.toUpperCase() }}
+            {{ userInitials }}
           </div>
-          <div class="user-info-text">
-            <span class="user-name-text">{{ user()?.name }}</span>
-            <span class="user-email-text">{{ user()?.email }}</span>
-            <span class="user-role-text" [class.platform-admin]="isPlatformAdmin">{{ userRoleLabel }}</span>
-          </div>
-        </div>
+          @if (!isSidebarCollapsed()) {
+            <div class="user-info-text">
+              <span class="user-name-text">{{ user()?.name }}</span>
+              <span class="user-role-text" [class.platform-admin]="isPlatformAdmin">Cuenta y configuración</span>
+            </div>
+            <svg class="profile-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          }
+        </button>
       }
-
-      <button type="button" class="btn-logout" (click)="onLogout()" [title]="isSidebarCollapsed() ? 'Cerrar Sesión' : ''">
-        <span class="logout-icon">🚪</span>
-        @if (!isSidebarCollapsed()) {
-          <span>Cerrar Sesión</span>
-        }
-      </button>
     </div>
   </aside>
 
@@ -618,9 +513,16 @@
           <span class="mobile-brand-name">{{ brandName }}</span>
         </div>
         @if (user()) {
-          <div class="mobile-user-avatar" [title]="user()?.name">
-            {{ user()?.name?.charAt(0)?.toUpperCase() }}
-          </div>
+          <button
+            type="button"
+            class="mobile-user-avatar"
+            (click)="toggleProfileMenu()"
+            [attr.aria-expanded]="showProfileMenu()"
+            aria-label="Abrir cuenta y configuración"
+            [title]="user()?.name"
+          >
+            {{ userInitials }}
+          </button>
         }
       </div>
 
@@ -702,17 +604,117 @@
         </a>
 
         @if (user()) {
-          <div class="top-user-chip">
+          <button
+            type="button"
+            class="top-user-chip"
+            (click)="toggleProfileMenu()"
+            [attr.aria-expanded]="showProfileMenu()"
+            aria-haspopup="menu"
+          >
             <div class="top-chip-avatar">
-              {{ user()?.name?.charAt(0)?.toUpperCase() }}
+              {{ userInitials }}
             </div>
             <div class="top-chip-info">
               <span class="top-chip-name">{{ user()?.name }}</span>
               <span class="top-chip-role" [class.platform-admin]="isPlatformAdmin">{{ userRoleLabel }}</span>
             </div>
-          </div>
+            <svg class="top-chip-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
         }
       </div>
+
+      @if (showProfileMenu()) {
+        <button type="button" class="profile-menu-backdrop" (click)="closeProfileMenu()" aria-label="Cerrar cuenta y configuración"></button>
+        <aside class="profile-menu" role="menu" aria-label="Cuenta y configuración">
+          <div class="profile-menu-header">
+            <div class="profile-menu-avatar" aria-hidden="true">{{ userInitials }}</div>
+            <div class="profile-menu-identity">
+              <strong>{{ user()?.name }}</strong>
+              <span>{{ user()?.email }}</span>
+              <span class="profile-role-pill" [class.platform-admin]="isPlatformAdmin">{{ userRoleLabel }}</span>
+            </div>
+          </div>
+
+          <div class="profile-menu-section">
+            <h2>Mi cuenta</h2>
+            <a routerLink="/cuenta/perfil" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+              <span class="profile-menu-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg>
+              </span>
+              <span><strong>Mi perfil</strong><small>Datos personales e imagen</small></span>
+            </a>
+            <a routerLink="/cuenta/cambiar-password" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+              <span class="profile-menu-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v10H5V11Zm7 4v2"/></svg>
+              </span>
+              <span><strong>Contraseña y seguridad</strong><small>Actualiza tus credenciales</small></span>
+            </a>
+            @if (isCliente) {
+              <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3V6Zm0 4h18M7 15h3"/></svg>
+                </span>
+                <span><strong>Pagos y recibos</strong><small>Historial de tus transacciones</small></span>
+              </a>
+            }
+          </div>
+
+          @if (isAdmin && !isPlatformAdmin) {
+            <div class="profile-menu-section">
+              <h2>Tienda y suscripción</h2>
+              <a routerLink="/admin/identidad" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.5a1.5 1.5 0 0 0 0-3H12a2 2 0 0 1 0-4h4a5 5 0 0 0 0-10h-4ZM7.5 10h.01M9.5 7h.01M13 6h.01"/></svg>
+                </span>
+                <span><strong>Identidad de marca</strong><small>Logo, nombre y colores del tenant</small></span>
+              </a>
+              <a routerLink="/planes" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4V7Zm3-3h10v3H7V4Zm1 8h8M8 15h5"/></svg>
+                </span>
+                <span><strong>Plan y facturación</strong><small>Renovación, límites y cobros</small></span>
+              </a>
+              <a routerLink="/admin/usuarios" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-3h6m-3-3v6"/></svg>
+                </span>
+                <span><strong>Usuarios</strong><small>Accesos del equipo y clientes</small></span>
+              </a>
+              <a routerLink="/admin/roles" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Zm-3 9 2 2 4-4"/></svg>
+                </span>
+                <span><strong>Roles y permisos</strong><small>Control de acceso por función</small></span>
+              </a>
+              <a routerLink="/admin/backups" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h12l2 2v12H5V5Zm3 0v6h8V5M8 15h8v4H8v-4Z"/></svg>
+                </span>
+                <span><strong>Backups</strong><small>Copias verificadas con SHA-256</small></span>
+              </a>
+            </div>
+          }
+
+          @if (!isCliente) {
+            <div class="profile-menu-section">
+              <h2>Seguridad</h2>
+              <a routerLink="/admin/bitacora" routerLinkActive="active" role="menuitem" class="profile-menu-item" (click)="closeProfileMenu()">
+                <span class="profile-menu-icon">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h13a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5V3Zm0 0a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2M8 8h7m-7 4h7m-7 4h5"/></svg>
+                </span>
+                <span><strong>Bitácora de auditoría</strong><small>Actividad y trazabilidad del sistema</small></span>
+              </a>
+            </div>
+          }
+
+          <div class="profile-menu-footer">
+            <button type="button" role="menuitem" class="profile-menu-logout" (click)="onLogout()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17 15 12 10 7M15 12H3m10-9h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
+        </aside>
+      }
     </header>
 
     <!-- Routed Components Outlet -->

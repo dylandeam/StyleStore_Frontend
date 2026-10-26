@@ -110,8 +110,8 @@
   cursor: pointer;
   user-select: none;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.025);
+  border: 0;
+  background: transparent;
   transition: background-color 0.2s ease;
   width: 100%;
   min-width: 0;
@@ -246,7 +246,7 @@
   background: #274c77;
 }
 
-/* Sidebar Footer (Usuario y Logout) */
+/* Sidebar Footer: single account launcher */
 .sidebar-footer {
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -262,9 +262,27 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 0.6rem 0.75rem;
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.user-profile-preview:hover,
+.user-profile-preview[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.user-profile-preview:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 65%, white);
+  outline-offset: 2px;
 }
 
 .user-avatar-circle {
@@ -285,6 +303,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex: 1;
 }
 
 .user-name-text {
@@ -315,6 +334,18 @@
 
 .user-role-text.platform-admin {
   color: #f5cf79;
+}
+
+.profile-chevron {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #94a3b8;
+  flex: 0 0 auto;
 }
 
 .btn-logout {
@@ -370,6 +401,8 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: 20;
 }
 
 .header-left-info {
@@ -407,6 +440,24 @@
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.top-user-chip:hover,
+.top-user-chip[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--accent-primary) 42%, var(--border-subtle));
+  box-shadow: 0 8px 24px rgba(20, 38, 61, 0.1);
+  transform: translateY(-1px);
+}
+
+.top-user-chip:focus-visible,
+.mobile-user-avatar:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .top-chip-avatar {
@@ -443,6 +494,228 @@
 
 .top-chip-role.platform-admin {
   color: #9a6700;
+}
+
+.top-chip-chevron {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s ease;
+}
+
+.top-user-chip[aria-expanded='true'] .top-chip-chevron {
+  transform: rotate(180deg);
+}
+
+/* Progressive disclosure for account and tenant settings */
+.profile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1290;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 1.8rem;
+  z-index: 1300;
+  width: min(370px, calc(100vw - 1.5rem));
+  max-height: min(680px, calc(100vh - 7rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--text-primary);
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: 18px;
+  box-shadow: 0 22px 55px rgba(20, 38, 61, 0.2), 0 4px 16px rgba(20, 38, 61, 0.08);
+  animation: profileMenuIn 0.18s ease-out;
+}
+
+.profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.15rem;
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--bg-card));
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.profile-menu-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: var(--accent-primary);
+  color: var(--text-on-navy, #ffffff);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-primary) 24%, transparent);
+}
+
+.profile-menu-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.profile-menu-identity strong,
+.profile-menu-identity > span:not(.profile-role-pill) {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.profile-menu-identity strong {
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+}
+
+.profile-menu-identity > span:not(.profile-role-pill) {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.profile-role-pill {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.16rem 0.48rem;
+  border-radius: 999px;
+  color: var(--accent-link);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-role-pill.platform-admin {
+  color: #7a5500;
+  background: #fff5d6;
+}
+
+.profile-menu-section {
+  padding: 0.8rem;
+}
+
+.profile-menu-section + .profile-menu-section {
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.profile-menu-section h2 {
+  margin: 0 0 0.4rem;
+  padding: 0 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 54px;
+  padding: 0.58rem 0.55rem;
+  border-radius: 11px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.profile-menu-item:hover,
+.profile-menu-item.active {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+.profile-menu-item:focus-visible,
+.profile-menu-logout:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  outline-offset: -2px;
+}
+
+.profile-menu-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
+}
+
+.profile-menu-icon svg,
+.profile-menu-logout svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.profile-menu-item > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.profile-menu-item strong {
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+}
+
+.profile-menu-item small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.profile-menu-footer {
+  padding: 0.7rem 0.8rem 0.85rem;
+  border-top: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.profile-menu-logout {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border: 1px solid #fecaca;
+  border-radius: 11px;
+  color: #b42318;
+  background: #fff7f7;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.profile-menu-logout:hover {
+  background: #feecec;
+  border-color: #fca5a5;
+}
+
+@keyframes profileMenuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Content Body */
@@ -610,18 +883,29 @@
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #14263D;
-    color: #C9A96E;
+    background: var(--accent-primary);
+    color: var(--text-on-navy, #ffffff);
     font-weight: 700;
     font-size: 0.85rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(201, 169, 110, 0.4);
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, white);
+    cursor: pointer;
   }
 
   .top-user-chip {
     display: none !important;
+  }
+
+  .profile-menu {
+    position: fixed;
+    top: 4.65rem;
+    right: 0.65rem;
+    left: 0.65rem;
+    width: auto;
+    max-height: calc(100vh - 5.5rem);
+    border-radius: 16px;
   }
 
   .page-main-title {

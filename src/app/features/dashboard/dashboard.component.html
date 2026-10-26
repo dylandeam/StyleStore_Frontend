@@ -184,8 +184,8 @@
     <!-- Modules Navigation Section -->
     <section class="modules-section">
       <div class="section-header">
-        <h2 class="section-title">Módulos del Sistema</h2>
-        <span class="section-subtitle">Acceso rápido a las operaciones disponibles</span>
+        <h2 class="section-title">Accesos rápidos</h2>
+        <span class="section-subtitle">Operaciones frecuentes; tu cuenta y configuración están disponibles desde el perfil</span>
       </div>
 
       <div class="module-cards-grid">
@@ -371,81 +371,6 @@
           </a>
         }
 
-        <!-- Users Module (Admin only) -->
-        @if (isAdmin) {
-          <a routerLink="/admin/usuarios" class="dash-module-card">
-            <div class="mod-icon">
-              <span>👤</span>
-            </div>
-            <div class="mod-info">
-              <h3>Usuarios y Empleados</h3>
-              <p>Gestión de usuarios y registro de empleados con rol.</p>
-              <span class="mod-link">Ir al módulo &rarr;</span>
-            </div>
-          </a>
-
-          <!-- Roles Module (Admin only) -->
-          <a routerLink="/admin/roles" class="dash-module-card">
-            <div class="mod-icon">
-              <span>🛡️</span>
-            </div>
-            <div class="mod-info">
-              <h3>Roles y Permisos</h3>
-              <p>Matriz de permisos de seguridad y asignación por módulo.</p>
-              <span class="mod-link">Ir al módulo &rarr;</span>
-            </div>
-          </a>
-
-          <!-- Backups Module (Admin only) -->
-          <a routerLink="/admin/backups" class="dash-module-card">
-            <div class="mod-icon">
-              <span>💾</span>
-            </div>
-            <div class="mod-info">
-              <h3>Copias de Seguridad (SHA-256)</h3>
-              <p>Snapshots criptográficos con verificación de integridad.</p>
-              <span class="mod-link">Ir a backups &rarr;</span>
-            </div>
-          </a>
-        }
-
-        <!-- Bitacora Module (Solo Staff / Admin) -->
-        @if (!isCliente) {
-          <a routerLink="/admin/bitacora" class="dash-module-card">
-            <div class="mod-icon">
-              <span>📒</span>
-            </div>
-            <div class="mod-info">
-              <h3>Bitácora de Auditoría</h3>
-              <p>Historial inmutable protegido con llave maestra / clave admin.</p>
-              <span class="mod-link">Acceso protegido &rarr;</span>
-            </div>
-          </a>
-        }
-
-        <!-- Perfil Module (Everyone) -->
-        <a routerLink="/cuenta/perfil" class="dash-module-card">
-          <div class="mod-icon">
-            <span>👤</span>
-          </div>
-          <div class="mod-info">
-            <h3>Mi Perfil Personal</h3>
-            <p>Consulta tus datos de contacto y credenciales de acceso (CU2).</p>
-            <span class="mod-link">Ir al módulo &rarr;</span>
-          </div>
-        </a>
-
-        <!-- Change Password Module (Everyone) -->
-        <a routerLink="/cuenta/cambiar-password" class="dash-module-card">
-          <div class="mod-icon">
-            <span>🔑</span>
-          </div>
-          <div class="mod-info">
-            <h3>Cambiar Contraseña</h3>
-            <p>Seguridad de tu cuenta con confirmación y token de verificación.</p>
-            <span class="mod-link">Ir al módulo &rarr;</span>
-          </div>
-        </a>
       </div>
     </section>
   }

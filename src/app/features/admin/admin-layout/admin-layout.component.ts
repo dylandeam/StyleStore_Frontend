@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -52,6 +52,7 @@ export class AdminLayoutComponent implements OnInit {
   // Notificaciones In-App
   readonly notificaciones = signal<any[]>([]);
   readonly showNotificacionesDropdown = signal<boolean>(false);
+  readonly showProfileMenu = signal<boolean>(false);
   readonly unreadNotificationsCount = computed(() =>
     this.notificaciones().filter((n) => !n.leida).length
   );
@@ -79,6 +80,8 @@ export class AdminLayoutComponent implements OnInit {
       .subscribe((event: any) => {
         this.updateHeaderMeta(event.urlAfterRedirects || event.url);
         this.isMobileMenuOpen.set(false);
+        this.showProfileMenu.set(false);
+        this.showNotificacionesDropdown.set(false);
       });
 
     this.cargarNotificaciones();
@@ -148,7 +151,24 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   toggleNotificacionesDropdown(): void {
+    this.showProfileMenu.set(false);
     this.showNotificacionesDropdown.update((val) => !val);
+  }
+
+  toggleProfileMenu(): void {
+    this.showNotificacionesDropdown.set(false);
+    this.isMobileMenuOpen.set(false);
+    this.showProfileMenu.update((value) => !value);
+  }
+
+  closeProfileMenu(): void {
+    this.showProfileMenu.set(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  closeHeaderMenus(): void {
+    this.showProfileMenu.set(false);
+    this.showNotificacionesDropdown.set(false);
   }
 
   marcarNotificacionLeida(notif: any): void {
@@ -302,6 +322,14 @@ export class AdminLayoutComponent implements OnInit {
     return role || 'Usuario';
   }
 
+  get userInitials(): string {
+    const parts = [this.user()?.name, this.user()?.apellido]
+      .filter(Boolean)
+      .flatMap((value) => String(value).trim().split(/\s+/))
+      .filter(Boolean);
+    return `${parts[0]?.[0] || 'U'}${parts.length > 1 ? parts.at(-1)?.[0] || '' : ''}`.toUpperCase();
+  }
+
   get isStaff(): boolean {
     const role = (this.user()?.role || '').toLowerCase();
     return role.includes('admin') || role.includes('encargado') || role.includes('cajero');
@@ -330,6 +358,7 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   onLogout(): void {
+    this.showProfileMenu.set(false);
     this.authService.logout();
   }
 }

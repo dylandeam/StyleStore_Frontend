@@ -128,11 +128,6 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  get isAdmin(): boolean {
-    const role = (this.user()?.role || '').toLowerCase();
-    return role.includes('admin');
-  }
-
   get isStaff(): boolean {
     const role = (this.user()?.role || '').toLowerCase();
     return role.includes('admin') || role.includes('encargado') || role.includes('cajero') || role.includes('repartidor');
