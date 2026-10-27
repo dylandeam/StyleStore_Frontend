@@ -1,10 +1,11 @@
-<div class="dashboard-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()">
+<div class="dashboard-wrapper" [class.sidebar-collapsed]="isSidebarCollapsed()" [class.client-shell]="isCliente">
   <!-- Mobile Backdrop Overlay -->
   @if (isMobileMenuOpen()) {
     <div class="sidebar-backdrop" (click)="closeMobileMenu()"></div>
   }
 
-  <!-- Left Sidebar Navigation Bar (Navy Sólido #14263D) -->
+  <!-- El panel lateral se reserva para operación y administración. -->
+  @if (!isCliente) {
   <aside class="sidebar" [class.mobile-open]="isMobileMenuOpen()">
     <div class="sidebar-header">
       <div class="sidebar-logo-container">
@@ -493,21 +494,45 @@
       }
     </div>
   </aside>
+  }
 
   <!-- Main Content Area with Header (Beige #EEE7D8) -->
-  <main class="main-content">
+  <main class="main-content" [class.client-main-content]="isCliente">
     <!-- Top Content Area Header -->
-    <header class="content-header">
+    <header class="content-header" [class.client-store-header]="isCliente">
+      @if (isCliente) {
+        <div class="client-desktop-brand">
+          <a routerLink="/dashboard" class="client-brand-link" aria-label="Ir al inicio">
+            <img [src]="brandLogo" [alt]="brandName + ' Logo'" />
+            <span>{{ brandName }}</span>
+          </a>
+
+          <nav class="client-primary-nav" aria-label="Navegación principal de la tienda">
+            <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+            <a routerLink="/catalogo" routerLinkActive="active">Catálogo</a>
+            <a routerLink="/promociones" routerLinkActive="active">Promociones</a>
+            <a routerLink="/cuenta/favoritos" routerLinkActive="active">Favoritos</a>
+            <a routerLink="/cuenta/mis-compras" routerLinkActive="active">Mis compras</a>
+            <button type="button" class="client-more-trigger" (click)="toggleClientMenu($event)" [attr.aria-expanded]="showClientMenu()" aria-controls="client-more-menu" aria-haspopup="dialog">
+              Más
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </nav>
+        </div>
+      }
+
       <!-- Mobile Bar con botón de menú hamburguesa -->
       <div class="mobile-top-bar">
-        <button
-          type="button"
-          class="btn-mobile-menu-toggle"
-          (click)="toggleMobileMenu()"
-          aria-label="Abrir menú de navegación"
-        >
-          <span class="hamburger-icon">☰</span>
-        </button>
+        @if (!isCliente) {
+          <button
+            type="button"
+            class="btn-mobile-menu-toggle"
+            (click)="toggleMobileMenu()"
+            aria-label="Abrir menú de navegación"
+          >
+            <span class="hamburger-icon">☰</span>
+          </button>
+        }
         <div class="mobile-brand">
           <img [src]="brandLogo" [alt]="brandName + ' Logo'" class="mobile-logo-img" />
           <span class="mobile-brand-name">{{ brandName }}</span>
@@ -526,10 +551,12 @@
         }
       </div>
 
-      <div class="header-left-info">
-        <h1 class="page-main-title">{{ currentTitle() }}</h1>
-        <p class="page-subtitle">{{ currentSubtitle() }}</p>
-      </div>
+      @if (!isCliente) {
+        <div class="header-left-info">
+          <h1 class="page-main-title">{{ currentTitle() }}</h1>
+          <p class="page-subtitle">{{ currentSubtitle() }}</p>
+        </div>
+      }
 
       <div class="header-right-actions">
         @if (isPlatformAdmin) {
@@ -545,7 +572,7 @@
         }
         @if (isCliente && tenants().length > 1) {
           <label class="tenant-switcher" title="Cambiar tienda activa">
-            <span>🏢</span>
+            <svg class="tenant-switcher-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V9l8-5 8 5v12M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg>
             <select [value]="user()?.empresa_id" (change)="switchTenant($event)" [disabled]="isSwitchingTenant()">
               @for (tenant of tenants(); track tenant.id) {
                 <option [value]="tenant.id" [disabled]="!tenant.active">{{ tenant.nombre }}{{ tenant.active ? '' : ' (inactiva)' }}</option>
@@ -561,7 +588,11 @@
             (click)="toggleNotificacionesDropdown()"
             title="Notificaciones"
           >
-            <span class="bell-icon">🔔</span>
+            @if (isCliente) {
+              <svg class="client-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            } @else {
+              <span class="bell-icon">🔔</span>
+            }
             <span class="notif-badge" *ngIf="unreadNotificationsCount() > 0">
               {{ unreadNotificationsCount() }}
             </span>
@@ -599,7 +630,11 @@
 
         <!-- Botón Rápido Bolsa / Carrito -->
         <a routerLink="/carrito" class="top-cart-btn" title="Bolsa de Compras">
-          <span class="cart-emoji">🛒</span>
+          @if (isCliente) {
+            <svg class="client-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h2l2.4 11.2a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 2-1.6L21 7H6M10 20h.01M18 20h.01"/></svg>
+          } @else {
+            <span class="cart-emoji">🛒</span>
+          }
           <span class="cart-label">Bolsa</span>
         </a>
 
@@ -715,6 +750,71 @@
           </div>
         </aside>
       }
+
+      @if (isCliente && showClientMenu()) {
+        <button type="button" class="client-menu-backdrop" (click)="closeClientMenu()" aria-label="Cerrar menú de tienda"></button>
+        <aside id="client-more-menu" #clientMoreMenu class="client-more-menu" role="dialog" aria-modal="true" aria-labelledby="client-more-title" tabindex="-1" (keydown)="onClientMenuKeydown($event)">
+          <div class="client-more-heading">
+            <div>
+              <strong id="client-more-title">Tu experiencia {{ brandName }}</strong>
+              <span>Todo lo que necesitas, sin perderte entre menús.</span>
+            </div>
+            <button type="button" (click)="closeClientMenu()" aria-label="Cerrar menú">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+          </div>
+
+          @if (tenants().length > 1) {
+            <label class="client-store-switcher">
+              <span>Cambiar de tienda</span>
+              <select [value]="user()?.empresa_id" (change)="switchTenant($event)" [disabled]="isSwitchingTenant()">
+                @for (tenant of tenants(); track tenant.id) {
+                  <option [value]="tenant.id" [disabled]="!tenant.active">{{ tenant.nombre }}{{ tenant.active ? '' : ' (inactiva)' }}</option>
+                }
+              </select>
+            </label>
+          }
+
+          <nav class="client-more-grid">
+            <a routerLink="/admin/proximamente" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12M6 22h12M8 2v5l4 5-4 5v5m8-20v5l-4 5 4 5v5"/></svg>
+              <span><strong>Próximamente</strong><small>Nuevos lanzamientos</small></span>
+            </a>
+            <a routerLink="/cuenta/favoritos" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+              <span><strong>Favoritos</strong><small>Tu selección guardada</small></span>
+            </a>
+            <a routerLink="/cuenta/mis-reservas" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z"/></svg>
+              <span><strong>Mis reservas</strong><small>Tickets y retiros</small></span>
+            </a>
+            <a routerLink="/cuenta/mis-pagos" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3V6Zm0 4h18M7 15h3"/></svg>
+              <span><strong>Pagos y recibos</strong><small>Comprobantes digitales</small></span>
+            </a>
+            <a routerLink="/cuenta/mis-compras" [queryParams]="{ tab: 'cambios' }" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11a4 4 0 0 1 0 8H8m0 0 3-3m-3 3 3 3M20 5v4h-4"/></svg>
+              <span><strong>Cambios</strong><small>Garantías y devoluciones</small></span>
+            </a>
+            <a routerLink="/admin/sucursales" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16M5 10v10h14V10M3 6h18l-1 4H4L3 6Zm6 8h6v6H9v-6Z"/></svg>
+              <span><strong>Sucursales</strong><small>Direcciones y horarios</small></span>
+            </a>
+            <a routerLink="/cuenta/experiencia" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z"/></svg>
+              <span><strong>Tu experiencia</strong><small>Calificaciones y ayuda</small></span>
+            </a>
+            <a routerLink="/outfits" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 7 6 3 8l2 5 3-1v9h8v-9l3 1 2-5-4-2-2-2c-1 2-5 2-6 0Z"/></svg>
+              <span><strong>Crear outfits</strong><small>Combina tus prendas</small></span>
+            </a>
+            <a routerLink="/vestidor-virtual" routerLinkActive="active" (click)="closeClientMenu()">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a2 2 0 0 1 2 2v16H5V5a2 2 0 0 1 2-2Zm3 5h4m-6 5h8"/></svg>
+              <span><strong>Vestidor virtual</strong><small>Prueba aumentada</small></span>
+            </a>
+          </nav>
+        </aside>
+      }
     </header>
 
     <!-- Routed Components Outlet -->
@@ -722,6 +822,26 @@
       <router-outlet></router-outlet>
     </div>
   </main>
+
+  @if (isCliente) {
+    <nav class="client-bottom-nav" aria-label="Navegación móvil de la tienda">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 9-8 9 8v10h-6v-6H9v6H3V11Z"/></svg><span>Inicio</span>
+      </a>
+      <a routerLink="/catalogo" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4V5Zm4 0V3h8v2M8 10h8M8 14h5"/></svg><span>Catálogo</span>
+      </a>
+      <a routerLink="/cuenta/favoritos" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><span>Favoritos</span>
+      </a>
+      <a routerLink="/cuenta/mis-compras" routerLinkActive="active">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7V5a6 6 0 0 1 12 0v2M4 7h16l-1 14H5L4 7Z"/></svg><span>Compras</span>
+      </a>
+      <button type="button" (click)="toggleClientMenu($event)" [class.active]="showClientMenu()" [attr.aria-expanded]="showClientMenu()" aria-controls="client-more-menu" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg><span>Más</span>
+      </button>
+    </nav>
+  }
 
   <!-- Chatbot Asistente Inteligente StyleStore con Chips de Navegación -->
   <app-chatbot-widget></app-chatbot-widget>

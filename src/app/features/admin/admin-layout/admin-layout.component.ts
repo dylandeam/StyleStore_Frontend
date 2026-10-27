@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, HostListener, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
@@ -21,6 +21,8 @@ import { BrandingService } from '../../../core/services/branding.service';
   styleUrl: './admin-layout.component.css',
 })
 export class AdminLayoutComponent implements OnInit {
+  @ViewChild('clientMoreMenu') private clientMoreMenu?: ElementRef<HTMLElement>;
+  private clientMenuTrigger?: HTMLElement;
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly notificacionesService = inject(NotificacionesService);
@@ -53,6 +55,7 @@ export class AdminLayoutComponent implements OnInit {
   readonly notificaciones = signal<any[]>([]);
   readonly showNotificacionesDropdown = signal<boolean>(false);
   readonly showProfileMenu = signal<boolean>(false);
+  readonly showClientMenu = signal<boolean>(false);
   readonly unreadNotificationsCount = computed(() =>
     this.notificaciones().filter((n) => !n.leida).length
   );
@@ -82,6 +85,7 @@ export class AdminLayoutComponent implements OnInit {
         this.isMobileMenuOpen.set(false);
         this.showProfileMenu.set(false);
         this.showNotificacionesDropdown.set(false);
+        this.showClientMenu.set(false);
       });
 
     this.cargarNotificaciones();
@@ -152,11 +156,13 @@ export class AdminLayoutComponent implements OnInit {
 
   toggleNotificacionesDropdown(): void {
     this.showProfileMenu.set(false);
+    this.showClientMenu.set(false);
     this.showNotificacionesDropdown.update((val) => !val);
   }
 
   toggleProfileMenu(): void {
     this.showNotificacionesDropdown.set(false);
+    this.showClientMenu.set(false);
     this.isMobileMenuOpen.set(false);
     this.showProfileMenu.update((value) => !value);
   }
@@ -165,10 +171,53 @@ export class AdminLayoutComponent implements OnInit {
     this.showProfileMenu.set(false);
   }
 
+  toggleClientMenu(event?: Event): void {
+    const willOpen = !this.showClientMenu();
+    if (willOpen && event?.currentTarget instanceof HTMLElement) {
+      this.clientMenuTrigger = event.currentTarget;
+    }
+    this.showProfileMenu.set(false);
+    this.showNotificacionesDropdown.set(false);
+    this.showClientMenu.set(willOpen);
+    if (willOpen) {
+      queueMicrotask(() => {
+        const menu = this.clientMoreMenu?.nativeElement;
+        const firstControl = menu?.querySelector<HTMLElement>('button:not([disabled]), a[href], select:not([disabled])');
+        (firstControl || menu)?.focus();
+      });
+    }
+  }
+
+  closeClientMenu(): void {
+    const trigger = this.clientMenuTrigger;
+    this.showClientMenu.set(false);
+    queueMicrotask(() => trigger?.focus());
+  }
+
+  onClientMenuKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    const menu = this.clientMoreMenu?.nativeElement;
+    if (!menu) return;
+    const focusable = Array.from(
+      menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')
+    ).filter((element) => !element.hasAttribute('hidden'));
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
   @HostListener('document:keydown.escape')
   closeHeaderMenus(): void {
     this.showProfileMenu.set(false);
     this.showNotificacionesDropdown.set(false);
+    if (this.showClientMenu()) this.closeClientMenu();
   }
 
   marcarNotificacionLeida(notif: any): void {

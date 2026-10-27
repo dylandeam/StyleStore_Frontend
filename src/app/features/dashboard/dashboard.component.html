@@ -10,24 +10,30 @@
     </div>
   } @else if (user()) {
     <!-- Welcome Hero Banner (Navy #14263D) -->
-    <section class="welcome-hero-navy">
+    <section class="welcome-hero-navy" [class.client-welcome-hero]="isCliente">
       <div class="hero-content">
-        <div class="hero-badge">
+        <div class="hero-badge" *ngIf="!isCliente">
           <span>{{ user()?.role?.toUpperCase() }}</span>
         </div>
-        <h1 class="hero-title">¡Bienvenido(a), {{ user()?.name }}!</h1>
-        <p class="hero-description">
+        <h1 class="hero-title">{{ isCliente ? 'Hola, ' + user()?.name + '. Tu estilo empieza aquí.' : '¡Bienvenido(a), ' + user()?.name + '!' }}</h1>
+        <p class="hero-description" *ngIf="isCliente">
+          Explora lo nuevo de <strong>{{ branding.brand()?.nombre_marca || 'StyleStore' }}</strong>, guarda tus favoritos y compra desde la sucursal que prefieras.
+        </p>
+        <p class="hero-description" *ngIf="!isCliente">
           Panel de control inteligente y gestión integral de <strong>{{ branding.brand()?.nombre_marca || 'StyleStore' }}</strong>. Monitorea métricas en tiempo real y gestiona tus operaciones.
         </p>
         <div class="hero-actions">
           <a routerLink="/catalogo" class="btn-hero-action" *ngIf="isCliente">
-            <span>🛍️ Explorar Catálogo</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4V5Zm4 0V3h8v2M8 10h8M8 14h5"/></svg>
+            <span>Explorar catálogo</span>
           </a>
           <a routerLink="/cuenta/mis-compras" class="btn-hero-action outline" *ngIf="isCliente">
-            <span>📦 Mis Compras & Garantías</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7V5a6 6 0 0 1 12 0v2M4 7h16l-1 14H5L4 7Z"/></svg>
+            <span>Mis compras</span>
           </a>
           <a routerLink="/cuenta/mis-reservas" class="btn-hero-action outline" *ngIf="isCliente">
-            <span>🔖 Mis Reservas & Tickets</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z"/></svg>
+            <span>Mis reservas</span>
           </a>
           <a routerLink="/admin/caja" class="btn-hero-action" *ngIf="isStaff">
             <span>💵 Punto de Venta POS</span>
@@ -181,6 +187,48 @@
       </section>
     </section>
 
+    @if (isCliente) {
+      <section class="client-discovery-section">
+        <div class="client-section-heading">
+          <div>
+            <h2>Descubre tu tienda</h2>
+            <p>Encuentra prendas, promociones e inspiración sin salir de tu espacio personal.</p>
+          </div>
+          <a routerLink="/catalogo">Ver todo el catálogo <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="client-discovery-grid">
+          <a routerLink="/catalogo" class="client-discovery-card client-discovery-featured">
+            <div class="client-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4V5Zm4 0V3h8v2M8 10h8M8 14h5"/></svg></div>
+            <div><h3>Catálogo completo</h3><p>Explora prendas disponibles por sucursal, talla y color.</p></div>
+            <span>Explorar ahora →</span>
+          </a>
+          <a routerLink="/promociones" class="client-discovery-card">
+            <div class="client-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 13-7 7L4 11V4h7l9 9ZM8 8h.01"/></svg></div>
+            <div><h3>Promociones</h3><p>Beneficios activos de tu tienda.</p></div>
+          </a>
+          <a routerLink="/cuenta/favoritos" class="client-discovery-card">
+            <div class="client-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></div>
+            <div><h3>Favoritos</h3><p>Vuelve a las prendas que guardaste.</p></div>
+          </a>
+          <a routerLink="/outfits" class="client-discovery-card">
+            <div class="client-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 7 6 3 8l2 5 3-1v9h8v-9l3 1 2-5-4-2-2-2c-1 2-5 2-6 0Z"/></svg></div>
+            <div><h3>Crear outfits</h3><p>Combina prendas antes de elegir.</p></div>
+          </a>
+          <a routerLink="/admin/proximamente" class="client-discovery-card">
+            <div class="client-card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h12M6 22h12M8 2v5l4 5-4 5v5m8-20v5l-4 5 4 5v5"/></svg></div>
+            <div><h3>Próximamente</h3><p>Anticípate a los nuevos lanzamientos.</p></div>
+          </a>
+        </div>
+
+        <div class="client-service-strip" aria-label="Servicios de tu cuenta">
+          <a routerLink="/cuenta/mis-compras"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7V5a6 6 0 0 1 12 0v2M4 7h16l-1 14H5L4 7Z"/></svg><span><strong>Mis compras</strong><small>Pedidos y garantías</small></span></a>
+          <a routerLink="/cuenta/mis-reservas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z"/></svg><span><strong>Reservas</strong><small>Tickets y retiros</small></span></a>
+          <a routerLink="/cuenta/mis-pagos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v12H3V6Zm0 4h18M7 15h3"/></svg><span><strong>Pagos</strong><small>Recibos digitales</small></span></a>
+          <a routerLink="/admin/sucursales"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16M5 10v10h14V10M3 6h18l-1 4H4L3 6Z"/></svg><span><strong>Sucursales</strong><small>Encuentra tu tienda</small></span></a>
+        </div>
+      </section>
+    } @else {
     <!-- Modules Navigation Section -->
     <section class="modules-section">
       <div class="section-header">
@@ -373,5 +421,6 @@
 
       </div>
     </section>
+    }
   }
 </div>

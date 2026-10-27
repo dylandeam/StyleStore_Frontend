@@ -957,6 +957,529 @@
   letter-spacing: 0.5px;
 }
 
+/* =========================================================
+   EXPERIENCIA CLIENTE — tienda horizontal + navegación móvil
+   ========================================================= */
+.client-shell {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-primary) 94%, white) 0%, var(--bg-primary) 42%),
+    var(--bg-primary);
+}
+
+.client-shell .client-main-content {
+  margin-left: 0;
+  max-width: 100%;
+  width: 100%;
+  padding: 1rem clamp(1rem, 3vw, 3.25rem) 3rem;
+  gap: 1.75rem;
+}
+
+.client-shell .content-body {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+}
+
+.client-store-header {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 1000;
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  min-height: 76px;
+  padding: 0.7rem 0.85rem 0.7rem 1rem;
+  gap: 1rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+  box-shadow: 0 14px 34px rgba(20, 38, 61, 0.09);
+}
+
+.client-desktop-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 2.8rem);
+  min-width: 0;
+}
+
+.client-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.client-brand-link img {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: #fff;
+}
+
+.client-brand-link span {
+  max-width: 160px;
+  overflow: hidden;
+  color: var(--accent-primary);
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-primary-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.client-primary-nav > a,
+.client-more-trigger {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.78rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.client-primary-nav > a:hover,
+.client-primary-nav > a.active,
+.client-more-trigger:hover,
+.client-more-trigger[aria-expanded='true'] {
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+.client-primary-nav > a:focus-visible,
+.client-more-trigger:focus-visible,
+.client-bottom-nav a:focus-visible,
+.client-bottom-nav button:focus-visible,
+.client-more-menu a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent-primary) 36%, transparent);
+  outline-offset: 2px;
+}
+
+.client-more-trigger svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.18s ease;
+}
+
+.client-more-trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.client-store-header .header-right-actions {
+  margin-left: auto;
+  gap: 0.55rem;
+}
+
+.client-store-header .top-notif-btn,
+.client-store-header .top-cart-btn {
+  min-width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  box-shadow: none;
+}
+
+.client-store-header .top-notif-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.client-store-header .top-cart-btn {
+  padding: 0.55rem 0.8rem;
+  background: var(--accent-primary);
+  color: var(--text-on-navy, #fff);
+}
+
+.client-action-icon,
+.tenant-switcher-icon {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tenant-switcher-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-primary);
+}
+
+.client-store-header .top-user-chip {
+  min-height: 44px;
+  padding: 0.35rem 0.55rem 0.35rem 0.4rem;
+  border-radius: 12px;
+}
+
+.client-store-header .top-chip-info {
+  display: none;
+}
+
+.client-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1270;
+  border: 0;
+  background: rgba(20, 38, 61, 0.18);
+  cursor: default;
+}
+
+.client-more-menu {
+  position: absolute;
+  top: calc(100% + 0.65rem);
+  right: 0.85rem;
+  z-index: 1280;
+  width: min(620px, calc(100vw - 2rem));
+  max-height: min(660px, calc(100vh - 7rem));
+  overflow-y: auto;
+  padding: 1rem;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(20, 38, 61, 0.22);
+  animation: clientMenuIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.client-more-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.25rem 0.25rem 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.client-more-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.client-more-heading strong {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+
+.client-more-heading span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.client-more-heading button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  cursor: pointer;
+}
+
+.client-more-heading button svg,
+.client-more-grid svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.client-store-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-primary) 7%, var(--bg-card));
+}
+
+.client-store-switcher span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.client-store-switcher select {
+  max-width: 240px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 0.45rem 0.55rem;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.client-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.client-more-grid a {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem;
+  border-radius: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background-color 0.18s ease;
+}
+
+.client-more-grid a:hover,
+.client-more-grid a.active {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+}
+
+.client-more-grid a > svg {
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 9%, var(--bg-card));
+}
+
+.client-more-grid a > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.12rem;
+}
+
+.client-more-grid strong {
+  font-size: 0.82rem;
+}
+
+.client-more-grid small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.client-bottom-nav {
+  display: none;
+}
+
+@keyframes clientMenuIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 769px) and (max-width: 1180px) {
+  .client-shell .main-content {
+    margin-left: 0;
+    max-width: 100%;
+  }
+
+  .client-store-header .tenant-switcher,
+  .client-brand-link span,
+  .client-primary-nav > a:nth-of-type(4) {
+    display: none;
+  }
+
+  .client-desktop-brand {
+    gap: 0.7rem;
+  }
+
+  .client-primary-nav > a,
+  .client-more-trigger {
+    padding-inline: 0.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .client-shell .client-main-content {
+    padding: 0.55rem 0.55rem calc(6.5rem + env(safe-area-inset-bottom)) !important;
+    gap: 0.85rem !important;
+  }
+
+  .client-store-header {
+    top: 0.4rem;
+    padding: 0.65rem !important;
+    border-radius: 14px !important;
+    box-shadow: 0 10px 26px rgba(20, 38, 61, 0.1);
+  }
+
+  .client-desktop-brand {
+    display: none;
+  }
+
+  .client-store-header .mobile-top-bar {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .client-store-header .mobile-brand {
+    margin-right: auto;
+    min-width: 0;
+    max-width: calc(100% - 126px);
+  }
+
+  .client-store-header .mobile-logo-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+
+  .client-store-header .mobile-brand-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .client-store-header .header-right-actions {
+    position: absolute;
+    top: 0.58rem;
+    right: 3.5rem;
+    gap: 0.35rem;
+  }
+
+  .client-store-header .tenant-switcher,
+  .client-store-header .top-user-chip,
+  .client-store-header .cart-label {
+    display: none !important;
+  }
+
+  .client-store-header .top-notif-btn,
+  .client-store-header .top-cart-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
+  }
+
+  .client-store-header .client-action-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .client-shell .profile-menu {
+    top: 4.35rem;
+    max-height: calc(100vh - 5.2rem - env(safe-area-inset-bottom));
+  }
+
+  .client-menu-backdrop {
+    background: rgba(20, 38, 61, 0.34);
+  }
+
+  .client-more-menu {
+    position: fixed;
+    top: auto;
+    right: 0.5rem;
+    bottom: calc(4.65rem + env(safe-area-inset-bottom));
+    left: 0.5rem;
+    width: auto;
+    max-height: calc(100vh - 6rem - env(safe-area-inset-bottom));
+    border-radius: 16px;
+    animation-name: clientSheetIn;
+  }
+
+  .client-more-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .client-more-grid a {
+    min-height: 58px;
+  }
+
+  .client-bottom-nav {
+    position: fixed;
+    right: 0.5rem;
+    bottom: max(0.45rem, env(safe-area-inset-bottom));
+    left: 0.5rem;
+    z-index: 1260;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--border-subtle) 84%, transparent);
+    border-radius: 16px;
+    background: var(--bg-card);
+    box-shadow: 0 14px 40px rgba(20, 38, 61, 0.2);
+  }
+
+  .client-bottom-nav a,
+  .client-bottom-nav button {
+    min-width: 0;
+    min-height: 54px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.18rem;
+    padding: 0.3rem 0.2rem;
+    border: 0;
+    border-radius: 11px;
+    color: var(--text-muted);
+    background: transparent;
+    font: inherit;
+    font-size: 0.62rem;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .client-bottom-nav a.active,
+  .client-bottom-nav button.active {
+    color: var(--accent-primary);
+    background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
+  }
+
+  .client-bottom-nav svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @keyframes clientSheetIn {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 /* ========================================== */
 /* NOTIFICACIONES IN-APP DROPDOWN             */
 /* ========================================== */
@@ -1078,7 +1601,7 @@
 
 .notif-dropdown-item.unread {
   background: #eff6ff;
-  border-left: 3px solid #3b82f6;
+  box-shadow: inset 0 0 0 1px #bfdbfe;
 }
 
 .notif-item-top {
