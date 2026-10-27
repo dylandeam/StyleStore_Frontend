@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { OfflineStateService } from './core/services/offline-state.service';
 import { PwaUpdateService } from './core/services/pwa-update.service';
@@ -16,6 +16,7 @@ export class App {
   private readonly pwaUpdates = inject(PwaUpdateService);
   private readonly offlineOperations = inject(OfflineOperationsService);
   readonly pwaInstall = inject(PwaInstallService);
+  readonly showInstallPrompt = signal(true);
 
   constructor() {
     this.pwaUpdates.initialize();
@@ -29,6 +30,10 @@ export class App {
 
   installApp(): void {
     void this.pwaInstall.install();
+  }
+
+  dismissInstallPrompt(): void {
+    this.showInstallPrompt.set(false);
   }
 
   formatSyncDate(value: string | null): string {

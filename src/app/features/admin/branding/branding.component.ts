@@ -25,7 +25,7 @@ export class BrandingComponent implements OnInit {
   form: BrandingUpdate = {
     nombre_marca: '', eslogan: '', logo_url: null,
     color_primario: '#14263D', color_secundario: '#FBF8F1', color_acento: '#274C77',
-    color_fondo: '#EEE7D8', color_texto: '#172536',
+    color_fondo: '#EEE7D8', color_texto: '#172536', color_texto_contraste: '#FFFFFF',
   };
 
   ngOnInit(): void {
@@ -40,6 +40,7 @@ export class BrandingComponent implements OnInit {
           color_acento: brand.color_acento,
           color_fondo: brand.color_fondo,
           color_texto: brand.color_texto,
+          color_texto_contraste: brand.color_texto_contraste || '#FFFFFF',
         };
         this.loading.set(false);
       },
@@ -81,6 +82,19 @@ export class BrandingComponent implements OnInit {
     const current = this.branding.brand();
     if (!current) return;
     this.branding.apply({ ...current, ...this.form, eslogan: this.form.eslogan || null });
+  }
+
+  previewText(background: string, preferred: string): string {
+    return this.branding.readableText(background, preferred);
+  }
+
+  contrastLabel(background: string, foreground: string): string {
+    const ratio = this.branding.contrastRatio(background, foreground);
+    return ratio >= 4.5 ? `Contraste correcto · ${ratio.toFixed(1)}:1` : `Se ajustará automáticamente · ${ratio.toFixed(1)}:1`;
+  }
+
+  hasLowContrast(background: string, foreground: string): boolean {
+    return this.branding.contrastRatio(background, foreground) < 4.5;
   }
 
   save(): void {

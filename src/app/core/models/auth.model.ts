@@ -35,6 +35,7 @@ export interface TenantBranding extends RegistrationCompany {
   color_acento: string;
   color_fondo: string;
   color_texto: string;
+  color_texto_contraste: string;
 }
 
 export interface TenantAccess {

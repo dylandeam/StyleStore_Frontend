@@ -66,7 +66,7 @@
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: 1.2rem;
-  color: #ffffff;
+  color: var(--text-on-navy);
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
@@ -74,7 +74,7 @@
 .btn-toggle-sidebar {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
+  color: var(--text-on-navy-soft);
   border-radius: 8px;
   padding: 0.35rem 0.55rem;
   cursor: pointer;
@@ -84,7 +84,7 @@
 
 .btn-toggle-sidebar:hover {
   background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  color: var(--text-on-navy);
 }
 
 /* Sidebar Navigation Items */
@@ -123,14 +123,14 @@
 }
 
 .nav-group-header:hover .nav-group-title {
-  color: #e2e8f0;
+  color: var(--text-on-navy-soft);
 }
 
 .nav-group-title {
   font-family: var(--font-heading);
   font-size: 0.72rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--text-on-navy-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: color 0.2s ease;
@@ -141,14 +141,14 @@
 }
 
 .nav-group-chevron {
-  color: #94a3b8;
+  color: var(--text-on-navy-muted);
   display: flex;
   align-items: center;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }
 
 .nav-group-header:hover .nav-group-chevron {
-  color: #ffffff;
+  color: var(--text-on-navy);
 }
 
 .nav-group-chevron.collapsed {
@@ -180,7 +180,7 @@
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: #e2e8f0;
+  color: var(--text-on-navy-soft);
   font-family: var(--font-heading);
   font-size: 0.9rem;
   font-weight: 600;
@@ -202,13 +202,13 @@
 }
 
 .nav-item:hover {
-  background: #1d3552;
-  color: #ffffff;
+  background: color-mix(in srgb, var(--bg-sidebar-active) 72%, var(--bg-sidebar));
+  color: var(--text-on-navy);
 }
 
 .nav-item.active {
-  background: #274c77;
-  color: #ffffff;
+  background: var(--bg-sidebar-active);
+  color: var(--text-on-accent);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -238,12 +238,12 @@
 }
 
 .nav-item.icon-only:hover {
-  background: #1d3552;
+  background: color-mix(in srgb, var(--bg-sidebar-active) 72%, var(--bg-sidebar));
   transform: scale(1.06);
 }
 
 .nav-item.icon-only.active {
-  background: #274c77;
+  background: var(--bg-sidebar-active);
 }
 
 /* Sidebar Footer: single account launcher */
@@ -309,7 +309,7 @@
 .user-name-text {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-on-navy);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -317,7 +317,7 @@
 
 .user-email-text {
   font-size: 0.72rem;
-  color: #94a3b8;
+  color: var(--text-on-navy-muted);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -327,7 +327,7 @@
   margin-top: 0.2rem;
   font-size: 0.66rem;
   font-weight: 700;
-  color: #cbd5e1;
+  color: var(--text-on-navy-soft);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -344,7 +344,7 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  color: #94a3b8;
+  color: var(--text-on-navy-muted);
   flex: 0 0 auto;
 }
 
@@ -1020,7 +1020,7 @@
 .client-brand-link span {
   max-width: 160px;
   overflow: hidden;
-  color: var(--accent-primary);
+  color: var(--text-on-card, var(--text-primary));
   font-family: var(--font-heading);
   font-size: 1.05rem;
   font-weight: 800;
@@ -1460,8 +1460,8 @@
 
   .client-bottom-nav a.active,
   .client-bottom-nav button.active {
-    color: var(--accent-primary);
-    background: color-mix(in srgb, var(--accent-primary) 9%, transparent);
+    color: var(--text-on-navy);
+    background: var(--accent-primary);
   }
 
   .client-bottom-nav svg {

@@ -2,15 +2,15 @@
   <!-- Banner Superior de Bienvenida -->
   <header class="catalogo-hero">
     <div class="hero-content">
-      <span class="hero-badge">Colección Oficial 2026</span>
-      <h1 class="hero-title">Catálogo Exclusivo {{ branding.brand()?.nombre_marca || 'StyleStore' }}</h1>
+      <span class="hero-badge">Catálogo de {{ branding.brand()?.nombre_marca || 'StyleStore' }}</span>
+      <h1 class="hero-title">Encuentra tu próxima prenda favorita</h1>
       <p class="hero-subtitle">
-        Moda de alta gama, confección premium y tendencias de temporada. Elige tu sucursal para consultar existencias exactas.
+        Compara estilos, precios y disponibilidad real. Elige tu sucursal para ver el stock que puedes comprar o reservar.
       </p>
 
       <!-- Selector de Sucursal en Hero -->
       <div class="hero-branch-bar">
-        <label class="branch-label">🏬 Seleccionar Sucursal:</label>
+        <label class="branch-label">Sucursal de compra</label>
         <select
           class="branch-select"
           [value]="branchService.selectedBranchId() || 'all'"
@@ -24,6 +24,12 @@
       </div>
     </div>
   </header>
+
+  <section class="shopping-assurances" aria-label="Ventajas de compra">
+    <div><strong>Stock por sucursal</strong><span>Disponibilidad antes de elegir</span></div>
+    <div><strong>Compra o reserva</strong><span>Decide cómo asegurar tu prenda</span></div>
+    <div><strong>Delivery calculado</strong><span>Tarifa según tu ubicación</span></div>
+  </section>
 
   <!-- Barra de Filtros y Búsqueda -->
   <section class="filters-bar-card">
@@ -192,6 +198,9 @@
           </span>
           <span class="category-tag">{{ p.categoria_nombre || 'Exclusivo' }}</span>
           <span *ngIf="p.coleccion_nombre" class="coleccion-tag">{{ p.coleccion_nombre }}</span>
+          <span class="stock-badge" [class.out]="p.stock_total <= 0">
+            {{ p.stock_total > 0 ? p.stock_total + ' disponibles' : 'Sin stock' }}
+          </span>
           <button
             type="button"
             class="favorite-button"
@@ -232,7 +241,7 @@
               class="btn-detail-action"
               (click)="$event.stopPropagation(); verDetalle(p.codigo)"
             >
-              Ver Detalle / Reservar →
+              Ver opciones <span aria-hidden="true">→</span>
             </button>
           </div>
         </div>

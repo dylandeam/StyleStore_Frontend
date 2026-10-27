@@ -42,6 +42,7 @@ export interface TenantSummary {
   color_acento?: string;
   color_fondo?: string;
   color_texto?: string;
+  color_texto_contraste?: string;
   active: boolean;
   inactive_reason?: string | null;
   created_at: string;

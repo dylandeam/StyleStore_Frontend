@@ -25,6 +25,10 @@
   --accent-rose: #f43f5e;
 
   --text-primary: #172536;      /* títulos y texto principal sobre fondo claro */
+  --text-on-page: #172536;
+  --text-on-card: #172536;
+  --text-on-accent: #FFFFFF;
+  --input-text: #172536;
   --text-secondary: #6F756F;    /* subtítulos, descripciones */
   --text-placeholder: #9A9D98;  /* placeholders de inputs */
   --text-muted: #8E928D;
@@ -60,7 +64,7 @@ html, body {
   height: 100%;
   width: 100%;
   background-color: var(--bg-primary);
-  color: var(--text-primary);
+  color: var(--text-on-page, var(--text-primary));
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -226,7 +230,8 @@ h1, .brand-header h2, .section-title {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
-  color: var(--text-primary);
+  color: var(--input-text, #172536);
+  caret-color: var(--accent-primary);
   font-family: var(--font-body);
   font-size: 0.95rem;
   outline: none;

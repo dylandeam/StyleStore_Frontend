@@ -12,6 +12,7 @@
   width: 100%;
   max-width: 480px;
   padding: 2.8rem 2.4rem;
+  color: var(--text-on-card, var(--text-primary));
 }
 
 .brand-header {
@@ -53,6 +54,17 @@
 .subtitle {
   color: var(--text-secondary);
   font-size: 0.95rem;
+}
+
+.auth-form .form-control {
+  color: var(--input-text, #172536);
+  background: #fff;
+  caret-color: var(--accent-primary);
+}
+
+.auth-form .form-control::placeholder {
+  color: #6b7280;
+  opacity: 1;
 }
 
 .auth-form {

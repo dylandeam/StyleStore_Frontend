@@ -33,12 +33,14 @@
         </div>
 
         <h2>Paleta del frontend</h2>
+        <p class="palette-help">Define fondos y textos por separado. Si una combinación no alcanza legibilidad AA, el portal escogerá el tono claro u oscuro más seguro sin alterar tu color guardado.</p>
         <div class="color-grid">
-          <label>Color principal<span><input type="color" name="primario" [(ngModel)]="form.color_primario" (input)="preview()" /><code>{{ form.color_primario }}</code></span></label>
-          <label>Superficies<span><input type="color" name="secundario" [(ngModel)]="form.color_secundario" (input)="preview()" /><code>{{ form.color_secundario }}</code></span></label>
+          <label>Fondo de contraste / barra<span><input type="color" name="primario" [(ngModel)]="form.color_primario" (input)="preview()" /><code>{{ form.color_primario }}</code></span></label>
+          <label>Fondo secundario / tarjetas<span><input type="color" name="secundario" [(ngModel)]="form.color_secundario" (input)="preview()" /><code>{{ form.color_secundario }}</code></span></label>
           <label>Acentos y enlaces<span><input type="color" name="acento" [(ngModel)]="form.color_acento" (input)="preview()" /><code>{{ form.color_acento }}</code></span></label>
-          <label>Fondo general<span><input type="color" name="fondo" [(ngModel)]="form.color_fondo" (input)="preview()" /><code>{{ form.color_fondo }}</code></span></label>
-          <label>Texto principal<span><input type="color" name="texto" [(ngModel)]="form.color_texto" (input)="preview()" /><code>{{ form.color_texto }}</code></span></label>
+          <label>Fondo principal de página<span><input type="color" name="fondo" [(ngModel)]="form.color_fondo" (input)="preview()" /><code>{{ form.color_fondo }}</code></span></label>
+          <label>Texto sobre fondos claros<span><input type="color" name="texto" [(ngModel)]="form.color_texto" (input)="preview()" /><code>{{ form.color_texto }}</code></span><small [class.contrast-warning]="hasLowContrast(form.color_secundario, form.color_texto)">{{ contrastLabel(form.color_secundario, form.color_texto) }}</small></label>
+          <label>Texto sobre fondos de contraste<span><input type="color" name="texto_contraste" [(ngModel)]="form.color_texto_contraste" (input)="preview()" /><code>{{ form.color_texto_contraste }}</code></span><small [class.contrast-warning]="hasLowContrast(form.color_primario, form.color_texto_contraste)">{{ contrastLabel(form.color_primario, form.color_texto_contraste) }}</small></label>
         </div>
 
         <button class="save-button" type="submit" [disabled]="saving() || uploading() || form.nombre_marca.trim().length < 2">
@@ -46,18 +48,18 @@
         </button>
       </div>
 
-      <aside class="preview-card" [style.background]="form.color_fondo" [style.color]="form.color_texto">
+      <aside class="preview-card" [style.background]="form.color_fondo" [style.color]="previewText(form.color_fondo, form.color_texto)">
         <span class="preview-label">VISTA PREVIA</span>
-        <div class="preview-sidebar" [style.background]="form.color_primario">
+        <div class="preview-sidebar" [style.background]="form.color_primario" [style.color]="previewText(form.color_primario, form.color_texto_contraste)">
           <img [src]="logoPreview()" alt="Logo" />
           <strong>{{ form.nombre_marca || 'Nombre de la marca' }}</strong>
         </div>
         <div class="preview-content">
           <small>{{ form.eslogan || 'Tu lema aparecerá aquí' }}</small>
-          <div class="preview-panel" [style.background]="form.color_secundario">
-            <h3 [style.color]="form.color_texto">Bienvenido a {{ form.nombre_marca || 'tu tienda' }}</h3>
+          <div class="preview-panel" [style.background]="form.color_secundario" [style.color]="previewText(form.color_secundario, form.color_texto)">
+            <h3 [style.color]="previewText(form.color_secundario, form.color_texto)">Bienvenido a {{ form.nombre_marca || 'tu tienda' }}</h3>
             <p>La identidad se aplicará al login, registro, navegación y componentes principales.</p>
-            <button type="button" [style.background]="form.color_primario">Acción principal</button>
+            <button type="button" [style.background]="form.color_primario" [style.color]="previewText(form.color_primario, form.color_texto_contraste)">Acción principal</button>
             <a [style.color]="form.color_acento">Enlace destacado</a>
           </div>
         </div>

@@ -18,11 +18,12 @@
     }
   </aside>
 }
-@if (pwaInstall.canInstall()) {
+@if (pwaInstall.canInstall() && showInstallPrompt()) {
   <aside class="install-banner" role="status">
-    <span class="install-icon">▣</span>
-    <span><strong>Instala este portal</strong><small>Acceso rápido, catálogo en caché y experiencia tipo aplicación.</small></span>
-    <button type="button" (click)="installApp()">Instalar PWA</button>
+    <svg class="install-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" /></svg>
+    <span><strong>Instala este portal</strong><small>Acceso rápido y catálogo disponible sin conexión.</small></span>
+    <button type="button" (click)="installApp()">Instalar</button>
+    <button class="install-dismiss" type="button" (click)="dismissInstallPrompt()" aria-label="Cerrar sugerencia de instalación">×</button>
   </aside>
 }
 <router-outlet></router-outlet>
