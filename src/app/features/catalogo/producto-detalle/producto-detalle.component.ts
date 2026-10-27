@@ -11,6 +11,7 @@ import { SucursalService } from '../../../core/services/sucursal.service';
 import { BranchSelectionService } from '../../../core/services/branch-selection.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
+import { ResenaProductoItem, ResenaProductoService, ResenasProductoResponse } from '../../../core/services/resena-producto.service';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -29,6 +30,7 @@ export class ProductoDetalleComponent implements OnInit {
   private reservaService = inject(ReservaService);
   private sucursalService = inject(SucursalService);
   private notificacionesService = inject(NotificacionesService);
+  private resenaProductoService = inject(ResenaProductoService);
   public branchService = inject(BranchSelectionService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -70,6 +72,18 @@ export class ProductoDetalleComponent implements OnInit {
   sucursalesList = signal<Sucursal[]>([]);
   reservaExitosa = signal<any>(null);
 
+  // Reseñas públicas de la prenda
+  resenasData = signal<ResenasProductoResponse | null>(null);
+  cargandoResenas = signal(true);
+  guardandoResena = signal(false);
+  eliminandoResena = signal(false);
+  errorResenas = signal<string | null>(null);
+  puntuacionResena = signal(0);
+  puntuacionHover = signal(0);
+  comentarioResena = signal('');
+  filtroResenas = signal<'todas' | 'verificadas' | 'interes'>('todas');
+  readonly estrellas = [1, 2, 3, 4, 5];
+
   getNombreSucursalSeleccionada(): string {
     const id = this.sucursalFiltroId();
     if (!id) return 'Todas las sucursales';
@@ -98,6 +112,27 @@ export class ProductoDetalleComponent implements OnInit {
   get mensajeToast(): string | null { return this.toastMessage(); }
   get precioSeleccionado(): number {
     return Number(this.existencia()?.precio_variante ?? this.productoData()?.precio ?? 0);
+  }
+
+  get resenasFiltradas(): ResenaProductoItem[] {
+    const reviews = this.resenasData()?.resenas || [];
+    if (this.filtroResenas() === 'verificadas') return reviews.filter((item) => item.compra_verificada);
+    if (this.filtroResenas() === 'interes') return reviews.filter((item) => !item.compra_verificada);
+    return reviews;
+  }
+
+  get limiteComentarioRestante(): number {
+    return 1200 - this.comentarioResena().length;
+  }
+
+  porcentajeEstrella(score: number): number {
+    const total = this.resenasData()?.resumen.total || 0;
+    const value = this.resenasData()?.resumen.distribucion?.[score] || 0;
+    return total ? Math.round((value / total) * 100) : 0;
+  }
+
+  etiquetaPuntuacion(score: number): string {
+    return ['', 'No cumplió mis expectativas', 'Puede mejorar', 'Buena prenda', 'Muy buena elección', 'Me encantó'][score] || 'Elige una puntuación';
   }
 
   get medidasSeleccionadas(): Array<{ nombre: string; valor: number }> {
@@ -264,6 +299,93 @@ export class ProductoDetalleComponent implements OnInit {
 
     // Cargar recomendaciones de IA local
     this.cargarRecomendaciones(codigo);
+    this.cargarResenas(codigo);
+  }
+
+  cargarResenas(codigo = this.codigoState()): void {
+    if (!codigo) return;
+    this.cargandoResenas.set(true);
+    this.errorResenas.set(null);
+    this.resenaProductoService.getByProduct(codigo).subscribe({
+      next: (response) => {
+        this.aplicarResenas(response);
+        this.cargandoResenas.set(false);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.cargandoResenas.set(false);
+        this.errorResenas.set(error?.error?.detail || 'No pudimos cargar las opiniones. Intenta nuevamente.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private aplicarResenas(response: ResenasProductoResponse): void {
+    this.resenasData.set(response);
+    if (response.mi_resena) {
+      this.puntuacionResena.set(response.mi_resena.puntuacion);
+      this.comentarioResena.set(response.mi_resena.comentario);
+    } else {
+      this.puntuacionResena.set(0);
+      this.comentarioResena.set('');
+    }
+  }
+
+  seleccionarPuntuacion(score: number): void {
+    this.puntuacionResena.set(score);
+  }
+
+  actualizarComentario(value: string): void {
+    this.comentarioResena.set(value.slice(0, 1200));
+  }
+
+  guardarResena(): void {
+    const score = this.puntuacionResena();
+    const comment = this.comentarioResena().trim();
+    if (score < 1) {
+      this.mostrarToast('Selecciona de 1 a 5 estrellas para compartir tu opinión.');
+      return;
+    }
+    if (comment.length < 4) {
+      this.mostrarToast('Cuéntanos un poco más sobre esta prenda.');
+      return;
+    }
+    this.guardandoResena.set(true);
+    this.resenaProductoService.saveMine(this.codigoState(), score, comment).subscribe({
+      next: (response) => {
+        this.aplicarResenas(response);
+        this.guardandoResena.set(false);
+        this.mostrarToast(response.mi_resena?.compra_verificada ? 'Tu reseña verificada ya está publicada.' : 'Tu opinión ya ayuda a otros clientes.');
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.guardandoResena.set(false);
+        this.mostrarToast(error?.error?.detail || 'No pudimos publicar tu reseña.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  eliminarMiResena(): void {
+    if (!this.resenasData()?.mi_resena || this.eliminandoResena()) return;
+    this.eliminandoResena.set(true);
+    this.resenaProductoService.deleteMine(this.codigoState()).subscribe({
+      next: (response) => {
+        this.aplicarResenas(response);
+        this.eliminandoResena.set(false);
+        this.mostrarToast('Tu reseña fue retirada.');
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.eliminandoResena.set(false);
+        this.mostrarToast(error?.error?.detail || 'No pudimos retirar tu reseña.');
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  iniciales(nombre: string): string {
+    return nombre.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'C';
   }
 
   cargarRecomendaciones(codigo: string): void {

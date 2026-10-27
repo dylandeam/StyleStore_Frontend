@@ -259,6 +259,180 @@
       </div>
     </div>
 
+    <section class="reviews-section" aria-labelledby="reviews-title">
+      <div class="reviews-heading">
+        <div>
+          <h2 id="reviews-title">Opiniones que ayudan a elegir</h2>
+          <p>Experiencias reales e interés de la comunidad sobre esta prenda.</p>
+        </div>
+        @if (resenasData()?.resumen?.total) {
+          <div class="reviews-heading-score" aria-label="Puntuación promedio">
+            <strong>{{ resenasData()!.resumen.promedio | number:'1.1-1' }}</strong>
+            <span>de 5</span>
+          </div>
+        }
+      </div>
+
+      @if (cargandoResenas()) {
+        <div class="reviews-loading" aria-live="polite">
+          <span class="reviews-loading-line wide"></span>
+          <span class="reviews-loading-line"></span>
+          <span class="reviews-loading-line short"></span>
+          <span class="sr-only">Cargando opiniones de clientes</span>
+        </div>
+      } @else if (errorResenas()) {
+        <div class="reviews-error" role="alert">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.7 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0Z"/></svg>
+          <div><strong>No pudimos mostrar las opiniones</strong><p>{{ errorResenas() }}</p></div>
+          <button type="button" (click)="cargarResenas()">Reintentar</button>
+        </div>
+      } @else {
+        <div class="reviews-overview">
+          <div class="reviews-summary" aria-label="Resumen de puntuaciones">
+            <div class="rating-main">
+              <strong>{{ resenasData()?.resumen?.promedio || 0 | number:'1.1-1' }}</strong>
+              <div>
+                <div class="stars-static" [attr.aria-label]="(resenasData()?.resumen?.promedio || 0) + ' de 5 estrellas'">
+                  @for (star of estrellas; track star) {
+                    <svg viewBox="0 0 24 24" [class.filled]="star <= (resenasData()?.resumen?.promedio || 0)" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.6-4.4 6.3-.9L12 2.8Z"/></svg>
+                  }
+                </div>
+                <p>{{ resenasData()?.resumen?.total || 0 }} {{ (resenasData()?.resumen?.total || 0) === 1 ? 'opinión publicada' : 'opiniones publicadas' }}</p>
+              </div>
+            </div>
+            <div class="rating-distribution">
+              @for (score of [5, 4, 3, 2, 1]; track score) {
+                <div class="distribution-row">
+                  <span>{{ score }}</span>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.6-4.4 6.3-.9L12 2.8Z"/></svg>
+                  <div class="distribution-track"><span [style.width.%]="porcentajeEstrella(score)"></span></div>
+                  <span class="distribution-value">{{ resenasData()?.resumen?.distribucion?.[score] || 0 }}</span>
+                </div>
+              }
+            </div>
+            @if ((resenasData()?.resumen?.compras_verificadas || 0) > 0) {
+              <p class="verified-summary">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                {{ resenasData()!.resumen.compras_verificadas }} con compra verificada
+              </p>
+            }
+          </div>
+
+          @if (resenasData()?.puede_comentar) {
+            <form class="review-composer" (ngSubmit)="guardarResena()">
+              <div class="composer-title-row">
+                <div>
+                  <h3>{{ resenasData()?.mi_resena ? 'Actualiza tu opinión' : '¿Qué te parece esta prenda?' }}</h3>
+                  <p>Tu experiencia o intención de compra puede orientar a otra persona.</p>
+                </div>
+                @if (resenasData()?.mi_resena?.compra_verificada) {
+                  <span class="status-badge verified">Compra verificada</span>
+                } @else {
+                  <span class="status-badge interest">Interés en la prenda</span>
+                }
+              </div>
+              <fieldset class="star-input">
+                <legend>Tu puntuación</legend>
+                <div class="star-buttons" (mouseleave)="puntuacionHover.set(0)">
+                  @for (star of estrellas; track star) {
+                    <button
+                      type="button"
+                      [class.selected]="star <= (puntuacionHover() || puntuacionResena())"
+                      [attr.aria-label]="star + (star === 1 ? ' estrella' : ' estrellas')"
+                      [attr.aria-pressed]="puntuacionResena() === star"
+                      (mouseenter)="puntuacionHover.set(star)"
+                      (focus)="puntuacionHover.set(star)"
+                      (blur)="puntuacionHover.set(0)"
+                      (click)="seleccionarPuntuacion(star)"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.6-4.4 6.3-.9L12 2.8Z"/></svg>
+                    </button>
+                  }
+                  <span>{{ etiquetaPuntuacion(puntuacionHover() || puntuacionResena()) }}</span>
+                </div>
+              </fieldset>
+              <label class="review-comment-label" for="review-comment">Tu comentario</label>
+              <textarea
+                #reviewComment
+                id="review-comment"
+                rows="4"
+                maxlength="1200"
+                [value]="comentarioResena()"
+                (input)="actualizarComentario(reviewComment.value)"
+                placeholder="Habla del diseño, el material, cómo combina o por qué te gustaría comprarla…"
+              ></textarea>
+              <div class="composer-footer">
+                <span [class.near-limit]="limiteComentarioRestante < 100">{{ limiteComentarioRestante }} caracteres disponibles</span>
+                <div class="composer-actions">
+                  @if (resenasData()?.mi_resena) {
+                    <button type="button" class="delete-review" [disabled]="eliminandoResena() || guardandoResena()" (click)="eliminarMiResena()">
+                      {{ eliminandoResena() ? 'Retirando…' : 'Retirar' }}
+                    </button>
+                  }
+                  <button type="submit" class="publish-review" [disabled]="guardandoResena() || puntuacionResena() < 1 || comentarioResena().trim().length < 4">
+                    {{ guardandoResena() ? 'Publicando…' : (resenasData()?.mi_resena ? 'Guardar cambios' : 'Publicar opinión') }}
+                  </button>
+                </div>
+              </div>
+            </form>
+          } @else {
+            <div class="review-access-note">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V8a4 4 0 0 1 8 0v2m-9 0h10a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Z"/></svg>
+              <div><h3>Opiniones de la comunidad</h3><p>Ingresa como cliente del tenant para compartir una reseña de esta prenda.</p></div>
+            </div>
+          }
+        </div>
+
+        @if ((resenasData()?.resumen?.total || 0) > 0) {
+          <div class="review-list-header">
+            <h3>Lo que cuenta la comunidad</h3>
+            <div class="review-filters" aria-label="Filtrar opiniones">
+              <button type="button" [class.active]="filtroResenas() === 'todas'" (click)="filtroResenas.set('todas')">Todas</button>
+              <button type="button" [class.active]="filtroResenas() === 'verificadas'" (click)="filtroResenas.set('verificadas')">Compra verificada</button>
+              <button type="button" [class.active]="filtroResenas() === 'interes'" (click)="filtroResenas.set('interes')">Interés</button>
+            </div>
+          </div>
+          @if (resenasFiltradas.length > 0) {
+            <div class="review-list">
+              @for (review of resenasFiltradas; track review.id) {
+                <article class="review-item" [class.own-review]="review.es_propia">
+                  <header>
+                    <div class="review-author">
+                      <span class="author-avatar" aria-hidden="true">{{ iniciales(review.autor_nombre) }}</span>
+                      <div><strong>{{ review.autor_nombre }}</strong><time [attr.datetime]="review.updated_at">{{ review.updated_at | date:'d MMM y' }}</time></div>
+                    </div>
+                    <div class="review-stars" [attr.aria-label]="review.puntuacion + ' de 5 estrellas'">
+                      @for (star of estrellas; track star) {
+                        <svg viewBox="0 0 24 24" [class.filled]="star <= review.puntuacion" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.6 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2-4.6-4.4 6.3-.9L12 2.8Z"/></svg>
+                      }
+                    </div>
+                  </header>
+                  <p class="review-copy">{{ review.comentario }}</p>
+                  <footer>
+                    <span class="status-badge" [class.verified]="review.compra_verificada" [class.interest]="!review.compra_verificada">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        @if (review.compra_verificada) { <path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/> }
+                        @else { <path d="M7 11.5 12 4l5 7.5M5 20h14M9 20l3-8 3 8"/> }
+                      </svg>
+                      {{ review.compra_verificada ? 'Compra verificada' : 'Cliente interesado' }}
+                    </span>
+                    @if (review.es_propia) { <span class="own-label">Tu opinión</span> }
+                  </footer>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="reviews-filter-empty">No hay opiniones en este filtro todavía.</div>
+          }
+        } @else {
+          <div class="reviews-empty">
+            <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 8h28a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H23l-9 7v-7h-4a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z"/><path d="m24 13 2.7 5.5 6.1.9-4.4 4.2 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.2 6.1-.9L24 13Z"/></svg>
+            <div><h3>Sé la primera persona en opinar</h3><p>Comparte qué te gusta de esta prenda o por qué la añadirías a tu colección.</p></div>
+          </div>
+        }
+      }
+    </section>
+
     <!-- ========================================== -->
     <!-- SECCIÓN DE RECOMENDADOS POR IA LOCAL       -->
     <!-- ========================================== -->
