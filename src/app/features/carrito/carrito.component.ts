@@ -43,6 +43,8 @@ export class CarritoComponent implements OnInit {
   referenciaState = signal<string>('');
   distanciaKmState = signal<number>(0);
   costoEnvioState = signal<number>(0);
+  cotizacionEnvioValidada = signal<boolean>(false);
+  private secuenciaCotizacion = 0;
   fechaRecojo = '';
   minFechaRecojo = '';
   maxFechaRecojo = '';
@@ -88,6 +90,8 @@ export class CarritoComponent implements OnInit {
         this.costoEnvioState.set(0);
       }
     } else {
+      this.secuenciaCotizacion += 1;
+      this.cotizacionEnvioValidada.set(false);
       this.costoEnvioState.set(0);
       this.cargarBloquesRecojo();
     }
@@ -96,6 +100,7 @@ export class CarritoComponent implements OnInit {
   get ubicacionUrl(): string { return this.ubicacionUrlState(); }
   set ubicacionUrl(val: string) {
     this.ubicacionUrlState.set(val);
+    this.cotizacionEnvioValidada.set(false);
     if (this.conEnvio) {
       this.recalcularTarifaEnvio();
     }
@@ -265,6 +270,7 @@ export class CarritoComponent implements OnInit {
 
   recalcularTarifaEnvio(): void {
     if (!this.conEnvio) {
+      this.cotizacionEnvioValidada.set(false);
       this.costoEnvioState.set(0);
       return;
     }
@@ -298,7 +304,11 @@ export class CarritoComponent implements OnInit {
       this.costoEnvioState.set(0);
     }
 
-    // 2. Cotizar y comparar ubicaciones en el Backend
+    // 2. Cotizar y comparar ubicaciones en el Backend. La respuesta del servidor
+    // es la fuente de verdad, especialmente para enlaces cortos de Maps que el
+    // navegador no puede resolver por restricciones de redirección/CORS.
+    const secuenciaActual = ++this.secuenciaCotizacion;
+    this.cotizacionEnvioValidada.set(false);
     this.calculandoDistanciaState.set(true);
     this.envioService
       .cotizarPorDistancia({
@@ -307,17 +317,29 @@ export class CarritoComponent implements OnInit {
         sucursal_direccion: suc?.direccion,
         sucursal_maps_url: sucMaps,
         ubicacion_url: cliMaps || undefined,
+        lat: latDest ?? undefined,
+        lon: lonDest ?? undefined,
         direccion: cliDir || undefined,
         ciudad: this.ciudad.trim() || suc?.ciudad || 'Santa Cruz',
       })
       .subscribe({
         next: (res) => {
+          if (secuenciaActual !== this.secuenciaCotizacion) return;
           this.calculandoDistanciaState.set(false);
           if (res && typeof res.costo === 'number') {
             if (res.distancia_km !== undefined && res.distancia_km !== null && res.distancia_km >= 0.2) {
               this.distanciaKmState.set(res.distancia_km);
             }
             this.costoEnvioState.set(res.costo);
+            if (Number.isFinite(res.destino?.lat) && Number.isFinite(res.destino?.lon)) {
+              this.latitudCliente.set(Number(res.destino!.lat));
+              this.longitudCliente.set(Number(res.destino!.lon));
+            }
+            this.cotizacionEnvioValidada.set(
+              Number.isFinite(res.distancia_km) &&
+              Number.isFinite(res.costo) &&
+              res.costo > 0
+            );
             if (res.sucursal_maps_url && this.sucursalDespacho) {
               this.sucursalDespacho.maps_url = res.sucursal_maps_url;
             }
@@ -326,7 +348,9 @@ export class CarritoComponent implements OnInit {
           this.cdr.detectChanges();
         },
         error: (err) => {
+          if (secuenciaActual !== this.secuenciaCotizacion) return;
           this.calculandoDistanciaState.set(false);
+          this.cotizacionEnvioValidada.set(false);
           this.distanciaKmState.set(0);
           this.costoEnvioState.set(0);
           this.mostrarToast(err?.error?.detail || 'No se pudo validar la distancia. Revisa la ubicación de la sucursal y tu destino.');
@@ -473,8 +497,17 @@ export class CarritoComponent implements OnInit {
     }
 
     if (this.conEnvio) {
+      if (this.calculandoDistancia) {
+        this.mostrarToast('Espera un momento mientras validamos la tarifa de delivery.');
+        return;
+      }
+      const coordenadasUrl = this.extraerCoordsDeUrl(this.ubicacionUrl.trim());
+      if ((this.latitudCliente() === null || this.longitudCliente() === null) && coordenadasUrl) {
+        this.latitudCliente.set(coordenadasUrl.lat);
+        this.longitudCliente.set(coordenadasUrl.lon);
+      }
       const tieneCoordenadas = this.latitudCliente() !== null && this.longitudCliente() !== null;
-      if (!tieneCoordenadas && !this.extraerCoordsDeUrl(this.ubicacionUrl.trim())) {
+      if (!tieneCoordenadas && !this.cotizacionEnvioValidada()) {
         this.mostrarToast('Usa tu ubicación GPS o pega un enlace de Maps que contenga coordenadas exactas.');
         return;
       }

@@ -367,13 +367,14 @@
         <button
           type="button"
           class="btn-checkout"
-          [disabled]="procesando"
+          [disabled]="procesando || (conEnvio && calculandoDistancia)"
           (click)="procesarCheckout()"
         >
-          <span *ngIf="!procesando">
+          <span *ngIf="!procesando && !(conEnvio && calculandoDistancia)">
             💳 Proceder al Pago con PayPal
           </span>
           <span *ngIf="procesando">Conectando con PayPal...</span>
+          <span *ngIf="!procesando && conEnvio && calculandoDistancia">Validando tarifa de delivery...</span>
         </button>
 
         <p class="secure-checkout-notice">

@@ -4,6 +4,16 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Envio, EnvioCreate, EnvioUpdate } from '../models/envio.model';
 
+export interface CotizacionDistancia {
+  distancia_km: number;
+  costo: number;
+  costo_envio: number;
+  moneda: string;
+  sucursal_maps_url?: string;
+  origen?: { lat: number; lon: number; nombre?: string };
+  destino?: { lat: number; lon: number; direccion?: string; ubicacion_url?: string };
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -62,8 +72,8 @@ export class EnvioService {
     direccion?: string;
     ciudad?: string;
     ubicacion_url?: string;
-  }): Observable<any> {
-    return this.http.post(`${this.apiUrl}/cotizar-distancia`, data);
+  }): Observable<CotizacionDistancia> {
+    return this.http.post<CotizacionDistancia>(`${this.apiUrl}/cotizar-distancia`, data);
   }
 
   getEnviosAsignados(): Observable<any[]> {
