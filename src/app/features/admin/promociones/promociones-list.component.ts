@@ -48,6 +48,7 @@ export class PromocionesListComponent implements OnInit {
   codigoFin = '';
   codigoMaxUsos: number | null = null;
 
+  seccionActiva: 'productos' | 'agrupadas' | 'codigos' = 'productos';
   searchTerm: string = '';
   filterEstado: 'todos' | 'promocion' | 'normal' = 'todos';
 
@@ -95,22 +96,48 @@ export class PromocionesListComponent implements OnInit {
   }
 
   guardarCodigo(): void {
+    this.error.set(null);
+    this.successMsg.set(null);
     if (!this.codigoNombre.trim() || this.codigoPorcentaje < 1 || this.codigoPorcentaje > 90 || (!this.codigoOnline && !this.codigoPresencial)) {
       this.error.set('Completa el código, porcentaje y habilita al menos un canal.'); return;
+    }
+    if (this.codigoInicio && this.codigoFin && this.codigoFin < this.codigoInicio) {
+      this.error.set('La fecha de finalización no puede ser anterior a la fecha de inicio.'); return;
     }
     this.promocionesService.createCodigo({
       codigo: this.codigoNombre.trim().toUpperCase(), descripcion: this.codigoDescripcion.trim() || null,
       porcentaje: this.codigoPorcentaje, aplica_online: this.codigoOnline, aplica_presencial: this.codigoPresencial,
       fecha_inicio: this.codigoInicio || null, fecha_fin: this.codigoFin || null, max_usos: this.codigoMaxUsos || null, active: true,
     }).subscribe({
-      next: () => { this.codigoNombre = ''; this.codigoDescripcion = ''; this.successMsg.set('Código de descuento creado.'); this.cargarReglas(); },
+      next: () => {
+        this.codigoNombre = '';
+        this.codigoDescripcion = '';
+        this.codigoPorcentaje = 10;
+        this.codigoOnline = true;
+        this.codigoPresencial = true;
+        this.codigoInicio = '';
+        this.codigoFin = '';
+        this.codigoMaxUsos = null;
+        this.successMsg.set('Código de descuento creado y disponible para los canales seleccionados.');
+        this.seccionActiva = 'codigos';
+        this.cargarReglas();
+      },
       error: (e) => this.error.set(e?.error?.detail || 'No se pudo crear el código.'),
     });
   }
 
   eliminarCodigo(item: CodigoDescuento): void {
     if (!confirm(`¿Eliminar el código "${item.codigo}"?`)) return;
-    this.promocionesService.deleteCodigo(item.id).subscribe({ next: () => this.cargarReglas(), error: (e) => this.error.set(e?.error?.detail || 'No se pudo eliminar.') });
+    this.promocionesService.deleteCodigo(item.id).subscribe({
+      next: () => { this.successMsg.set(`Código ${item.codigo} eliminado.`); this.cargarReglas(); },
+      error: (e) => this.error.set(e?.error?.detail || 'No se pudo eliminar.'),
+    });
+  }
+
+  seleccionarSeccion(seccion: 'productos' | 'agrupadas' | 'codigos'): void {
+    this.seccionActiva = seccion;
+    this.error.set(null);
+    this.successMsg.set(null);
   }
 
   cargarProductos(): void {

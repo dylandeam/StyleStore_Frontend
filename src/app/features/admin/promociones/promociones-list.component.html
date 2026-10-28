@@ -2,21 +2,35 @@
   <!-- Header de Gestión de Promociones -->
   <header class="admin-header">
     <div>
-      <h1 class="page-title">🏷️ Gestión de Promociones y Descuentos</h1>
+      <h1 class="page-title">Gestión de promociones y descuentos</h1>
       <p class="page-subtitle">
-        Asigna descuentos especiales, etiquetas de oferta y ofertas de temporada a las prendas de tu catálogo StyleStore.
+        Administra ofertas por prenda, reglas automáticas y códigos que tus clientes pueden aplicar al comprar.
       </p>
     </div>
+    <button type="button" class="btn-primary-action" (click)="seleccionarSeccion('codigos')">
+      Crear código de descuento
+    </button>
   </header>
 
   <!-- Mensaje de Éxito -->
   <div *ngIf="successMsg()" class="alert-success">
-    <span>✅</span>
     <span>{{ successMsg() }}</span>
   </div>
 
-  <!-- Barra de Filtros y Búsqueda -->
-  <section class="filter-card">
+  <nav class="promotion-sections" aria-label="Tipos de promoción" role="tablist">
+    <button type="button" role="tab" [attr.aria-selected]="seccionActiva === 'productos'" [class.active]="seccionActiva === 'productos'" (click)="seleccionarSeccion('productos')">
+      Descuentos por prenda <span>{{ productos().length }}</span>
+    </button>
+    <button type="button" role="tab" [attr.aria-selected]="seccionActiva === 'agrupadas'" [class.active]="seccionActiva === 'agrupadas'" (click)="seleccionarSeccion('agrupadas')">
+      Categorías y temporadas <span>{{ agrupadas().length }}</span>
+    </button>
+    <button type="button" role="tab" [attr.aria-selected]="seccionActiva === 'codigos'" [class.active]="seccionActiva === 'codigos'" (click)="seleccionarSeccion('codigos')">
+      Códigos de descuento <span>{{ codigos().length }}</span>
+    </button>
+  </nav>
+
+  <ng-container *ngIf="seccionActiva === 'productos'">
+  <section class="filter-card" aria-label="Filtrar prendas">
     <div class="search-input-wrap">
       <span class="search-icon">🔍</span>
       <input
@@ -40,19 +54,18 @@
         [class.active]="filterEstado === 'promocion'"
         (click)="filterEstado = 'promocion'"
       >
-        🔥 En Promoción
+        En promoción
       </button>
       <button
         class="tab-btn"
         [class.active]="filterEstado === 'normal'"
         (click)="filterEstado = 'normal'"
       >
-        Preprecio Regular
+        Precio regular
       </button>
     </div>
   </section>
 
-  <!-- Loading State -->
   <div *ngIf="isLoading()" class="state-card">
     <div class="spinner"></div>
     <p>Cargando inventario para gestión de descuentos...</p>
@@ -64,55 +77,6 @@
     <p>{{ error() }}</p>
     <button (click)="cargarProductos()" class="btn-retry">Reintentar</button>
   </div>
-
-  <!-- Tabla de Gestión de Promociones -->
-  <section class="rules-grid" *ngIf="!isLoading()">
-    <article class="rule-card">
-      <h2>Descuento por categoría o temporada</h2>
-      <p>Se aplica automáticamente el porcentaje mayor que corresponda a cada prenda.</p>
-      <form class="rule-form" (ngSubmit)="guardarAgrupada()">
-        <input [(ngModel)]="grupoNombre" name="grupoNombre" placeholder="Nombre de la promoción" required />
-        <select [(ngModel)]="grupoTipo" name="grupoTipo" (change)="grupoObjetivoId = null"><option value="categoria">Categoría</option><option value="temporada">Temporada</option></select>
-        <select [(ngModel)]="grupoObjetivoId" name="grupoObjetivo" required>
-          <option [ngValue]="null">Selecciona {{ grupoTipo }}</option>
-          <option *ngFor="let c of (grupoTipo === 'categoria' ? categorias() : temporadas())" [ngValue]="c.id">{{ c.nombre }}</option>
-        </select>
-        <input type="number" [(ngModel)]="grupoPorcentaje" name="grupoPorcentaje" min="1" max="90" aria-label="Porcentaje" />
-        <input type="date" [(ngModel)]="grupoInicio" name="grupoInicio" title="Inicio opcional" />
-        <input type="date" [(ngModel)]="grupoFin" name="grupoFin" title="Fin opcional" />
-        <button class="btn-save" type="submit">Crear promoción agrupada</button>
-      </form>
-      <div class="rule-list">
-        <div class="rule-row" *ngFor="let p of agrupadas()">
-          <div><strong>{{ p.nombre }}</strong><small>{{ p.categoria_nombre || p.temporada_nombre }} · {{ p.porcentaje }}% OFF</small></div>
-          <button type="button" class="btn-danger-small" (click)="eliminarAgrupada(p)">Eliminar</button>
-        </div>
-        <p *ngIf="agrupadas().length === 0" class="text-muted">No hay promociones agrupadas.</p>
-      </div>
-    </article>
-
-    <article class="rule-card">
-      <h2>Códigos de descuento</h2>
-      <p>Configura dónde se aceptan, su vigencia y el límite de usos.</p>
-      <form class="rule-form" (ngSubmit)="guardarCodigo()">
-        <input [(ngModel)]="codigoNombre" name="codigoNombre" placeholder="Ej. VERANO15" required />
-        <input [(ngModel)]="codigoDescripcion" name="codigoDescripcion" placeholder="Descripción opcional" />
-        <input type="number" [(ngModel)]="codigoPorcentaje" name="codigoPorcentaje" min="1" max="90" aria-label="Porcentaje" />
-        <div class="channel-checks"><label><input type="checkbox" [(ngModel)]="codigoOnline" name="codigoOnline" /> En línea</label><label><input type="checkbox" [(ngModel)]="codigoPresencial" name="codigoPresencial" /> Presencial</label></div>
-        <input type="date" [(ngModel)]="codigoInicio" name="codigoInicio" title="Inicio opcional" />
-        <input type="date" [(ngModel)]="codigoFin" name="codigoFin" title="Fin opcional" />
-        <input type="number" [(ngModel)]="codigoMaxUsos" name="codigoMaxUsos" min="1" placeholder="Usos máximos (opcional)" />
-        <button class="btn-save" type="submit">Crear código</button>
-      </form>
-      <div class="rule-list">
-        <div class="rule-row" *ngFor="let c of codigos()">
-          <div><strong>{{ c.codigo }} · {{ c.porcentaje }}%</strong><small>{{ c.aplica_online ? 'Online ' : '' }}{{ c.aplica_presencial ? 'Presencial' : '' }} · {{ c.usos_actual }}{{ c.max_usos ? '/' + c.max_usos : '' }} usos</small></div>
-          <button type="button" class="btn-danger-small" (click)="eliminarCodigo(c)">Eliminar</button>
-        </div>
-        <p *ngIf="codigos().length === 0" class="text-muted">No hay códigos configurados.</p>
-      </div>
-    </article>
-  </section>
 
   <section *ngIf="!isLoading() && !error()" class="table-card">
     <div class="table-responsive" role="region" aria-label="Listado de promociones" tabindex="0">
@@ -179,6 +143,55 @@
         </tr>
       </tbody>
     </table>
+    </div>
+  </section>
+  </ng-container>
+
+  <section class="rule-workspace" *ngIf="seccionActiva === 'agrupadas'">
+    <header class="workspace-heading">
+      <div><h2>Promociones por categoría o temporada</h2><p>El descuento se aplica automáticamente a las prendas que coincidan; si hay varias reglas, se usa el porcentaje mayor.</p></div>
+    </header>
+    <div class="workspace-grid">
+      <form class="rule-form" (ngSubmit)="guardarAgrupada()">
+        <label><span>Nombre de la promoción</span><input [(ngModel)]="grupoNombre" name="grupoNombre" placeholder="Ej. Semana de verano" required /></label>
+        <label><span>Tipo de agrupación</span><select [(ngModel)]="grupoTipo" name="grupoTipo" (change)="grupoObjetivoId = null"><option value="categoria">Categoría</option><option value="temporada">Temporada</option></select></label>
+        <label><span>{{ grupoTipo === 'categoria' ? 'Categoría' : 'Temporada' }}</span><select [(ngModel)]="grupoObjetivoId" name="grupoObjetivo" required><option [ngValue]="null">Selecciona una opción</option><option *ngFor="let c of (grupoTipo === 'categoria' ? categorias() : temporadas())" [ngValue]="c.id">{{ c.nombre }}</option></select></label>
+        <label><span>Descuento</span><input type="number" [(ngModel)]="grupoPorcentaje" name="grupoPorcentaje" min="1" max="90" /></label>
+        <label><span>Inicio opcional</span><input type="date" [(ngModel)]="grupoInicio" name="grupoInicio" /></label>
+        <label><span>Finalización opcional</span><input type="date" [(ngModel)]="grupoFin" name="grupoFin" /></label>
+        <button class="btn-save" type="submit">Crear promoción automática</button>
+      </form>
+      <div class="rule-list" aria-label="Promociones automáticas existentes">
+        <div class="list-heading"><strong>Reglas existentes</strong><span>{{ agrupadas().length }}</span></div>
+        <div class="rule-row" *ngFor="let p of agrupadas()"><div><strong>{{ p.nombre }}</strong><small>{{ p.categoria_nombre || p.temporada_nombre }} · {{ p.porcentaje }}% de descuento</small></div><button type="button" class="btn-danger-small" (click)="eliminarAgrupada(p)">Eliminar</button></div>
+        <p *ngIf="agrupadas().length === 0" class="empty-rules">Aún no creaste promociones automáticas.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rule-workspace" *ngIf="seccionActiva === 'codigos'">
+    <header class="workspace-heading">
+      <div><h2>Crear código de descuento</h2><p>El cliente podrá escribirlo en el carrito. El código pertenece únicamente a este tenant.</p></div>
+    </header>
+    <div class="workspace-grid">
+      <form class="rule-form" (ngSubmit)="guardarCodigo()">
+        <label><span>Código</span><input [(ngModel)]="codigoNombre" name="codigoNombre" placeholder="Ej. VERANO15" maxlength="40" autocomplete="off" required /></label>
+        <label><span>Porcentaje de descuento</span><input type="number" [(ngModel)]="codigoPorcentaje" name="codigoPorcentaje" min="1" max="90" required /></label>
+        <label class="wide-field"><span>Descripción opcional</span><input [(ngModel)]="codigoDescripcion" name="codigoDescripcion" maxlength="200" placeholder="Ej. Beneficio para clientes frecuentes" /></label>
+        <fieldset class="channel-checks"><legend>Canales donde será válido</legend><label><input type="checkbox" [(ngModel)]="codigoOnline" name="codigoOnline" /> Compra en línea</label><label><input type="checkbox" [(ngModel)]="codigoPresencial" name="codigoPresencial" /> Caja presencial</label></fieldset>
+        <label><span>Inicio opcional</span><input type="date" [(ngModel)]="codigoInicio" name="codigoInicio" /></label>
+        <label><span>Finalización opcional</span><input type="date" [(ngModel)]="codigoFin" name="codigoFin" [min]="codigoInicio || null" /></label>
+        <label class="wide-field"><span>Límite de usos opcional</span><input type="number" [(ngModel)]="codigoMaxUsos" name="codigoMaxUsos" min="1" placeholder="Sin límite" /></label>
+        <button class="btn-save" type="submit">Crear código de descuento</button>
+      </form>
+      <div class="rule-list" aria-label="Códigos de descuento existentes">
+        <div class="list-heading"><strong>Códigos disponibles</strong><span>{{ codigos().length }}</span></div>
+        <div class="rule-row" *ngFor="let c of codigos()">
+          <div class="code-summary"><strong>{{ c.codigo }}</strong><span class="discount-value">{{ c.porcentaje }}%</span><small>{{ c.aplica_online ? 'En línea' : '' }}{{ c.aplica_online && c.aplica_presencial ? ' · ' : '' }}{{ c.aplica_presencial ? 'Presencial' : '' }} · {{ c.usos_actual }}{{ c.max_usos ? '/' + c.max_usos : '' }} usos</small><small *ngIf="c.fecha_inicio || c.fecha_fin">Vigencia: {{ c.fecha_inicio ? (c.fecha_inicio | date:'dd/MM/yyyy') : 'inmediata' }} – {{ c.fecha_fin ? (c.fecha_fin | date:'dd/MM/yyyy') : 'sin vencimiento' }}</small></div>
+          <button type="button" class="btn-danger-small" (click)="eliminarCodigo(c)">Eliminar</button>
+        </div>
+        <p *ngIf="codigos().length === 0" class="empty-rules">Aún no hay códigos. Crea el primero con el formulario.</p>
+      </div>
     </div>
   </section>
 
