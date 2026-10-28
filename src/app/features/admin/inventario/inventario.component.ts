@@ -7,6 +7,8 @@ import { UploadService } from '../../../core/services/upload.service';
 import { AuthService } from '../../../core/services/auth.service';
 import {
   InventarioItem,
+  RecomendacionTraspasoStock,
+  RecomendacionesTraspasoResponse,
   StockAdjustRequest,
   TraspasoCreateRequest,
   TraspasoInventario,
@@ -37,6 +39,10 @@ export class InventarioComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
   traspasos = signal<TraspasoInventario[]>([]);
+  recomendaciones = signal<RecomendacionTraspasoStock[]>([]);
+  resumenRecomendaciones = signal<RecomendacionesTraspasoResponse | null>(null);
+  recomendacionesLoading = signal(false);
+  recomendacionesError = signal<string | null>(null);
 
   // Modal Ajuste de Stock
   isAdjustModalOpen = signal<boolean>(false);
@@ -60,6 +66,7 @@ export class InventarioComponent implements OnInit {
   ngOnInit(): void {
     this.loadSucursales();
     this.loadInventario();
+    this.loadRecomendaciones();
   }
 
   loadSucursales(): void {
@@ -128,6 +135,52 @@ export class InventarioComponent implements OnInit {
   setVista(v: 'global' | 'sucursal' | 'traspasos'): void {
     this.vista.set(v);
     this.loadInventario();
+    if (v !== 'traspasos') this.loadRecomendaciones();
+  }
+
+  loadRecomendaciones(): void {
+    this.recomendacionesLoading.set(true);
+    this.recomendacionesError.set(null);
+    const branchId = this.vista() === 'sucursal' ? this.selectedSucursalId() : null;
+    this.inventarioService.getRecomendacionesTraspaso(branchId).subscribe({
+      next: (response) => {
+        this.resumenRecomendaciones.set(response);
+        this.recomendaciones.set(response.items);
+        this.recomendacionesLoading.set(false);
+      },
+      error: (err) => {
+        this.resumenRecomendaciones.set(null);
+        this.recomendaciones.set([]);
+        this.recomendacionesError.set(
+          err.status === 403
+            ? 'Las recomendaciones predictivas requieren un plan con analítica avanzada.'
+            : (err.error?.detail || 'No fue posible analizar la redistribución de stock.')
+        );
+        this.recomendacionesLoading.set(false);
+      },
+    });
+  }
+
+  aplicarRecomendacion(recommendation: RecomendacionTraspasoStock): void {
+    this.transferItem.set({
+      stock_inventario_id: 0,
+      producto_codigo: recommendation.codigo,
+      producto_nombre: recommendation.producto,
+      producto_color_id: recommendation.producto_color_id,
+      color: recommendation.color,
+      talla_id: recommendation.talla_id,
+      talla: recommendation.talla,
+      sucursal_id: recommendation.sucursal_origen_id,
+      sucursal: recommendation.sucursal_origen,
+      cantidad: recommendation.stock_origen_efectivo,
+      cantidad_disponible: recommendation.stock_origen_efectivo,
+    });
+    this.transferDestinationId.set(recommendation.sucursal_destino_id);
+    this.transferQuantity.set(recommendation.cantidad_recomendada);
+    this.transferObservation.set(
+      `Recomendación IA (${recommendation.confianza_porcentaje}%): ${recommendation.explicacion}`.slice(0, 500)
+    );
+    this.isTransferModalOpen.set(true);
   }
 
   loadTraspasos(): void {
@@ -184,6 +237,7 @@ export class InventarioComponent implements OnInit {
       next: () => {
         this.successMessage.set('Traspaso solicitado; queda pendiente de aprobación.');
         this.closeTransferModal();
+        this.loadRecomendaciones();
         this.setVista('traspasos');
       },
       error: (err) => {
@@ -215,6 +269,7 @@ export class InventarioComponent implements OnInit {
   onSucursalChange(id: number): void {
     this.selectedSucursalId.set(Number(id));
     this.loadInventario();
+    this.loadRecomendaciones();
   }
 
   onSearch(): void {

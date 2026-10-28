@@ -70,6 +70,89 @@
   </div>
   }
 
+  @if (vista() !== 'traspasos') {
+    <section class="prediction-panel" aria-labelledby="prediction-title">
+      <div class="prediction-heading">
+        <div>
+          <h3 id="prediction-title">Redistribución sugerida por demanda</h3>
+          <p>
+            Compara ventas y cobertura de la misma prenda, color y talla entre sucursales.
+            Ninguna sugerencia mueve stock sin tu revisión y aprobación.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="btn btn-outline refresh-recommendations"
+          (click)="loadRecomendaciones()"
+          [disabled]="recomendacionesLoading()"
+        >
+          {{ recomendacionesLoading() ? 'Analizando…' : 'Actualizar análisis' }}
+        </button>
+      </div>
+
+      @if (recomendacionesLoading()) {
+        <div class="prediction-state" role="status">Analizando demanda, existencias y traspasos pendientes…</div>
+      } @else if (recomendacionesError()) {
+        <div class="prediction-state prediction-error">
+          <span>{{ recomendacionesError() }}</span>
+          <button type="button" class="btn btn-secondary" (click)="loadRecomendaciones()">Reintentar</button>
+        </div>
+      } @else if (recomendaciones().length === 0) {
+        <div class="prediction-state prediction-empty">
+          El inventario no presenta una oportunidad segura de redistribución con los datos actuales.
+        </div>
+      } @else {
+        <div class="prediction-summary">
+          <strong>{{ recomendaciones().length }} recomendación(es) accionable(s)</strong>
+          <span>{{ resumenRecomendaciones()?.criterio }}</span>
+        </div>
+        <div class="recommendation-list">
+          @for (recommendation of recomendaciones(); track recommendation.codigo + '-' + recommendation.talla_id + '-' + recommendation.sucursal_destino_id) {
+            <article class="recommendation-row">
+              <div class="recommendation-product">
+                <div class="recommendation-title-line">
+                  <strong>{{ recommendation.producto }}</strong>
+                  <span class="priority-badge priority-{{ recommendation.prioridad.toLowerCase() }}">
+                    {{ recommendation.prioridad | titlecase }}
+                  </span>
+                </div>
+                <span>{{ recommendation.codigo }} · {{ recommendation.color }} · Talla {{ recommendation.talla }}</span>
+              </div>
+
+              <div class="transfer-route" aria-label="Ruta de traspaso recomendada">
+                <div class="branch-block">
+                  <span>Origen</span>
+                  <strong>{{ recommendation.sucursal_origen }}</strong>
+                  <small>{{ recommendation.stock_origen_efectivo }} disponibles · {{ recommendation.ventas_origen_30d }} ventas/30d</small>
+                </div>
+                <div class="quantity-block">
+                  <strong>{{ recommendation.cantidad_recomendada }}</strong>
+                  <span>unidades</span>
+                  <span class="route-arrow" aria-hidden="true">→</span>
+                </div>
+                <div class="branch-block">
+                  <span>Destino</span>
+                  <strong>{{ recommendation.sucursal_destino }}</strong>
+                  <small>{{ recommendation.stock_destino_efectivo }} disponibles · {{ recommendation.ventas_destino_30d }} ventas/30d</small>
+                </div>
+              </div>
+
+              <div class="recommendation-reason">
+                <p>{{ recommendation.explicacion }}</p>
+                <span>{{ recommendation.dias_cobertura_destino | number:'1.0-1' }} días de cobertura · {{ recommendation.confianza_porcentaje }}% de confianza</span>
+              </div>
+              @if (canEdit()) {
+                <button type="button" class="btn btn-primary recommendation-action" (click)="aplicarRecomendacion(recommendation)">
+                  Revisar traspaso
+                </button>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
   <!-- TABLA DE INVENTARIO -->
   <div class="table-card">
     @if (vista() === 'traspasos') {
@@ -213,7 +296,11 @@
 
         <div class="modal-body">
           <div class="item-summary-box">
-            <img [src]="getImagenUrl(selectedItem()!.foto)" class="summary-thumb" />
+            <img
+              [src]="getImagenUrl(selectedItem()!.foto)"
+              [alt]="'Vista previa de ' + selectedItem()!.producto_nombre"
+              class="summary-thumb"
+            />
             <div>
               <h4 class="font-semibold">{{ selectedItem()!.producto_nombre }}</h4>
               <p class="text-sm text-muted">Código: {{ selectedItem()!.producto_codigo }}</p>
@@ -276,7 +363,11 @@
         </div>
         <div class="modal-body">
           <div class="item-summary-box">
-            <img [src]="getImagenUrl(transferItem()!.foto)" class="summary-thumb" />
+            <img
+              [src]="getImagenUrl(transferItem()!.foto)"
+              [alt]="'Vista previa de ' + transferItem()!.producto_nombre"
+              class="summary-thumb"
+            />
             <div>
               <h4 class="font-semibold">{{ transferItem()!.producto_nombre }}</h4>
               <p class="text-sm">{{ transferItem()!.color }} · {{ transferItem()!.talla }}</p>

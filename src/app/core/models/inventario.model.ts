@@ -70,3 +70,40 @@ export interface TraspasoCreateRequest {
   idempotency_key: string;
   observacion?: string;
 }
+
+export type PrioridadRecomendacionTraspaso = 'CRITICA' | 'ALTA' | 'MEDIA';
+
+export interface RecomendacionTraspasoStock {
+  producto_color_id: number;
+  talla_id: number;
+  producto: string;
+  codigo: string;
+  color: string;
+  talla: string;
+  sucursal_origen_id: number;
+  sucursal_origen: string;
+  stock_origen: number;
+  stock_origen_efectivo: number;
+  ventas_origen_30d: number;
+  sucursal_destino_id: number;
+  sucursal_destino: string;
+  stock_destino: number;
+  stock_destino_efectivo: number;
+  ventas_destino_30d: number;
+  dias_cobertura_destino: number;
+  cantidad_recomendada: number;
+  prioridad: PrioridadRecomendacionTraspaso;
+  confianza_porcentaje: number;
+  explicacion: string;
+}
+
+export interface RecomendacionesTraspasoResponse {
+  tenant_id: number;
+  sucursal_destino_id?: number | null;
+  generado_en: string;
+  dias_horizonte_analizado: number;
+  total_variantes_evaluadas: number;
+  total_recomendaciones: number;
+  criterio: string;
+  items: RecomendacionTraspasoStock[];
+}

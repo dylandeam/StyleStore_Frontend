@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   EstadoTraspaso,
   InventarioItem,
+  RecomendacionesTraspasoResponse,
   StockAdjustRequest,
   TraspasoCreateRequest,
   TraspasoInventario,
@@ -16,6 +17,7 @@ import {
 export class InventarioService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/inventario`;
+  private reportesUrl = `${environment.apiUrl}/reportes`;
 
   getInventarioGlobal(filters?: {
     categoria_id?: number;
@@ -60,5 +62,13 @@ export class InventarioService {
     return this.http.post<TraspasoInventario>(`${this.apiUrl}/traspasos/${id}/${accion}`, {
       respuesta: respuesta || null,
     });
+  }
+
+  getRecomendacionesTraspaso(sucursalId?: number | null): Observable<RecomendacionesTraspasoResponse> {
+    const params = sucursalId ? new HttpParams().set('sucursal_id', sucursalId) : undefined;
+    return this.http.get<RecomendacionesTraspasoResponse>(
+      `${this.reportesUrl}/recomendaciones-traspaso-stock`,
+      { params }
+    );
   }
 }
