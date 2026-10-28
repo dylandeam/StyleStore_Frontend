@@ -612,7 +612,12 @@ export class CarritoComponent implements OnInit {
     if (this.metodoPago === 'paypal') {
       // Checkout con PayPal v2
       localStorage.setItem('stylestore_pending_order_id', String(ordenId));
-      const returnUrl = `${window.location.origin}/paypal-return`;
+      // El retorno del proveedor debe cargar siempre la versión web vigente. Si la
+      // PWA conserva un bundle anterior, Angular Service Worker puede reabrir un
+      // componente obsoleto que muestra un timeout y después el éxito. Este query
+      // param es el mecanismo oficial del worker para omitir su caché en esta
+      // navegación crítica; PayPal conserva el parámetro al agregar token y PayerID.
+      const returnUrl = `${window.location.origin}/paypal-return?ngsw-bypass=true`;
       this.pagosService.crearOrdenPayPal(ordenId, returnUrl).subscribe({
         next: (ppRes) => {
           this.isProcesando.set(false);

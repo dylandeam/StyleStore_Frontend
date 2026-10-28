@@ -13,6 +13,7 @@ import { CarritoComponent } from './carrito.component';
 
 describe('CarritoComponent delivery checkout', () => {
   const checkout = vi.fn((_payload: Record<string, unknown>) => NEVER);
+  const crearOrdenPayPal = vi.fn((_ordenId: number, _returnUrl?: string, _cancelUrl?: string) => NEVER);
   const cotizarPorDistancia = vi.fn(() => of({
     distancia_km: 6.06,
     costo: 8.64,
@@ -23,13 +24,14 @@ describe('CarritoComponent delivery checkout', () => {
 
   beforeEach(async () => {
     checkout.mockClear();
+    crearOrdenPayPal.mockClear();
     cotizarPorDistancia.mockClear();
     await TestBed.configureTestingModule({
       imports: [CarritoComponent],
       providers: [
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: CarritoService, useValue: { checkout, getMyCart: vi.fn() } },
-        { provide: PagosService, useValue: {} },
+        { provide: PagosService, useValue: { crearOrdenPayPal } },
         { provide: EnvioService, useValue: { cotizarPorDistancia } },
         { provide: UploadService, useValue: {} },
         { provide: ReservaService, useValue: {} },
@@ -76,5 +78,18 @@ describe('CarritoComponent delivery checkout', () => {
       longitud_destino: -63.182134,
       distancia_km: 6.06,
     });
+  });
+
+  it('evita que una PWA obsoleta intercepte el retorno crítico de PayPal', () => {
+    const fixture = TestBed.createComponent(CarritoComponent);
+    const component = fixture.componentInstance;
+    component.metodoPago = 'paypal';
+
+    component.procederConPago(17, 69.99);
+
+    expect(crearOrdenPayPal).toHaveBeenCalledOnce();
+    expect(crearOrdenPayPal.mock.calls[0][1]).toBe(
+      `${window.location.origin}/paypal-return?ngsw-bypass=true`,
+    );
   });
 });

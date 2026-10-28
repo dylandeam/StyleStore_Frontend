@@ -1,12 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { NEVER, Observable, of } from 'rxjs';
+import { NEVER, Observable, of, Subject } from 'rxjs';
 
 import { PagosService, PayPalCaptureResponse } from '../../../core/services/pagos.service';
 import { PaypalReturnComponent } from './paypal-return.component';
 
 describe('PaypalReturnComponent', () => {
-  async function setup(captureResult: Observable<PayPalCaptureResponse>) {
+  async function setup(
+    captureResult: Observable<PayPalCaptureResponse>,
+    queryParams: Observable<Record<string, string>> = of({ token: 'PAYPAL-ORDER-1', orden_id: '3' }),
+  ) {
     const capturarOrdenPayPal = vi.fn(() => captureResult);
     await TestBed.configureTestingModule({
       imports: [PaypalReturnComponent],
@@ -14,7 +17,7 @@ describe('PaypalReturnComponent', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { queryParams: of({ token: 'PAYPAL-ORDER-1', orden_id: '3' }) },
+          useValue: { queryParams },
         },
         { provide: PagosService, useValue: { capturarOrdenPayPal } },
       ],
@@ -57,5 +60,18 @@ describe('PaypalReturnComponent', () => {
     expect(fixture.componentInstance.error).toBeNull();
     expect(fixture.componentInstance.mensajeEspera).toContain('Seguimos verificando');
     expect(fixture.nativeElement.querySelector('.result-card.error')).toBeNull();
+  });
+
+  it('captura una sola vez aunque el navegador vuelva a emitir los parámetros', async () => {
+    const params = new Subject<Record<string, string>>();
+    const { fixture, capturarOrdenPayPal } = await setup(NEVER, params);
+    fixture.detectChanges();
+
+    params.next({ token: 'PAYPAL-ORDER-1', orden_id: '3' });
+    params.next({ token: 'PAYPAL-ORDER-1', orden_id: '3' });
+
+    expect(capturarOrdenPayPal).toHaveBeenCalledOnce();
+    expect(fixture.componentInstance.loading).toBe(true);
+    expect(fixture.componentInstance.error).toBeNull();
   });
 });

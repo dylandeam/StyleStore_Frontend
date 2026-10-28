@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, NgZone } from 
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PagosService } from '../../../core/services/pagos.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-paypal-return',
@@ -36,7 +37,10 @@ export class PaypalReturnComponent implements OnInit, OnDestroy {
       }
     }, 10000);
 
-    this.route.queryParams.subscribe((params) => {
+    // El retorno solo debe iniciar una captura. Algunos navegadores restauran el
+    // historial y vuelven a emitir queryParams; tomar la primera emisión evita
+    // solicitudes concurrentes con estados visuales contradictorios.
+    this.route.queryParams.pipe(take(1)).subscribe((params) => {
       const token = params['token'] || params['token_id'] || params['paymentId'];
       let ordenId = Number(params['orden_id']);
 
