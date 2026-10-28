@@ -275,7 +275,7 @@ export class AdminLayoutComponent implements OnInit {
       this.currentSubtitle.set('Revisión de solicitudes (plazo 7 días) y canje en caja POS con stock');
     } else if (url.includes('/admin/caja')) {
       this.currentTitle.set('Caja y Punto de Venta POS');
-      this.currentSubtitle.set('Cobro de órdenes pendientes y venta directa en mostrador');
+      this.currentSubtitle.set('Cobro de órdenes pendientes e historial de pagos');
     } else if (url.includes('/admin/reportes')) {
       this.currentTitle.set('Suite de Reportes Especializados');
       this.currentSubtitle.set('Generación de 8 reportes dinámicos, exportación Excel y PDF');

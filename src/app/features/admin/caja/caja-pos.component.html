@@ -1,14 +1,14 @@
-<div class="pos-container">
+<div class="pos-container" [class.direct-sale-only]="ventaDirectaOnly">
   <!-- Toast Notificación -->
   <div class="toast-notification" *ngIf="mensajeToast">
     <span>{{ mensajeToast }}</span>
   </div>
 
-  <div class="pos-header">
+  <div class="pos-header" *ngIf="!ventaDirectaOnly">
     <div>
       <div class="breadcrumb">Administración / <span>Pagos & Caja</span></div>
       <h1>Gestionar Pagos</h1>
-      <p class="subtitle">Cobro de compras online, emisión de tickets térmicos, ventas en mostrador (Efectivo / QR) e historial de pagos.</p>
+      <p class="subtitle">Cobro de compras online, emisión de tickets térmicos e historial de pagos.</p>
     </div>
     <div class="pos-header-actions">
       <button type="button" class="btn-config-qr-header" (click)="abrirModalUploadQR()" title="Configurar QR de cobro en mostrador">
@@ -21,7 +21,7 @@
   </div>
 
   <!-- Pestañas Superiores de Gestionar Pagos -->
-  <div class="pos-tabs-nav">
+  <div class="pos-tabs-nav" *ngIf="!ventaDirectaOnly">
     <button 
       type="button" 
       class="tab-btn" 
@@ -29,14 +29,6 @@
       (click)="switchTab('ordenes')"
     >
       📋 Cobrar Órdenes Pendientes ({{ ordenesPendientes.length }})
-    </button>
-    <button 
-      type="button" 
-      class="tab-btn" 
-      [class.active]="activeTab === 'venta_directa'" 
-      (click)="switchTab('venta_directa')"
-    >
-      🛍️ Nueva Venta Directa en Mostrador
     </button>
     <button 
       type="button" 
@@ -120,8 +112,6 @@
 
         <div class="client-bar">
           <span>Cliente: <strong>{{ ordenSeleccionada.cliente_nombre || ordenSeleccionada.codigo_cliente }}</strong></span>
-          <span class="badge-channel" *ngIf="ordenSeleccionada.tipo_venta === 'en linea'">🌐 Compra Online</span>
-          <span class="badge-channel" *ngIf="ordenSeleccionada.tipo_venta !== 'en linea'">🏬 Venta Física</span>
         </div>
 
         <!-- Total a Pagar -->
@@ -330,7 +320,7 @@
   <!-- ========================================================= -->
   <!-- TAB 2: VENTA DIRECTA EN MOSTRADOR (PRESENCIAL) -->
   <!-- ========================================================= -->
-  <div class="pos-directa-grid" *ngIf="activeTab === 'venta_directa'">
+  <div class="pos-directa-grid" *ngIf="ventaDirectaOnly">
     <!-- Columna Izquierda: Catálogo de Inventario en Sucursal -->
     <div class="pos-catalog-panel card">
       <div class="catalog-filters">

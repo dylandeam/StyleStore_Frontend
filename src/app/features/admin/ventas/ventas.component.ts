@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentaService } from '../../../core/services/venta.service';
 import { OrdenVenta } from '../../../core/models/venta.model';
+import { CajaPosComponent } from '../caja/caja-pos.component';
 
 @Component({
   selector: 'app-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CajaPosComponent],
   templateUrl: './ventas.component.html',
   styleUrl: './ventas.component.css',
 })
@@ -21,6 +22,7 @@ export class VentasComponent implements OnInit {
 
   selectedVenta = signal<OrdenVenta | null>(null);
   isDetailModalOpen = signal<boolean>(false);
+  viewMode = signal<'historial' | 'nueva'>('historial');
 
   ngOnInit(): void {
     this.loadVentas();
@@ -47,6 +49,11 @@ export class VentasComponent implements OnInit {
 
   closeDetail(): void {
     this.isDetailModalOpen.set(false);
+  }
+
+  setView(mode: 'historial' | 'nueva'): void {
+    this.viewMode.set(mode);
+    this.errorMessage.set(null);
   }
 
   deleteVenta(v: OrdenVenta): void {

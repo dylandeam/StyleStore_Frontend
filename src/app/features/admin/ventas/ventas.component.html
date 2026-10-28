@@ -1,8 +1,8 @@
 <div class="page-container">
   <div class="page-header">
     <div class="header-titles">
-      <h2>💼 Registro Consolidado de Ventas</h2>
-      <p class="subtitle">Ventas presenciales en caja y órdenes de compra en línea (Sección 23)</p>
+      <h2>Gestión de Ventas</h2>
+      <p class="subtitle">Consulta las órdenes del tenant o registra una venta directa en mostrador.</p>
     </div>
   </div>
 
@@ -13,7 +13,22 @@
     <div class="alert alert-error">{{ errorMessage() }}</div>
   }
 
-  <div class="table-card">
+  <nav class="sales-view-tabs" aria-label="Secciones de gestión de ventas">
+    <button type="button" [class.active]="viewMode() === 'historial'" (click)="setView('historial')">
+      Registro de ventas
+    </button>
+    <button type="button" [class.active]="viewMode() === 'nueva'" (click)="setView('nueva')">
+      Nueva venta en mostrador
+    </button>
+  </nav>
+
+  @if (viewMode() === 'nueva') {
+    <section class="direct-sale-workspace" aria-label="Nueva venta directa en mostrador">
+      <app-caja-pos [ventaDirectaOnly]="true" (ventaRegistrada)="loadVentas()"></app-caja-pos>
+    </section>
+  }
+
+  <div class="table-card" *ngIf="viewMode() === 'historial'">
     @if (isLoading()) {
       <div class="loading-state">Cargando ventas...</div>
     } @else if (ventas().length === 0) {

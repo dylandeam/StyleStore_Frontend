@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, EventEmitter, Input, NgZone, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VentaService } from '../../../core/services/venta.service';
@@ -22,6 +22,9 @@ import { Cliente } from '../../../core/models/cliente.model';
   styleUrls: ['./caja-pos.component.css'],
 })
 export class CajaPosComponent implements OnInit {
+  @Input() ventaDirectaOnly = false;
+  @Output() ventaRegistrada = new EventEmitter<void>();
+
   private ventaService = inject(VentaService);
   private pagosService = inject(PagosService);
   private sucursalService = inject(SucursalService);
@@ -33,8 +36,7 @@ export class CajaPosComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
 
-  // Tabs: 'ordenes' | 'venta_directa' | 'historial'
-  activeTab: 'ordenes' | 'venta_directa' | 'historial' = 'ordenes';
+  activeTab: 'ordenes' | 'historial' = 'ordenes';
 
   // Cobro de órdenes pendientes
   ordenesPendientes: any[] = [];
@@ -88,10 +90,15 @@ export class CajaPosComponent implements OnInit {
   eliminandoPagoId: number | null = null;
 
   ngOnInit(): void {
+    if (this.ventaDirectaOnly) {
+      this.loading = false;
+      this.cargarSucursales();
+      this.cargarQRConfig();
+      this.cargarClientesCaja();
+      return;
+    }
     this.cargarOrdenesPendientes();
-    this.cargarSucursales();
     this.cargarQRConfig();
-    this.cargarClientesCaja();
   }
 
   cargarClientesCaja(): void {
@@ -261,13 +268,9 @@ export class CajaPosComponent implements OnInit {
   // PESTAÑAS Y CAMBIO DE VISTA
   // ==========================================
 
-  switchTab(tab: 'ordenes' | 'venta_directa' | 'historial'): void {
+  switchTab(tab: 'ordenes' | 'historial'): void {
     this.activeTab = tab;
-    if (tab === 'venta_directa' && this.sucursales.length === 0) {
-      this.cargarSucursales();
-    } else if (tab === 'venta_directa' && this.inventarioItems.length === 0) {
-      this.cargarInventarioSucursal();
-    } else if (tab === 'historial') {
+    if (tab === 'historial') {
       this.cargarHistorialPagos();
     }
   }
@@ -576,6 +579,7 @@ export class CajaPosComponent implements OnInit {
           };
           this.ordenSeleccionada = { estado: 'pendiente_sincronizacion', detalles: snapshot.items };
           this.cartDirecto = [];
+          this.ventaRegistrada.emit();
           this.mostrarToast('Venta de contado guardada. El ticket es provisional hasta validar stock al reconectar.');
           this.cdr.markForCheck();
           return;
@@ -592,9 +596,9 @@ export class CajaPosComponent implements OnInit {
         this.ordenSeleccionada = ordenCreada;
         this.cartDirecto = [];
         this.quitarCodigoDirecto();
+        this.ventaRegistrada.emit();
         this.mostrarToast(`¡Venta presencial completada! Ticket ${this.ticketEmitido.ticket_numero}`);
         this.cargarInventarioSucursal();
-        this.cargarOrdenesPendientes();
         this.cdr.markForCheck();
       },
       error: (err) => {

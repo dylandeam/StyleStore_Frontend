@@ -2,6 +2,10 @@
   padding: 24px 32px 60px;
 }
 
+.pos-container.direct-sale-only {
+  padding: 0 0 40px;
+}
+
 .pos-header {
   margin-bottom: 24px;
 }
@@ -756,16 +760,6 @@
 
 .btn-online-direct:hover {
   background: #15803d !important;
-}
-
-.badge-channel {
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 0.75rem;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-  margin-left: 8px;
 }
 
 .cash-checkout-box {

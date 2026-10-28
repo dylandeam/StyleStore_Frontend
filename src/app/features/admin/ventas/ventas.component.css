@@ -19,6 +19,46 @@
   margin: 0;
 }
 
+.sales-view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sales-view-tabs button {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--tenant-border, #d8dee8);
+  border-radius: 10px;
+  background: var(--tenant-surface, #fff);
+  color: var(--tenant-text, #14263d);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, color 160ms ease-out, border-color 160ms ease-out;
+}
+
+.sales-view-tabs button:hover,
+.sales-view-tabs button:focus-visible {
+  border-color: var(--tenant-primary, #14263d);
+}
+
+.sales-view-tabs button.active {
+  background: var(--tenant-primary, #14263d);
+  border-color: var(--tenant-primary, #14263d);
+  color: var(--tenant-on-primary, #fff);
+}
+
+.direct-sale-workspace {
+  min-width: 0;
+}
+
+.direct-sale-workspace app-caja-pos {
+  display: block;
+  min-width: 0;
+}
+
 .table-card {
   background: #FFFFFF;
   border-radius: 12px;
@@ -184,4 +224,19 @@
   border-top: 1px solid #E2D9CC;
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding: 16px;
+  }
+
+  .sales-view-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .sales-view-tabs button {
+    width: 100%;
+  }
 }
