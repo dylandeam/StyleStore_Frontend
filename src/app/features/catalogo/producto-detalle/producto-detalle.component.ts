@@ -111,7 +111,22 @@ export class ProductoDetalleComponent implements OnInit {
   get agregando(): boolean { return this.isAgregando(); }
   get mensajeToast(): string | null { return this.toastMessage(); }
   get precioSeleccionado(): number {
-    return Number(this.existencia()?.precio_variante ?? this.productoData()?.precio ?? 0);
+    return Number(
+      this.existencia()?.precio
+      ?? this.productoData()?.precio_descuento
+      ?? this.productoData()?.precio
+      ?? 0
+    );
+  }
+
+  get precioOriginalSeleccionado(): number {
+    return Number(this.existencia()?.precio_original ?? this.productoData()?.precio ?? 0);
+  }
+
+  get tienePrecioDiferentePorTalla(): boolean {
+    const product = this.productoData();
+    const existence = this.existencia();
+    return !!existence && Number(existence.precio_original ?? product?.precio) !== Number(product?.precio ?? 0);
   }
 
   get resenasFiltradas(): ResenaProductoItem[] {

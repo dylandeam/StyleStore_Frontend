@@ -1,5 +1,11 @@
 import { Color } from './color.model';
 
+export interface ProductoTallaPrecio {
+  talla_id: number;
+  talla_nombre?: string;
+  precio: number;
+}
+
 export interface Producto {
   codigo: string;
   nombre: string;
@@ -25,6 +31,7 @@ export interface Producto {
   titulo_promocion?: string | null;
   colores?: Color[];
   stock_total?: number;
+  precios_talla?: ProductoTallaPrecio[];
   created_at?: string;
   updated_at?: string;
 }
@@ -50,6 +57,7 @@ export interface ProductoCreate {
   porcentaje_descuento?: number;
   precio_descuento?: number | null;
   titulo_promocion?: string | null;
+  precios_talla?: ProductoTallaPrecio[];
 }
 
 export interface ProductoUpdate {
@@ -72,6 +80,7 @@ export interface ProductoUpdate {
   porcentaje_descuento?: number;
   precio_descuento?: number | null;
   titulo_promocion?: string | null;
+  precios_talla?: ProductoTallaPrecio[];
 }
 
 export interface PromocionUpdate {

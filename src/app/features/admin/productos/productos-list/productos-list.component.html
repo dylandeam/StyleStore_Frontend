@@ -627,7 +627,7 @@
             </div>
 
             <div class="form-group full-width">
-              <label for="prod-precio">Precio Unitario (Bs.) *</label>
+              <label for="prod-precio">Precio base (Bs.) *</label>
               <input
                 id="prod-precio"
                 type="number"
@@ -638,7 +638,36 @@
                 name="precio"
                 required
               />
+              <small class="field-hint">Se usa cuando una talla no tiene un precio específico.</small>
             </div>
+
+            <fieldset class="size-pricing full-width">
+              <legend>Precios por talla</legend>
+              <p>Opcional. Define solo las tallas que cuestan diferente; las demás heredarán el precio base.</p>
+              @if (tallas().length === 0) {
+                <div class="size-pricing-empty">Primero registra las tallas disponibles para configurar precios específicos.</div>
+              } @else {
+                <div class="size-pricing-grid">
+                  @for (talla of tallas(); track talla.id) {
+                    <label class="size-price-field">
+                      <span>{{ talla.nombre }}</span>
+                      <span class="currency-input">
+                        <span>Bs.</span>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          [placeholder]="formData.precio > 0 ? (formData.precio | number:'1.2-2') : 'Precio base'"
+                          [(ngModel)]="sizePriceInputs[talla.id]"
+                          [name]="'precio_talla_' + talla.id"
+                          [attr.aria-label]="'Precio para talla ' + talla.nombre"
+                        />
+                      </span>
+                    </label>
+                  }
+                </div>
+              }
+            </fieldset>
 
             <div class="form-group full-width">
               <label>Colores Disponibles para esta Prenda</label>
@@ -759,15 +788,31 @@
                   class="form-control"
                   [(ngModel)]="newStockCantidad"
                 />
-                <button
-                  type="button"
-                  class="btn btn-primary whitespace-nowrap"
-                  (click)="addOrUpdateStockRow()"
-                  [disabled]="isSubmittingStock()"
-                >
-                  Guardar
-                </button>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label>Excepción de precio (Bs.)</label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                class="form-control"
+                [(ngModel)]="newStockPrecioVariante"
+                placeholder="Usar precio general de la talla"
+              />
+              <small class="field-hint">Solo si este color o sucursal cuesta diferente.</small>
+            </div>
+
+            <div class="form-group stock-save-action">
+              <button
+                type="button"
+                class="btn btn-primary whitespace-nowrap"
+                (click)="addOrUpdateStockRow()"
+                [disabled]="isSubmittingStock()"
+              >
+                Guardar variante
+              </button>
             </div>
           </div>
         </div>
@@ -791,6 +836,7 @@
                   <th>Sucursal</th>
                   <th>Color</th>
                   <th>Talla</th>
+                  <th>Precio</th>
                   <th>Cantidad</th>
                   <th>Acción</th>
                 </tr>
@@ -801,6 +847,21 @@
                     <td><strong>{{ item.sucursal_nombre || 'Sucursal #' + item.sucursal_id }}</strong></td>
                     <td><span class="badge-color">{{ item.color_nombre || 'Color #' + (item.color_id || item.producto_color_id) }}</span></td>
                     <td><span class="badge-tag">{{ item.talla_nombre || 'Talla #' + item.talla_id }}</span></td>
+                    <td>
+                      <div class="stock-price-editor">
+                        <span>Bs.</span>
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          class="form-control input-price-sm"
+                          [ngModel]="item.precio_variante"
+                          [placeholder]="item.precio_efectivo != null ? (item.precio_efectivo | number:'1.2-2') : 'General'"
+                          #priceInput
+                          [attr.aria-label]="'Excepción de precio para talla ' + (item.talla_nombre || item.talla_id)"
+                        />
+                      </div>
+                    </td>
                     <td>
                       <input
                         type="number"
@@ -814,7 +875,7 @@
                       <button
                         type="button"
                         class="btn btn-sm btn-secondary"
-                        (click)="updateSingleStock(item, cantInput.valueAsNumber)"
+                        (click)="updateSingleStock(item, cantInput.valueAsNumber, priceInput.valueAsNumber)"
                       >
                         Actualizar
                       </button>

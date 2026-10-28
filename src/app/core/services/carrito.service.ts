@@ -79,6 +79,7 @@ export interface CatalogoItem {
       sucursal_ciudad?: string;
       cantidad: number;
       precio: number;
+      precio_original?: number;
       precio_variante?: number | null;
       medidas?: Record<string, number>;
     }>;

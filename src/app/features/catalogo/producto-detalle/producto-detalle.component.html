@@ -78,9 +78,14 @@
         <div class="codigo-ref">Ref: <strong>{{ producto.codigo }}</strong></div>
 
         <div class="precio-block">
+          <span class="previous-price" *ngIf="precioOriginalSeleccionado > precioSeleccionado">
+            Bs. {{ precioOriginalSeleccionado | number:'1.2-2' }}
+          </span>
           <span class="moneda">Bs.</span>
           <span class="precio-valor">{{ precioSeleccionado | number:'1.2-2' }}</span>
-          <small class="variant-price-note" *ngIf="existenciaSeleccionada?.precio_variante != null">Precio de la talla seleccionada</small>
+          <small class="variant-price-note" *ngIf="tienePrecioDiferentePorTalla">
+            Precio para talla {{ existenciaSeleccionada?.talla_nombre }}
+          </small>
         </div>
 
         <div class="measurement-card" *ngIf="medidasSeleccionadas.length > 0">
@@ -166,6 +171,7 @@
               (click)="seleccionarTalla(ex)"
             >
               {{ ex.talla_nombre || 'U' }}
+              <span class="size-price">Bs. {{ ex.precio | number:'1.2-2' }}</span>
               <span class="sucursal-tag" *ngIf="ex.sucursal_nombre || ex.sucursal_ciudad">
                 ({{ ex.sucursal_nombre ? ex.sucursal_nombre + ' — ' + (ex.sucursal_ciudad || '') : ex.sucursal_ciudad }})
               </span>

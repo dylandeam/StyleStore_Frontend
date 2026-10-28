@@ -126,6 +126,8 @@ export class ProductosListComponent implements OnInit {
   newStockTallaId = 0;
   newStockSucursalId = 0;
   newStockCantidad = 0;
+  newStockPrecioVariante: number | null = null;
+  sizePriceInputs: Record<number, number | null> = {};
 
   ngOnInit(): void {
     this.loadCatalogos();
@@ -249,7 +251,9 @@ export class ProductosListComponent implements OnInit {
       visible_en_catalogo: true,
       color_ids: [],
       active: true,
+      precios_talla: [],
     };
+    this.sizePriceInputs = {};
     this.iaAnalysisResult.set(null);
     this.modalError.set('');
     this.modalSuccess.set('');
@@ -281,7 +285,11 @@ export class ProductosListComponent implements OnInit {
       visible_en_catalogo: p.visible_en_catalogo ?? true,
       color_ids: p.colores ? p.colores.map((c) => c.id) : [],
       active: p.active,
+      precios_talla: p.precios_talla || [],
     };
+    this.sizePriceInputs = Object.fromEntries(
+      (p.precios_talla || []).map((item) => [item.talla_id, Number(item.precio)])
+    );
 
     if (p.puntos_clave_ia) {
       try {
@@ -494,6 +502,19 @@ export class ProductosListComponent implements OnInit {
     this.isSubmitting.set(true);
     this.modalError.set('');
 
+    const invalidSizePrice = Object.values(this.sizePriceInputs).some(
+      (value) => value != null && (!Number.isFinite(Number(value)) || Number(value) <= 0)
+    );
+    if (invalidSizePrice) {
+      this.isSubmitting.set(false);
+      this.modalError.set('Cada precio por talla debe ser mayor a cero o quedar vacío para usar el precio base.');
+      return;
+    }
+
+    const preciosTalla = Object.entries(this.sizePriceInputs)
+      .filter(([, value]) => value != null && Number(value) > 0)
+      .map(([tallaId, value]) => ({ talla_id: Number(tallaId), precio: Number(value) }));
+
     const colId = this.formData.coleccion_id ? Number(this.formData.coleccion_id) : null;
 
     if (this.isEditing() && this.editingCodigo) {
@@ -513,6 +534,7 @@ export class ProductosListComponent implements OnInit {
         visible_en_catalogo: this.formData.visible_en_catalogo,
         color_ids: this.formData.color_ids,
         active: this.formData.active,
+        precios_talla: preciosTalla,
       };
 
       this.productoService.updateProducto(this.editingCodigo, updateData).subscribe({
@@ -536,6 +558,7 @@ export class ProductosListComponent implements OnInit {
         categoria_id: Number(this.formData.categoria_id),
         temporada_id: Number(this.formData.temporada_id),
         coleccion_id: colId,
+        precios_talla: preciosTalla,
       };
 
       this.productoService.createProducto(createData).subscribe({
@@ -594,6 +617,7 @@ export class ProductosListComponent implements OnInit {
       this.newStockColorId = this.colores()[0].id;
     }
     this.newStockCantidad = 0;
+    this.newStockPrecioVariante = null;
   }
 
   closeStockModal(): void {
@@ -628,13 +652,14 @@ export class ProductosListComponent implements OnInit {
     return String(detail);
   }
 
-  updateSingleStock(item: StockInventarioItem, newCantidad: number): void {
+  updateSingleStock(item: StockInventarioItem, newCantidad: number, precioVariante: number): void {
     if (!this.selectedProductForStock || newCantidad < 0) return;
     item.cantidad = newCantidad;
     this.stockModalError.set('');
     this.stockModalSuccess.set('');
 
     const targetColor = item.color_id || item.producto_color_id || 0;
+    const precioNormalizado = Number.isFinite(precioVariante) && precioVariante > 0 ? precioVariante : null;
 
     this.stockService
       .updateProductStock(this.selectedProductForStock.codigo, {
@@ -645,6 +670,7 @@ export class ProductosListComponent implements OnInit {
             talla_id: item.talla_id,
             sucursal_id: item.sucursal_id,
             cantidad: newCantidad,
+            precio_variante: precioNormalizado,
           },
         ],
       })
@@ -682,6 +708,9 @@ export class ProductosListComponent implements OnInit {
     const tallaIdNum = Number(this.newStockTallaId);
     const sucursalIdNum = Number(this.newStockSucursalId);
     const cantidadNum = Number(this.newStockCantidad);
+    const precioVarianteNum = this.newStockPrecioVariante != null && Number(this.newStockPrecioVariante) > 0
+      ? Number(this.newStockPrecioVariante)
+      : null;
 
     this.stockService
       .updateProductStock(this.selectedProductForStock.codigo, {
@@ -692,6 +721,7 @@ export class ProductosListComponent implements OnInit {
             talla_id: tallaIdNum,
             sucursal_id: sucursalIdNum,
             cantidad: cantidadNum,
+            precio_variante: precioVarianteNum,
           },
         ],
       })

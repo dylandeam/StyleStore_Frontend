@@ -150,10 +150,19 @@
 
 .precio-block {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 4px;
   color: #14263D;
   margin-bottom: 20px;
+}
+
+.previous-price {
+  flex-basis: 100%;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: line-through;
 }
 
 .precio-block .moneda {
@@ -282,6 +291,13 @@
   font-size: 0.65rem;
   font-weight: 400;
   margin-top: 2px;
+}
+
+.size-price {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.82;
 }
 
 .cantidad-control {

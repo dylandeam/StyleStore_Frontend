@@ -5,6 +5,8 @@ export interface StockInventarioItem {
   talla_id: number;
   sucursal_id: number;
   cantidad: number;
+  precio_variante?: number | null;
+  precio_efectivo?: number;
   color_nombre?: string;
   talla_nombre?: string;
   sucursal_nombre?: string;
@@ -17,5 +19,6 @@ export interface StockBulkUpdateRequest {
     talla_id: number;
     sucursal_id: number;
     cantidad: number;
+    precio_variante?: number | null;
   }[];
 }
