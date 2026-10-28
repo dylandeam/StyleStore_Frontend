@@ -101,7 +101,7 @@
         </div>
         <div class="info-row">
           <span class="info-label">Total pagado:</span>
-          <span class="info-value total-destacado">${{ orden.total | number:'1.2-2' }}</span>
+          <span class="info-value total-destacado">Bs. {{ orden.total | number:'1.2-2' }}</span>
         </div>
         <div class="info-row" *ngIf="orden.ticket_numero">
           <span class="info-label">Ticket POS:</span>
@@ -180,15 +180,15 @@
 
   <!-- MODAL: DETALLE DE COMPRA -->
   <div class="modal-backdrop" *ngIf="showDetailModal && selectedOrden">
-    <div class="modal-card">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="detalle-orden-titulo">
       <div class="modal-header">
         <div>
-          <h3>Detalle de Orden #{{ selectedOrden.id }}</h3>
+          <h3 id="detalle-orden-titulo">Detalle de Orden #{{ selectedOrden.id }}</h3>
           <span class="badge-tipo" [ngClass]="selectedOrden.tipo_venta === 'en linea' ? 'tipo-online' : 'tipo-tienda'">
             {{ selectedOrden.tipo_venta === 'en linea' ? 'Compra Online' : 'Venta Presencial' }}
           </span>
         </div>
-        <button class="btn-close-modal" (click)="cerrarDetalle()">✕</button>
+        <button class="btn-close-modal" type="button" aria-label="Cerrar detalle de la orden" (click)="cerrarDetalle()">✕</button>
       </div>
 
       <div class="modal-body">
@@ -264,14 +264,14 @@
                 <td><strong>{{ det.producto_nombre }}</strong></td>
                 <td>{{ det.talla_nombre || 'N/A' }} / {{ det.color_nombre || 'N/A' }}</td>
                 <td>{{ det.cantidad }}</td>
-                <td>${{ det.precio_unitario | number:'1.2-2' }}</td>
-                <td><strong>${{ det.subtotal | number:'1.2-2' }}</strong></td>
+                <td>Bs. {{ det.precio_unitario | number:'1.2-2' }}</td>
+                <td><strong>Bs. {{ det.subtotal | number:'1.2-2' }}</strong></td>
               </tr>
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                <td class="total-cell"><strong>${{ selectedOrden.total | number:'1.2-2' }}</strong></td>
+                <td class="total-cell"><strong>Bs. {{ selectedOrden.total | number:'1.2-2' }}</strong></td>
               </tr>
             </tfoot>
           </table>

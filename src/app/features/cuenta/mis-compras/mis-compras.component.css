@@ -783,3 +783,92 @@
   background: #f8fafc;
   border-color: #e2e8f0;
 }
+
+/* Contraste semántico del detalle de orden.
+   Las superficies configurables del tenant usan su texto calculado; los paneles
+   claros internos usan siempre los tokens de controles para no heredar blanco. */
+.modal-card {
+  background: var(--surface-card, #fbf8f1);
+  color: var(--text-on-card, #172536);
+  border: 1px solid var(--border-subtle, #d9d0bf);
+}
+
+.modal-header,
+.modal-footer {
+  background: var(--surface-card, #fbf8f1);
+  color: var(--text-on-card, #172536);
+  border-color: var(--border-subtle, #d9d0bf);
+}
+
+.modal-header h3,
+.modal-sub,
+.btn-close-modal,
+.modal-body,
+.section-subtitle {
+  color: var(--text-on-card, #172536);
+}
+
+.modal-body {
+  background: var(--surface-card, #fbf8f1);
+}
+
+.btn-close-modal:hover,
+.btn-close-modal:focus-visible {
+  color: var(--text-on-card, #172536);
+  background: color-mix(in srgb, var(--text-on-card, #172536) 10%, transparent);
+  border-radius: 8px;
+}
+
+.detalle-grid {
+  background: var(--surface-control, #fff);
+  color: var(--text-on-control, #172536);
+  border: 1px solid color-mix(in srgb, var(--text-on-control, #172536) 18%, var(--surface-control, #fff));
+}
+
+.detalle-grid strong {
+  color: var(--text-on-control, #172536);
+}
+
+.envio-box-modal,
+.envio-box-modal p,
+.envio-box-modal strong {
+  color: #172536;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  border-radius: 10px;
+  background: var(--surface-control, #fff);
+}
+
+.table-articulos {
+  min-width: 520px;
+  color: var(--text-on-control, #172536);
+  background: var(--surface-control, #fff);
+}
+
+.table-articulos th {
+  color: var(--text-on-control, #172536);
+  background: color-mix(in srgb, var(--surface-control, #fff) 92%, var(--text-on-control, #172536));
+  border-bottom-color: color-mix(in srgb, var(--text-on-control, #172536) 24%, var(--surface-control, #fff));
+}
+
+.table-articulos td,
+.table-articulos td strong,
+.table-articulos tfoot td,
+.total-cell,
+.total-cell strong {
+  color: var(--text-on-control, #172536);
+}
+
+.table-articulos td {
+  border-bottom-color: color-mix(in srgb, var(--text-on-control, #172536) 16%, var(--surface-control, #fff));
+}
+
+@media (max-width: 640px) {
+  .modal-card { max-height: calc(100dvh - 1rem); }
+  .modal-header,
+  .modal-body,
+  .modal-footer { padding-inline: 16px; }
+  .detalle-grid { grid-template-columns: 1fr; }
+}
