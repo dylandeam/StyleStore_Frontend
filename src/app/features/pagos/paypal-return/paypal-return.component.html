@@ -3,6 +3,7 @@
     <div class="spinner"></div>
     <h2>Confirmando pago con PayPal...</h2>
     <p>Por favor espera un instante mientras validamos tu transacción.</p>
+    <p class="slow-message" *ngIf="mensajeEspera">{{ mensajeEspera }}</p>
   </div>
 
   <div class="card result-card success" *ngIf="!loading && exito">
@@ -23,7 +24,7 @@
     </div>
   </div>
 
-  <div class="card result-card error" *ngIf="!loading && error">
+  <div class="card result-card error" *ngIf="!loading && !exito && error">
     <div class="error-icon">✕</div>
     <h2>Hubo un inconveniente</h2>
     <p>{{ error }}</p>

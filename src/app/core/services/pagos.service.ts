@@ -13,6 +13,14 @@ export interface PayPalOrderResponse {
   total?: number;
 }
 
+export interface PayPalCaptureResponse {
+  id?: number;
+  orden_venta_id: number;
+  monto: number;
+  estado: string;
+  paypal_capture_id?: string;
+}
+
 export interface CobroCajaResponse {
   pago_id: number;
   orden_venta_id: number;
@@ -38,8 +46,8 @@ export class PagosService {
     });
   }
 
-  capturarOrdenPayPal(paypalOrderId: string, ordenVentaId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/paypal/capturar-orden`, {
+  capturarOrdenPayPal(paypalOrderId: string, ordenVentaId: number): Observable<PayPalCaptureResponse> {
+    return this.http.post<PayPalCaptureResponse>(`${this.apiUrl}/paypal/capturar-orden`, {
       paypal_order_id: paypalOrderId,
       orden_venta_id: ordenVentaId,
     });

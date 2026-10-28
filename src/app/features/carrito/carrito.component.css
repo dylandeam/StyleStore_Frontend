@@ -1306,6 +1306,14 @@
 .pp-footer a:hover {
   text-decoration: underline;
 }
+.pp-security-copy {
+  margin: 16px 0 0;
+  color: #64748B;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.pp-security-copy strong { color: #334155; overflow-wrap: anywhere; }
 .discount-code-box { margin:16px 0; padding:14px; border:1px dashed #C7A76B; border-radius:10px; background:#FFFCF5; }
 .discount-code-box label { display:block; font-weight:700; color:#14263D; margin-bottom:8px; }
 .discount-code-row { display:flex; gap:8px; }

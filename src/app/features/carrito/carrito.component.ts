@@ -564,13 +564,10 @@ export class CarritoComponent implements OnInit {
 
   // PayPal Sandbox Modal State
   showPayPalModal = signal<boolean>(false);
-  paypalStep = signal<'login' | 'approve' | 'processing'>('login');
   paypalOrderId = signal<number>(0);
   paypalToken = signal<string>('');
   paypalApproveUrl = signal<string>('');
   paypalTotal = signal<number>(0);
-  paypalEmail = signal<string>('comprador.sandbox@stylestore.com');
-  paypalPassword = signal<string>('SandboxPass2026!');
   paypalErrorMessage = signal<string>('');
 
   abrirPayPalSandboxModal(ordenId: number, token: string, approveUrl: string, total: number): void {
@@ -579,7 +576,6 @@ export class CarritoComponent implements OnInit {
     this.paypalToken.set(token);
     this.paypalApproveUrl.set(approveUrl);
     this.paypalTotal.set(Math.round(totalSeguro * 100) / 100);
-    this.paypalStep.set('login');
     this.paypalErrorMessage.set('');
     this.showPayPalModal.set(true);
     this.cdr.markForCheck();
@@ -593,51 +589,21 @@ export class CarritoComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  autocompletarCredencialesSandbox(): void {
-    this.paypalEmail.set('comprador.sandbox@stylestore.com');
-    this.paypalPassword.set('SandboxPass2026!');
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
-  }
+  continuarEnPayPalOficial(): void {
+    const approveUrl = this.paypalApproveUrl();
+    try {
+      const destination = new URL(approveUrl);
+      const isPayPal = destination.protocol === 'https:' &&
+        (destination.hostname === 'paypal.com' || destination.hostname.endsWith('.paypal.com'));
+      if (!isPayPal) throw new Error('invalid-paypal-url');
 
-  avanzarAprobacionSandbox(): void {
-    if (!this.paypalEmail().trim() || !this.paypalPassword().trim()) {
-      this.paypalErrorMessage.set('Por favor ingresa tu correo y contraseña de prueba de PayPal Sandbox.');
-      return;
+      this.paypalErrorMessage.set('');
+      window.location.assign(destination.toString());
+    } catch {
+      this.paypalErrorMessage.set('PayPal no devolvió un enlace oficial válido. Cierra esta ventana e inténtalo nuevamente.');
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }
-    this.paypalErrorMessage.set('');
-    this.paypalStep.set('approve');
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
-  }
-
-  abrirEnPayPalReal(): void {
-    const url = this.paypalApproveUrl() || 'https://www.sandbox.paypal.com';
-    window.open(url, '_blank');
-  }
-
-  completarPagoSandbox(): void {
-    this.paypalStep.set('processing');
-    this.cdr.markForCheck();
-    this.cdr.detectChanges();
-
-    const token = this.paypalToken();
-    const ordenId = this.paypalOrderId();
-
-    this.pagosService.capturarOrdenPayPal(token, ordenId).subscribe({
-      next: () => {
-        this.showPayPalModal.set(false);
-        this.router.navigate(['/paypal-return'], {
-          queryParams: { token: token, orden_id: ordenId },
-        });
-      },
-      error: (err) => {
-        this.paypalStep.set('approve');
-        this.paypalErrorMessage.set(err.error?.detail || 'No se pudo completar el pago con PayPal.');
-        this.cdr.markForCheck();
-        this.cdr.detectChanges();
-      },
-    });
   }
 
   procederConPago(ordenId: number, montoEsperado?: number): void {
