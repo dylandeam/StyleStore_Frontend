@@ -1332,7 +1332,72 @@
 .cart-item-card,.summary-card,.empty-cart-card,.success-order-card,.loading-state { color:var(--text-on-card); background:var(--surface-card); border-color:var(--border-subtle); }
 .item-name,.item-subtotal,.summary-title,.toggle-text strong { color:var(--text-on-card); }
 .item-price-unit,.toggle-text small { color:var(--text-secondary); }
-.form-control { color:var(--input-text,#172536); background:#fff; }
+.form-control { color:var(--text-on-control,var(--input-text,#172536)); background:var(--surface-control,#fff); }
+.form-control::placeholder,.discount-code-row input::placeholder { color:var(--text-on-control-soft,#536171); opacity:1; }
+.form-control:disabled,.discount-code-row input:disabled { color:var(--text-on-control-soft,#536171); background:color-mix(in srgb,var(--surface-control,#fff) 88%,var(--text-on-control,#172536)); opacity:1; }
+
+/* Cada superficie decide su propio contraste. Las tarjetas claras no heredan
+   el texto del panel configurable del tenant. */
+.summary-card { color:var(--text-on-card); }
+.summary-card > .summary-title,
+.summary-card > .metodos-pago-box > .box-subtitle,
+.summary-card > .totals-breakdown .total-row,
+.summary-card > .totals-breakdown .total-row.final { color:var(--text-on-card); }
+.summary-card > .totals-breakdown .summary-divider { border-top-color:color-mix(in srgb,var(--text-on-card) 28%,transparent); }
+
+.envio-toggle-box,
+.paypal-exclusive-card,
+.discount-code-box,
+.aviso-delivery-callout,
+.comparador-ubicaciones-card,
+.distancia-calculo-box {
+  color:var(--text-on-control,#172536);
+  background:var(--surface-control,#fff);
+}
+
+.envio-toggle-box .toggle-text strong,
+.envio-toggle-box .gps-label,
+.envio-toggle-box .form-group label,
+.envio-toggle-box .aviso-delivery-callout strong,
+.envio-toggle-box .bloque-nombre,
+.paypal-exclusive-card .paypal-secure-badge,
+.paypal-exclusive-card .paypal-brand-logo,
+.discount-code-box label {
+  color:var(--text-on-control,#172536);
+}
+
+.envio-toggle-box .toggle-text small,
+.envio-toggle-box .gps-helper-text,
+.envio-toggle-box .bloque-detalles,
+.paypal-exclusive-card .paypal-info-text,
+.paypal-exclusive-card .paypal-cash-note {
+  color:var(--text-on-control-soft,#536171);
+}
+.envio-toggle-box .text-muted { color:var(--text-on-control-soft,#536171) !important; }
+
+.envio-toggle-box .form-control,
+.discount-code-row input {
+  color:var(--text-on-control,#172536);
+  background:var(--surface-control,#fff);
+  caret-color:var(--accent-primary,#14263d);
+}
+
+.paypal-badge-row { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.7rem; }
+.paypal-secure-badge { font-size:.84rem; font-weight:800; }
+.paypal-brand-logo { color:#003087 !important; font-size:1rem; font-weight:900; font-style:italic; }
+.paypal-info-text { margin:.2rem 0 .75rem; font-size:.84rem; line-height:1.5; }
+.paypal-cash-note { padding-top:.75rem; border-top:1px solid color-mix(in srgb,var(--text-on-control,#172536) 20%,transparent); font-size:.79rem; line-height:1.45; }
+
+.aviso-tarifa-delivery {
+  color:var(--text-on-notice,#172536);
+  background:var(--surface-notice,#fffbeb);
+}
+.aviso-tarifa-delivery .aviso-delivery-header,
+.aviso-tarifa-delivery .aviso-delivery-desc { color:var(--text-on-notice,#172536); }
+.aviso-tarifa-delivery > .aviso-delivery-desc { color:var(--text-on-notice-soft,#625a49); }
+
+.btn-continue { color:var(--text-on-page); }
+.btn-continue:hover { color:var(--accent-link); }
 .empty-cart-card,.success-order-card,.loading-state { width:min(100%,760px); margin-inline:auto; text-align:center; }
 @media(max-width:980px){.cart-grid{grid-template-columns:minmax(0,760px);justify-content:center}.checkout-summary-section{position:static}}
 @media(max-width:620px){

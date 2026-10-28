@@ -53,6 +53,10 @@ export class BrandingService {
     const onSurface = this.readableText(surface, preferredText);
     const onPrimary = this.readableText(primary, preferredContrast);
     const onAccent = this.readableText(accent, preferredContrast);
+    const controlSurface = '#FFFFFF';
+    const noticeSurface = '#FFFBEB';
+    const onControl = this.readableText(controlSurface, preferredText);
+    const onNotice = this.readableText(noticeSurface, preferredText);
     const link = this.contrastRatio(accent, surface) >= 4.5
       ? accent
       : this.readableText(surface, primary);
@@ -70,6 +74,8 @@ export class BrandingService {
       '--surface-page': page,
       '--surface-card': surface,
       '--surface-contrast': primary,
+      '--surface-control': controlSurface,
+      '--surface-notice': noticeSurface,
       '--bg-card-hover': this.mix(onSurface, surface, 8),
       '--border-subtle': this.mix(onSurface, surface, 20),
       '--border-sidebar': this.mix(onPrimary, primary, 30),
@@ -83,7 +89,11 @@ export class BrandingService {
       '--text-on-navy-soft': this.mix(onPrimary, primary, 82),
       '--text-on-navy-muted': this.mix(onPrimary, primary, 68),
       '--text-on-accent': onAccent,
-      '--input-text': this.readableText('#FFFFFF', preferredText),
+      '--text-on-control': onControl,
+      '--text-on-control-soft': this.accessibleMix(onControl, controlSurface, 68),
+      '--text-on-notice': onNotice,
+      '--text-on-notice-soft': this.accessibleMix(onNotice, noticeSurface, 68),
+      '--input-text': onControl,
     };
     Object.entries(tokens).forEach(([key, value]) => root.style.setProperty(key, value));
     this.document.title = `${brand.nombre_marca} · Portal`;
@@ -96,11 +106,14 @@ export class BrandingService {
       '--bg-sidebar-active': '#1D3552', '--border-focus': '#14263D', '--accent-link': '#274C77',
       '--bg-primary': '#EEE7D8', '--bg-decor': '#E5DDCC', '--bg-card': '#FBF8F1',
       '--surface-page': '#EEE7D8', '--surface-card': '#FBF8F1', '--surface-contrast': '#14263D',
+      '--surface-control': '#FFFFFF', '--surface-notice': '#FFFBEB',
       '--bg-card-hover': '#F3EEE1', '--border-subtle': '#D9D0BF', '--border-sidebar': '#41536A',
       '--text-primary': '#172536', '--text-secondary': '#6F756F', '--text-muted': '#8E928D',
       '--text-on-page': '#172536', '--text-on-card': '#172536', '--text-on-navy': '#FFFFFF',
       '--text-on-navy-soft': '#D2D9E0', '--text-on-navy-muted': '#AEB8C4',
       '--text-on-accent': '#FFFFFF', '--input-text': '#172536',
+      '--text-on-control': '#172536', '--text-on-control-soft': '#536171',
+      '--text-on-notice': '#172536', '--text-on-notice-soft': '#625A49',
     };
     Object.entries(defaults).forEach(([key, value]) => this.document.documentElement.style.setProperty(key, value));
     this.document.title = 'StyleStore';
