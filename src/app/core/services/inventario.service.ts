@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, from, map, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   EstadoTraspaso,
@@ -10,12 +10,18 @@ import {
   TraspasoCreateRequest,
   TraspasoInventario,
 } from '../models/inventario.model';
+import { AuthService } from './auth.service';
+import { OfflineDbService } from './offline-db.service';
+import { OfflineStateService } from './offline-state.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class InventarioService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
+  private offlineDb = inject(OfflineDbService);
+  private offlineState = inject(OfflineStateService);
   private apiUrl = `${environment.apiUrl}/inventario`;
   private reportesUrl = `${environment.apiUrl}/reportes`;
 
@@ -35,7 +41,27 @@ export class InventarioService {
   }
 
   getInventarioSucursal(sucursalId: number): Observable<InventarioItem[]> {
-    return this.http.get<InventarioItem[]>(`${this.apiUrl}/sucursal/${sucursalId}`);
+    const scope = this.offlineScope();
+    const filterKey = `pos-inventario:sucursal-${sucursalId}`;
+    return this.http.get<InventarioItem[]>(`${this.apiUrl}/sucursal/${sucursalId}`).pipe(
+      tap((items) => {
+        this.offlineState.usingCachedCatalog.set(false);
+        void this.offlineDb
+          .putCatalog(scope, filterKey, items)
+          .then((snapshot) => this.offlineState.lastCatalogSync.set(snapshot.syncedAt))
+          .catch(() => undefined);
+      }),
+      catchError((requestError) =>
+        from(this.offlineDb.getCatalog<InventarioItem[]>(scope, filterKey)).pipe(
+          switchMap((snapshot) => snapshot ? from([snapshot]) : throwError(() => requestError)),
+          tap((snapshot) => {
+            this.offlineState.usingCachedCatalog.set(true);
+            this.offlineState.lastCatalogSync.set(snapshot.syncedAt);
+          }),
+          map((snapshot) => snapshot.data)
+        )
+      )
+    );
   }
 
   ajustarStock(data: StockAdjustRequest): Observable<{ message: string; stock_inventario_id: number; cantidad: number }> {
@@ -70,5 +96,10 @@ export class InventarioService {
       `${this.reportesUrl}/recomendaciones-traspaso-stock`,
       { params }
     );
+  }
+
+  private offlineScope(): string {
+    const user = this.auth.currentUser();
+    return user ? `empresa-${user.empresa_id ?? 'plataforma'}:usuario-${user.id}` : 'publico';
   }
 }

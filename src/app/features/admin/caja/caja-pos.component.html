@@ -321,6 +321,10 @@
   <!-- TAB 2: VENTA DIRECTA EN MOSTRADOR (PRESENCIAL) -->
   <!-- ========================================================= -->
   <div class="pos-directa-grid" *ngIf="ventaDirectaOnly">
+    <div class="offline-sale-banner" *ngIf="!offlineState.online()">
+      <strong>Caja sin conexión</strong>
+      <span>Usas el último inventario guardado. Solo se admite efectivo y el ticket será provisional hasta sincronizar.</span>
+    </div>
     <!-- Columna Izquierda: Catálogo de Inventario en Sucursal -->
     <div class="pos-catalog-panel card">
       <div class="catalog-filters">
@@ -500,9 +504,10 @@
             type="button" 
             class="btn-metodo" 
             [class.active]="metodoPagoDirecto === 'qr'"
+            [disabled]="!offlineState.online()"
             (click)="metodoPagoDirecto = 'qr'"
           >
-            📱 QR Simple / Transferencia
+            QR Simple / Transferencia <span *ngIf="!offlineState.online()">(requiere conexión)</span>
           </button>
         </div>
       </div>
@@ -560,9 +565,10 @@
               type="button" 
               class="btn-metodo" 
               [class.active]="metodoPagoDirecto === 'qr'"
+              [disabled]="!offlineState.online()"
               (click)="metodoPagoDirecto = 'qr'"
             >
-              📱 QR Simple (Mostrador)
+              QR Simple (Mostrador) <span *ngIf="!offlineState.online()">(requiere conexión)</span>
             </button>
           </div>
         </div>

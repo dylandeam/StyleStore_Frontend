@@ -62,4 +62,37 @@ describe('CajaPosComponent', () => {
     expect(element.textContent).not.toContain('Gestionar Pagos');
     expect(element.querySelector('.pos-container')?.classList).toContain('direct-sale-only');
   });
+
+  it('keeps offline checkout visible but restricts it to cash', () => {
+    const fixture = TestBed.createComponent(CajaPosComponent);
+    fixture.componentRef.setInput('ventaDirectaOnly', true);
+    const component = fixture.componentInstance;
+    component.offlineState.online.set(false);
+    component.metodoPagoDirecto = 'qr';
+    component.compradorModo = 'mostrador';
+    component.compradorNombre = 'Cliente de prueba';
+    component.compradorCi = '1234567';
+    component.cartDirecto = [{
+      item: {
+        id: 1,
+        stock_inventario_id: 1,
+        producto_nombre: 'Polo',
+        cantidad: 2,
+        cantidad_disponible: 2,
+        precio: 70,
+        precio_unitario: 70,
+      } as any,
+      cantidad: 1,
+      subtotal: 70,
+    }];
+    fixture.detectChanges();
+
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.textContent).toContain('Caja sin conexión');
+    expect(component.puedeCobrarDirecto).toBe(false);
+    const qrButtons = Array.from(element.querySelectorAll<HTMLButtonElement>('.btn-metodo'))
+      .filter((button) => button.textContent?.includes('QR Simple'));
+    expect(qrButtons.length).toBeGreaterThan(0);
+    expect(qrButtons.every((button) => button.disabled)).toBe(true);
+  });
 });

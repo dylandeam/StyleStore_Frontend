@@ -12,6 +12,7 @@ import { BranchSelectionService } from '../../../core/services/branch-selection.
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 import { ResenaProductoItem, ResenaProductoService, ResenasProductoResponse } from '../../../core/services/resena-producto.service';
+import { OfflineStateService } from '../../../core/services/offline-state.service';
 
 @Component({
   selector: 'app-producto-detalle',
@@ -33,6 +34,7 @@ export class ProductoDetalleComponent implements OnInit {
   private resenaProductoService = inject(ResenaProductoService);
   public branchService = inject(BranchSelectionService);
   private cdr = inject(ChangeDetectorRef);
+  readonly offlineState = inject(OfflineStateService);
 
   // Estados reactivos con Signals para compatibilidad total con Angular 21
   codigoState = signal<string>('');
@@ -57,6 +59,7 @@ export class ProductoDetalleComponent implements OnInit {
   horaRetiroReserva = '';
   bloquesReserva = signal<BloqueHorario[]>([]);
   cargandoBloques = signal(false);
+  bloquesReservaProvisionales = signal(false);
 
   // Selección de variantes
   varianteColor = signal<any>(null);
@@ -206,7 +209,8 @@ export class ProductoDetalleComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: () => {
-        this.puedeReservar.set(false);
+        this.puedeReservar.set(true);
+        this.elegibilidadMensaje.set('Puedes reservar; el horario y el stock se validarán al sincronizar.');
         this.cdr.markForCheck();
       },
     });
@@ -594,22 +598,52 @@ export class ProductoDetalleComponent implements OnInit {
       this.bloquesReserva.set([]);
       return;
     }
+    if (!this.offlineState.online()) {
+      this.usarBloquesReservaProvisionales();
+      return;
+    }
     this.cargandoBloques.set(true);
     this.reservaService.getDisponibilidad(sucursalId, this.fechaLimiteReserva).subscribe({
       next: (response) => {
         this.bloquesReserva.set(response.bloques);
+        this.bloquesReservaProvisionales.set(false);
         this.horaRetiroReserva = response.bloques.find((block) => block.disponible)?.inicio || '';
         this.cargandoBloques.set(false);
         this.cdr.markForCheck();
       },
       error: (err) => {
-        this.bloquesReserva.set([]);
-        this.horaRetiroReserva = '';
-        this.cargandoBloques.set(false);
-        this.mostrarToast(err?.error?.detail || 'No se pudo consultar la disponibilidad horaria.');
-        this.cdr.markForCheck();
+        if (err?.status === 0 || !navigator.onLine) {
+          this.usarBloquesReservaProvisionales();
+        } else {
+          this.bloquesReserva.set([]);
+          this.horaRetiroReserva = '';
+          this.cargandoBloques.set(false);
+          this.mostrarToast(err?.error?.detail || 'No se pudo consultar la disponibilidad horaria.');
+          this.cdr.markForCheck();
+        }
       },
     });
+  }
+
+  private usarBloquesReservaProvisionales(): void {
+    const branch = this.sucursalReservaSeleccionada;
+    const parse = (value: string | undefined, fallback: number): number => {
+      const [hour, minute] = (value || '').split(':').map(Number);
+      return Number.isFinite(hour) && Number.isFinite(minute) ? hour * 60 + minute : fallback;
+    };
+    const format = (minutes: number): string =>
+      `${Math.floor(minutes / 60).toString().padStart(2, '0')}:${(minutes % 60).toString().padStart(2, '0')}`;
+    const start = parse(branch?.hora_apertura, 9 * 60);
+    const end = parse(branch?.hora_cierre, 18 * 60);
+    const blocks: BloqueHorario[] = [];
+    for (let current = start; current + 60 <= end; current += 60) {
+      blocks.push({ inicio: format(current), fin: format(current + 60), disponible: true });
+    }
+    this.bloquesReserva.set(blocks);
+    this.horaRetiroReserva = blocks[0]?.inicio || '';
+    this.bloquesReservaProvisionales.set(true);
+    this.cargandoBloques.set(false);
+    this.cdr.markForCheck();
   }
 
   get sucursalReservaSeleccionada(): Sucursal | undefined {

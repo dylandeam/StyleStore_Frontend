@@ -13,6 +13,7 @@ import { VentaPresencialCreate } from '../../../core/models/venta.model';
 import { PromocionesService } from '../../../core/services/promociones.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { Cliente } from '../../../core/models/cliente.model';
+import { OfflineStateService } from '../../../core/services/offline-state.service';
 
 @Component({
   selector: 'app-caja-pos',
@@ -35,6 +36,7 @@ export class CajaPosComponent implements OnInit {
   private clientesService = inject(ClientesService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  readonly offlineState = inject(OfflineStateService);
 
   activeTab: 'ordenes' | 'historial' = 'ordenes';
 
@@ -292,9 +294,9 @@ export class CajaPosComponent implements OnInit {
         }));
 
         const user = this.authService.currentUser();
-        if (user && user.sucursal_id) {
+        if (user?.sucursal_id && this.sucursales.some((sucursal) => sucursal.id === user.sucursal_id)) {
           this.selectedSucursalId = user.sucursal_id;
-        } else if (this.sucursales.length > 0 && !this.selectedSucursalId) {
+        } else if (this.sucursales.length > 0 && !this.sucursales.some((sucursal) => sucursal.id === this.selectedSucursalId)) {
           this.selectedSucursalId = this.sucursales[0].id;
         }
         this.cargarInventarioSucursal();
@@ -519,7 +521,7 @@ export class CajaPosComponent implements OnInit {
     if (this.metodoPagoDirecto === 'efectivo') {
       return (this.efectivoRecibidoDirecto || 0) >= this.totalVentaDirecta;
     }
-    return true; // Si es QR se puede confirmar directamente sin vuelto
+    return this.offlineState.online();
   }
 
   setBilletesDirecto(monto: number): void {
@@ -531,6 +533,11 @@ export class CajaPosComponent implements OnInit {
   }
 
   procesarVentaDirecta(): void {
+    if (!this.offlineState.online() && this.metodoPagoDirecto !== 'efectivo') {
+      this.metodoPagoDirecto = 'efectivo';
+      this.mostrarToast('Sin conexión solo se puede registrar una venta en efectivo.');
+      return;
+    }
     if (!this.puedeCobrarDirecto) return;
 
     this.procesando = true;

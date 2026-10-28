@@ -213,21 +213,12 @@
           <button
             type="button"
             class="btn-reserve"
-            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0 || !puedeReservar()"
+            [disabled]="agregando || !existenciaSeleccionada || existenciaSeleccionada.cantidad <= 0"
             (click)="abrirModalReserva()"
-            [title]="puedeReservar() ? 'Aparta esta prenda indicando la sucursal' : 'Requiere al menos 1 compra previa pagada'"
+            title="Aparta esta prenda indicando la sucursal"
           >
             🔖 Reservar Prenda
           </button>
-        </div>
-
-        <!-- Aviso si no cumple regla de reserva (≥ 1 compra previa) -->
-        <div class="reserva-aviso-box" *ngIf="!puedeReservar()">
-          <span class="info-badge-icon">🔒</span>
-          <div class="reserva-aviso-text">
-            <strong>Reserva en Tienda Física:</strong>
-            <p>{{ elegibilidadMensaje() || 'Para reservar prendas sin costo previo necesitas tener al menos 1 compra previa pagada en StyleStore.' }}</p>
-          </div>
         </div>
 
         <!-- Alerta de reposición de stock si no hay existencias -->
@@ -543,6 +534,9 @@
                   {{ s.name }} ({{ s.city }} — {{ s.address }})
                 </option>
               }
+              @if (sucursalesList().length === 0) {
+                <option [value]="sucursalReservaId()">Sucursal del inventario guardado</option>
+              }
             </select>
             <small class="help-desc-text">
               ℹ️ El sistema descontará el stock de esta sucursal y la apartará a tu nombre.
@@ -589,6 +583,11 @@
               <small class="help-desc-text">
                 Atención: {{ sucursalReservaSeleccionada?.hora_apertura || '09:00' }} – {{ sucursalReservaSeleccionada?.hora_cierre || '18:00' }}. Los bloques ocupados no se pueden seleccionar.
               </small>
+              @if (bloquesReservaProvisionales()) {
+                <small class="help-desc-text offline-reservation-note">
+                  Sin conexión: el bloque es provisional. El servidor confirmará horario y stock al sincronizar.
+                </small>
+              }
           </div>
         </div>
 

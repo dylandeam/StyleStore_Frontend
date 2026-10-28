@@ -224,7 +224,23 @@ export class CarritoService {
   getProductoDetalle(codigo: string, sucursalId?: number): Observable<CatalogoItem> {
     let params = new HttpParams();
     if (sucursalId) params = params.set('sucursal_id', sucursalId);
-    return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`, { params });
+    const scope = this.offlineScope();
+    const filterKey = `detalle:${codigo}:sucursal-${sucursalId ?? 'todas'}`;
+    return this.http.get<CatalogoItem>(`${this.catalogoUrl}/${codigo}/detalle`, { params }).pipe(
+      tap((data) => {
+        void this.offlineDb.putCatalog(scope, filterKey, data).catch(() => undefined);
+      }),
+      catchError((requestError) =>
+        from(this.offlineDb.getCatalog<CatalogoItem>(scope, filterKey)).pipe(
+          switchMap((snapshot) => snapshot ? from([snapshot]) : throwError(() => requestError)),
+          tap((snapshot) => {
+            this.offlineState.usingCachedCatalog.set(true);
+            this.offlineState.lastCatalogSync.set(snapshot.syncedAt);
+          }),
+          map((snapshot) => snapshot.data)
+        )
+      )
+    );
   }
 
   agregarFavorito(codigo: string): Observable<{ producto_codigo: string; es_favorito: boolean }> {
