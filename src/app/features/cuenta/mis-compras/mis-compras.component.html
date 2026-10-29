@@ -9,6 +9,11 @@
     </a>
   </div>
 
+  <div class="payment-reconciliation-notice" *ngIf="reconciliationMessage" role="status" aria-live="polite">
+    <i class="bi bi-shield-check" aria-hidden="true"></i>
+    <span>{{ reconciliationMessage }}</span>
+  </div>
+
   <div class="garantia-banner" *ngIf="saldoFavor > 0">
     <div class="garantia-icon">💳</div>
     <div class="garantia-content"><h3 class="garantia-title">Saldo a favor: Bs. {{ saldoFavor | number:'1.2-2' }}</h3><p class="garantia-desc">Crédito generado por cambios de prendas de menor precio, válido dentro de esta empresa.</p></div>
@@ -86,7 +91,7 @@
           <span class="orden-id">Orden #{{ orden.id }}</span>
         </div>
         <span class="badge-estado" [ngClass]="'estado-' + (orden.estado || 'pendiente')">
-          {{ orden.estado | uppercase }}
+          {{ orden.estado === 'pendiente_pago' ? 'VERIFICANDO PAGO' : (orden.estado === 'reembolsada_stock' ? 'REEMBOLSADA' : (orden.estado | uppercase)) }}
         </span>
       </div>
 
@@ -100,12 +105,21 @@
           <span class="info-value">{{ orden.sucursal_nombre ? (orden.sucursal_nombre + (orden.sucursal_ciudad ? ' — ' + orden.sucursal_ciudad : '')) : orden.sucursal_ciudad }}</span>
         </div>
         <div class="info-row">
-          <span class="info-label">Total pagado:</span>
+          <span class="info-label">{{ orden.estado === 'pendiente_pago' ? 'Total de la orden:' : 'Total pagado:' }}</span>
           <span class="info-value total-destacado">Bs. {{ orden.total | number:'1.2-2' }}</span>
         </div>
         <div class="info-row" *ngIf="orden.ticket_numero">
           <span class="info-label">Ticket POS:</span>
           <span class="info-value font-mono">{{ orden.ticket_numero }}</span>
+        </div>
+        <div class="payment-reference" *ngIf="orden.payment_operation_uuid">
+          <span>Referencia única</span>
+          <code>{{ orden.payment_operation_uuid }}</code>
+        </div>
+        <div class="refund-summary" *ngIf="orden.estado === 'reembolsada_stock'">
+          <strong>Dinero devuelto por falta de stock</strong>
+          <span>{{ orden.refund_reason }}</span>
+          <small *ngIf="orden.paypal_refund_id">PayPal: {{ orden.paypal_refund_id }}</small>
         </div>
 
         <!-- Indicador especial de plazo de cambio si es elegible -->

@@ -872,3 +872,69 @@
   .modal-footer { padding-inline: 16px; }
   .detalle-grid { grid-template-columns: 1fr; }
 }
+
+/* Superficies comerciales: el tema del tenant puede colorear el lienzo, pero
+   nunca debe convertir el contenido de una tarjeta clara en texto invisible. */
+.compra-card,
+.compra-card .compra-body,
+.compra-card .orden-id,
+.compra-card .info-value,
+.compra-card .items-list-compact,
+.compra-card .item-meta {
+  color: #172536;
+}
+
+.compra-card .info-label,
+.compra-card .summary-label {
+  color: #526273;
+}
+
+.estado-reembolsada_stock,
+.estado-reembolsado {
+  background: #dbeafe;
+  color: #1e3a8a;
+}
+
+.estado-conflicto_stock,
+.estado-reembolso_pendiente {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.payment-reconciliation-notice,
+.refund-summary,
+.payment-reference {
+  display: flex;
+  gap: 8px;
+  border-radius: 12px;
+  margin-block: 12px;
+  padding: 12px 14px;
+}
+
+.payment-reconciliation-notice {
+  align-items: center;
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.payment-reference {
+  flex-direction: column;
+  background: #f8fafc;
+  border: 1px solid #dbe3ec;
+  color: #334155;
+  font-size: .78rem;
+}
+
+.payment-reference code {
+  color: #172536;
+  overflow-wrap: anywhere;
+}
+
+.refund-summary {
+  flex-direction: column;
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e3a8a;
+  line-height: 1.45;
+}

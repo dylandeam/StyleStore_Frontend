@@ -38,6 +38,13 @@ export interface OrdenVenta {
   detalles: DetalleVenta[];
   envio?: Envio;
   created_at: string;
+  pago_id?: number;
+  pago_estado?: string;
+  payment_operation_uuid?: string;
+  paypal_order_id?: string;
+  paypal_capture_id?: string;
+  paypal_refund_id?: string;
+  refund_reason?: string;
 }
 
 export interface VentaItemCreate {

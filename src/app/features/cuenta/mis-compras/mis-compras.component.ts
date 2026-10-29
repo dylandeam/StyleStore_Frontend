@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { VentaService } from '../../../core/services/venta.service';
 import { CambiosService, SolicitudCambioCreate } from '../../../core/services/cambios.service';
 import { OrdenVenta } from '../../../core/models/venta.model';
+import { PagosService } from '../../../core/services/pagos.service';
+import { catchError, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-mis-compras',
@@ -13,11 +15,12 @@ import { OrdenVenta } from '../../../core/models/venta.model';
   templateUrl: './mis-compras.component.html',
   styleUrls: ['./mis-compras.component.css'],
 })
-export class MisComprasComponent implements OnInit {
+export class MisComprasComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private ventaService = inject(VentaService);
   private cambiosService = inject(CambiosService);
+  private pagosService = inject(PagosService);
   private cdr = inject(ChangeDetectorRef);
 
   loading = true;
@@ -50,6 +53,8 @@ export class MisComprasComponent implements OnInit {
   cargandoOpciones = false;
   plazoCambiosDias = 7;
   saldoFavor = 0;
+  reconciliationMessage = '';
+  private reconciliationTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     this.cambiosService.getPolitica().subscribe({ next: (p) => { this.plazoCambiosDias = p.plazo_cambios_dias; this.cdr.markForCheck(); } });
@@ -59,6 +64,10 @@ export class MisComprasComponent implements OnInit {
       this.cargarCompras();
       this.cdr.markForCheck();
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.reconciliationTimer) clearTimeout(this.reconciliationTimer);
   }
 
   cambiarTab(tab: 'todas' | 'cambios'): void {
@@ -79,12 +88,23 @@ export class MisComprasComponent implements OnInit {
     this.loading = true;
     this.cdr.markForCheck();
 
-    this.ventaService.getMyPurchases().subscribe({
+    this.pagosService.reconciliarPendientesPayPal().pipe(
+      catchError(() => of([])),
+      switchMap((results) => {
+        const changed = results.find((item) => item.estado === 'aprobado' || item.estado === 'reembolsado');
+        this.reconciliationMessage = changed?.mensaje || '';
+        return this.ventaService.getMyPurchases();
+      }),
+    ).subscribe({
       next: (res) => {
         const todas = [...(res.compras_carrito || []), ...(res.compras_presenciales || [])];
         todas.sort((a, b) => new Date(b.created_at || b.fecha).getTime() - new Date(a.created_at || a.fecha).getTime());
         this.compras = todas;
         this.loading = false;
+        if (this.compras.some((orden) => orden.estado === 'pendiente_pago')) {
+          if (this.reconciliationTimer) clearTimeout(this.reconciliationTimer);
+          this.reconciliationTimer = setTimeout(() => this.cargarCompras(), 12000);
+        }
         this.cdr.markForCheck();
         this.cdr.detectChanges();
       },

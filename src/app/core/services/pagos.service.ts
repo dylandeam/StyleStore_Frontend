@@ -21,6 +21,16 @@ export interface PayPalCaptureResponse {
   paypal_capture_id?: string;
 }
 
+export interface PayPalReconciliationItem {
+  orden_venta_id: number;
+  payment_operation_uuid: string;
+  estado: string;
+  paypal_order_id: string;
+  paypal_capture_id?: string;
+  paypal_refund_id?: string;
+  mensaje: string;
+}
+
 export interface CobroCajaResponse {
   pago_id: number;
   orden_venta_id: number;
@@ -51,6 +61,10 @@ export class PagosService {
       paypal_order_id: paypalOrderId,
       orden_venta_id: ordenVentaId,
     });
+  }
+
+  reconciliarPendientesPayPal(): Observable<PayPalReconciliationItem[]> {
+    return this.http.post<PayPalReconciliationItem[]>(`${this.apiUrl}/paypal/reconciliar-pendientes`, {});
   }
 
   cobrarEnCaja(ordenVentaId: number, efectivoRecibido: number, metodoPago: string = 'efectivo'): Observable<CobroCajaResponse> {
