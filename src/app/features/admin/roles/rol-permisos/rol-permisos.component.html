@@ -4,8 +4,8 @@
       <div class="breadcrumb">
         <a routerLink="/dashboard">Inicio</a> / <a routerLink="/admin/roles">Roles</a> / <span>Permisos</span>
       </div>
-      <h1>Permisos del Rol: <span class="role-highlight">{{ roleName() }}</span></h1>
-      <p class="subtitle">Selecciona las acciones permitidas para este rol en cada módulo del sistema.</p>
+      <h1>Permisos de <span class="role-highlight">{{ roleName() }}</span></h1>
+      <p class="subtitle">Los cambios se aplican en web y mobile para <strong>{{ tenantName }}</strong>. El backend rechazará cualquier acción desactivada.</p>
     </div>
 
     <div class="header-actions">
@@ -33,11 +33,48 @@
       <p>Cargando permisos...</p>
     </div>
   } @else {
+    @if (isCustomerRole) {
+      <section class="operational-panel" aria-labelledby="customer-availability-title">
+        <div class="operational-copy">
+          <h2 id="customer-availability-title">Disponibilidad para clientes</h2>
+          <p>Pausa una función ante mantenimiento o problemas del negocio. La app mostrará “No disponible temporalmente” sin requerir una actualización.</p>
+        </div>
+        <div class="operational-list">
+          @for (perm of operationalPermissions; track perm.code) {
+            <label class="availability-row">
+              <span>
+                <strong>{{ moduleLabel(perm.module) }}</strong>
+                <small>{{ perm.description }}</small>
+              </span>
+              <span class="switch-control">
+                <input type="checkbox" [checked]="isPermissionChecked(perm.code)" (change)="togglePermission(perm.code)" [attr.aria-label]="'Permitir ' + perm.description" />
+                <span aria-hidden="true"></span>
+              </span>
+            </label>
+          }
+        </div>
+      </section>
+    }
+
+    <div class="matrix-heading">
+      <div>
+        <h2>Matriz completa</h2>
+        <p>Control granular por módulo para este rol.</p>
+      </div>
+    </div>
+
     <div class="modules-container">
       @for (module of modules; track module) {
         <div class="module-card">
           <div class="module-header">
-            <h3>Módulo: {{ module | uppercase }}</h3>
+            <div>
+              <h3>{{ moduleLabel(module) }}</h3>
+              <small>{{ getPermissionsByModule(module).length }} permisos</small>
+            </div>
+            <label class="module-toggle">
+              <input type="checkbox" [checked]="isModuleEnabled(module)" (change)="toggleModule(module, $any($event.target).checked)" />
+              Permitir todo
+            </label>
           </div>
           <div class="permissions-list">
             @for (perm of getPermissionsByModule(module); track perm.id) {
