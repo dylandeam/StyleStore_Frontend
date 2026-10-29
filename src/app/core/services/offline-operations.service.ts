@@ -69,6 +69,10 @@ export class OfflineOperationsService {
     return this.queue('venta_efectivo', payload, payload.sucursal_id);
   }
 
+  async queueProductReview<T extends { codigo: string; puntuacion: number; comentario: string }>(payload: T): Promise<OfflineQueuedResult> {
+    return this.queue('resena_producto', payload, null);
+  }
+
   async listCurrent(): Promise<OfflineOperation[]> {
     const scope = this.currentIdentity().scope;
     const records = await this.db.list(scope);
@@ -115,6 +119,9 @@ export class OfflineOperationsService {
             refundStatus: response.refund_status,
             refundAmount: response.refund_amount,
           });
+          if (response.status !== 'procesando') {
+            this.notifyResult(operation, response.status, response.reason);
+          }
         } catch (error: unknown) {
           const networkFailure = typeof error === 'object' && error !== null && 'status' in error && error.status === 0;
           await this.db.updateOperation(operation.id, {
@@ -130,7 +137,7 @@ export class OfflineOperationsService {
     }
   }
 
-  private async queue<T>(type: 'reserva' | 'venta_efectivo', payload: T, sucursalId: number): Promise<OfflineQueuedResult> {
+  private async queue<T>(type: 'reserva' | 'venta_efectivo' | 'resena_producto', payload: T, sucursalId: number | null): Promise<OfflineQueuedResult> {
     const identity = this.currentIdentity();
     const operation = await this.db.enqueue({
       scope: identity.scope,
@@ -149,6 +156,26 @@ export class OfflineOperationsService {
       message: 'Operación guardada en este dispositivo. Queda pendiente de validación central.',
       clientCreatedAt: operation.clientCreatedAt,
     };
+  }
+
+  private notifyResult(operation: OfflineOperation, status: 'confirmada' | 'rechazada' | 'conflicto', reason?: string): void {
+    const confirmed = status === 'confirmada';
+    const labels: Record<string, [string, string]> = {
+      reserva: ['Reserva confirmada', 'Tu reserva guardada sin conexión fue confirmada correctamente.'],
+      venta_efectivo: ['Venta sincronizada', 'La venta registrada sin conexión fue confirmada correctamente.'],
+      resena_producto: ['Opinión publicada', 'Tu comentario y calificación ya están publicados.'],
+    };
+    const [title, body] = confirmed
+      ? (labels[operation.type] || ['Operación completada', 'La acción guardada sin conexión fue confirmada.'])
+      : ['Operación pendiente de revisión', reason || 'No pudimos completar la acción guardada sin conexión.'];
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('stylestore:offline-operation-result', {
+        detail: { title, body, status, operationType: operation.type },
+      }));
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, { body, icon: '/icons/icon-192x192.png', tag: `offline-${operation.id}` });
+      }
+    }
   }
 
   private currentIdentity(): { scope: string; empresaId: number | null; usuarioId: number } {

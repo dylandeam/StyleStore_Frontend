@@ -372,6 +372,12 @@ export class ProductoDetalleComponent implements OnInit {
     this.guardandoResena.set(true);
     this.resenaProductoService.saveMine(this.codigoState(), score, comment).subscribe({
       next: (response) => {
+        if ('queued' in response) {
+          this.guardandoResena.set(false);
+          this.mostrarToast(response.message);
+          this.cdr.markForCheck();
+          return;
+        }
         this.aplicarResenas(response);
         this.guardandoResena.set(false);
         this.mostrarToast(response.mi_resena?.compra_verificada ? 'Tu reseña verificada ya está publicada.' : 'Tu opinión ya ayuda a otros clientes.');

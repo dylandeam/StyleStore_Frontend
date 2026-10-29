@@ -26,4 +26,11 @@
     <button class="install-dismiss" type="button" (click)="dismissInstallPrompt()" aria-label="Cerrar sugerencia de instalación">×</button>
   </aside>
 }
+@if (syncNotice(); as notice) {
+  <aside class="sync-result-notice" role="status" aria-live="polite">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg>
+    <span><strong>{{ notice.title }}</strong><small>{{ notice.body }}</small></span>
+    <button type="button" (click)="dismissSyncNotice()" aria-label="Cerrar notificación">×</button>
+  </aside>
+}
 <router-outlet></router-outlet>

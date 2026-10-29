@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DBSchema, IDBPDatabase, openDB } from 'idb';
 
-export type OfflineOperationType = 'reserva' | 'venta_efectivo';
+export type OfflineOperationType = 'reserva' | 'venta_efectivo' | 'resena_producto';
 export type OfflineOperationStatus = 'pendiente' | 'sincronizando' | 'confirmada' | 'rechazada' | 'conflicto';
 
 export interface CatalogSnapshot<T = unknown> {
