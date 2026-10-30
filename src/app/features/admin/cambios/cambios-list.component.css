@@ -8,7 +8,7 @@
   right: 24px;
   background: #14263D;
   color: #fff;
-  border-left: 4px solid #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
   padding: 14px 24px;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
@@ -186,6 +186,11 @@
   color: #1e40af;
 }
 
+.estado-pendiente_liquidacion {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
 .estado-rechazada {
   background: #fee2e2;
   color: #b91c1c;
@@ -246,6 +251,8 @@
   color: #ffffff;
 }
 
+.btn-recalcular { color:#7c2d12; background:#fff7ed; border:1px solid #fed7aa; }
+
 .badge-completado {
   font-size: 0.75rem;
   color: #15803d;
@@ -254,6 +261,8 @@
   align-items: center;
   gap: 4px;
 }
+
+.badge-pending-cash { padding:6px 9px; border-radius:7px; color:#9a3412; background:#ffedd5; font-size:.75rem; font-weight:800; text-align:center; }
 
 /* Modales */
 .modal-backdrop {

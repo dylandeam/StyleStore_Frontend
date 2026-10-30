@@ -38,9 +38,6 @@ export class CambiosListComponent implements OnInit {
   nuevoStockId: number | undefined = undefined;
   submittingCompletar = false;
   inventarioCambio: InventarioCambio[] = [];
-  metodoPagoDiferencia: 'efectivo' | 'qr' = 'efectivo';
-  efectivoRecibido = 0;
-  metodoReembolso: 'efectivo' | 'transferencia' = 'efectivo';
   plazoCambiosDias = 7;
   guardandoPolitica = false;
 
@@ -142,8 +139,6 @@ export class CambiosListComponent implements OnInit {
     this.reponerPrendaOriginal = true;
     this.nuevoStockId = undefined;
     this.inventarioCambio = [];
-    this.metodoPagoDiferencia = 'efectivo';
-    this.efectivoRecibido = 0;
     if (sol.tipo === 'cambio' && sol.sucursal_id) {
       this.cambiosService.getInventarioDisponible(sol.sucursal_id).subscribe({
         next: (items) => { this.inventarioCambio = items; this.cdr.markForCheck(); },
@@ -164,22 +159,18 @@ export class CambiosListComponent implements OnInit {
   ejecutarCompletarEnCaja(): void {
     if (!this.selectedSolicitud) return;
     if (this.selectedSolicitud.tipo === 'cambio' && !this.nuevoStockId) { alert('Selecciona la nueva prenda.'); return; }
-    if (this.montoAdicional > 0 && this.metodoPagoDiferencia === 'efectivo' && this.efectivoRecibido < this.montoAdicional) { alert('El efectivo recibido no cubre la diferencia.'); return; }
 
     this.submittingCompletar = true;
     this.cdr.markForCheck();
 
     this.cambiosService
-      .completarEnCaja(this.selectedSolicitud.id, {
+      .prepararLiquidacion(this.selectedSolicitud.id, {
         reponer_prenda_original: this.reponerPrendaOriginal,
         nuevo_stock_inventario_id: this.nuevoStockId,
-        metodo_pago_diferencia: this.montoAdicional > 0 ? this.metodoPagoDiferencia : undefined,
-        efectivo_recibido: this.montoAdicional > 0 && this.metodoPagoDiferencia === 'efectivo' ? this.efectivoRecibido : undefined,
-        metodo_reembolso: this.selectedSolicitud.tipo === 'devolucion' ? this.metodoReembolso : undefined,
       })
       .subscribe({
         next: () => {
-          this.mostrarToast(`Canje/Devolución #${this.selectedSolicitud?.id} completado con éxito en caja.`);
+          this.mostrarToast(`Ajuste #${this.selectedSolicitud?.id} enviado a la caja para su liquidación.`);
           this.cerrarModalCompletar();
           this.cargarSolicitudes();
           this.cdr.markForCheck();
@@ -187,7 +178,7 @@ export class CambiosListComponent implements OnInit {
         error: (err) => {
           this.submittingCompletar = false;
           this.cdr.markForCheck();
-          alert(err.error?.detail || 'Error al procesar en caja');
+          alert(err.error?.detail || 'No se pudo generar el ajuste para caja');
         },
       });
   }

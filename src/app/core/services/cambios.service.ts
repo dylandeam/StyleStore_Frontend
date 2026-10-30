@@ -18,7 +18,7 @@ export interface SolicitudCambioDevolucion {
   fecha_programada: string;
   hora_programada?: string;
   descripcion_problema: string;
-  estado: 'pendiente' | 'aceptada' | 'rechazada' | 'completada';
+  estado: 'pendiente' | 'aceptada' | 'pendiente_liquidacion' | 'rechazada' | 'completada';
   respuesta_encargado?: string;
   producto_original: string;
   color_original?: string;
@@ -36,6 +36,7 @@ export interface SolicitudCambioDevolucion {
   metodo_pago_diferencia?: string;
   nota_venta_numero?: string;
   orden_ajuste_id?: number;
+  tipo_liquidacion?: 'cobro' | 'reembolso' | 'sin_ajuste';
 }
 
 export interface InventarioCambio {
@@ -106,12 +107,17 @@ export class CambiosService {
     });
   }
 
-  completarEnCaja(solicitudId: number, data: {
+  prepararLiquidacion(solicitudId: number, data: {
     reponer_prenda_original: boolean;
     nuevo_stock_inventario_id?: number;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${solicitudId}/preparar-liquidacion`, data);
+  }
+
+  completarEnCaja(solicitudId: number, data: {
     metodo_pago_diferencia?: 'efectivo' | 'qr';
     efectivo_recibido?: number;
-    metodo_reembolso?: 'efectivo' | 'transferencia';
+    metodo_reembolso?: 'efectivo' | 'qr' | 'transferencia';
   }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${solicitudId}/completar`, {
       ...data,

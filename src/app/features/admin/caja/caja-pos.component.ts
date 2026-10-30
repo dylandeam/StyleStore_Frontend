@@ -14,6 +14,7 @@ import { PromocionesService } from '../../../core/services/promociones.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { Cliente } from '../../../core/models/cliente.model';
 import { OfflineStateService } from '../../../core/services/offline-state.service';
+import { CambiosService } from '../../../core/services/cambios.service';
 
 @Component({
   selector: 'app-caja-pos',
@@ -36,6 +37,7 @@ export class CajaPosComponent implements OnInit {
   private clientesService = inject(ClientesService);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  private cambiosService = inject(CambiosService);
   readonly offlineState = inject(OfflineStateService);
 
   activeTab: 'ordenes' | 'historial' = 'ordenes';
@@ -192,13 +194,26 @@ export class CajaPosComponent implements OnInit {
     return diff > 0 ? diff : 0;
   }
 
+  get esAjusteCambio(): boolean {
+    return !!this.ordenSeleccionada?.cambio_devolucion_id;
+  }
+
+  get esReembolsoCambio(): boolean {
+    return this.ordenSeleccionada?.liquidacion_tipo === 'reembolso';
+  }
+
   get puedeCobrar(): boolean {
     if (!this.ordenSeleccionada) return false;
+    if (this.esReembolsoCambio) return true;
     if (this.metodoCobroOrden === 'qr') return true;
     return (this.efectivoRecibido || 0) >= Number(this.ordenSeleccionada.total);
   }
 
   procesarCobro(): void {
+    if (this.esAjusteCambio) {
+      this.procesarLiquidacionCambio();
+      return;
+    }
     if (this.metodoCobroOrden === 'efectivo' && !this.puedeCobrar) {
       this.error = 'El monto recibido es inferior al total de la orden.';
       return;
@@ -224,6 +239,40 @@ export class CajaPosComponent implements OnInit {
         this.ngZone.run(() => {
           this.procesando = false;
           this.error = err.error?.detail || 'Error al procesar cobro en caja.';
+          this.cdr.markForCheck();
+        });
+      },
+    });
+  }
+
+  private procesarLiquidacionCambio(): void {
+    if (!this.ordenSeleccionada?.cambio_devolucion_id) return;
+    if (!this.esReembolsoCambio && this.metodoCobroOrden === 'efectivo' && !this.puedeCobrar) {
+      this.error = 'El efectivo recibido no cubre la diferencia.';
+      return;
+    }
+    this.procesando = true;
+    this.error = null;
+    const metodo = this.metodoCobroOrden === 'qr' ? 'qr' : 'efectivo';
+    this.cambiosService.completarEnCaja(this.ordenSeleccionada.cambio_devolucion_id, {
+      metodo_pago_diferencia: this.esReembolsoCambio ? undefined : metodo,
+      efectivo_recibido: !this.esReembolsoCambio && metodo === 'efectivo' ? this.efectivoRecibido : undefined,
+      metodo_reembolso: this.esReembolsoCambio ? metodo : undefined,
+    }).subscribe({
+      next: () => {
+        this.ngZone.run(() => {
+          const action = this.esReembolsoCambio ? 'Devolución confirmada' : 'Ajuste cobrado';
+          this.procesando = false;
+          this.mostrarToast(`${action}. El cambio/devolución quedó completado.`);
+          this.ordenSeleccionada = null;
+          this.cargarOrdenesPendientes();
+          this.cdr.markForCheck();
+        });
+      },
+      error: (err) => {
+        this.ngZone.run(() => {
+          this.procesando = false;
+          this.error = err?.error?.detail || 'No se pudo liquidar el cambio o devolución.';
           this.cdr.markForCheck();
         });
       },

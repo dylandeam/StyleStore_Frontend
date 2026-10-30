@@ -3,7 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { EmpresaOption, PlanContract, SubscriptionPlan } from '../../core/models/plan.model';
+import { EmpresaOption, PlanContract, PlanSubscriptionsOverview, SubscriptionPlan } from '../../core/models/plan.model';
 import { AuthService } from '../../core/services/auth.service';
 import { PlanesService } from '../../core/services/planes.service';
 
@@ -28,12 +28,16 @@ export class PlanesComponent implements OnInit {
   readonly message = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly editing = signal<SubscriptionPlan | null>(null);
+  readonly subscriptions = signal<PlanSubscriptionsOverview | null>(null);
+  readonly showCreator = signal(false);
 
   selectedEmpresaId?: number;
   benefitsText = '';
   primaryColor = '#7c3aed';
   accentColor = '#f59e0b';
   featured = false;
+  newBenefitsText = '';
+  newPlan = this.emptyNewPlan();
   readonly capabilityOptions = [
     { key: 'productos', label: 'Productos e inventario' },
     { key: 'ventas', label: 'Ventas y cobros' },
@@ -56,7 +60,10 @@ export class PlanesComponent implements OnInit {
 
   ngOnInit(): void {
     const load = () => {
-      if (this.isPlatformAdmin && this.isAdminView) this.loadCompanies();
+      if (this.isPlatformAdmin && this.isAdminView) {
+        this.loadCompanies();
+        this.loadSubscriptions();
+      }
       this.loadPlans();
       if (!this.isAdminView || !this.isPlatformAdmin) this.loadContract();
     };
@@ -84,6 +91,13 @@ export class PlanesComponent implements OnInit {
     this.plansService.getCompanies().subscribe({ next: (items) => this.companies.set(items) });
   }
 
+  loadSubscriptions(): void {
+    this.plansService.getSubscriptionsOverview().subscribe({
+      next: (overview) => this.subscriptions.set(overview),
+      error: (err) => this.error.set(err?.error?.detail || 'No se pudo cargar el resumen de suscripciones.'),
+    });
+  }
+
   loadContract(): void {
     this.plansService.getMyContract().subscribe({ next: (item) => this.myContract.set(item) });
   }
@@ -97,6 +111,39 @@ export class PlanesComponent implements OnInit {
   }
 
   closeEditor(): void { this.editing.set(null); }
+
+  openCreator(): void {
+    this.newPlan = this.emptyNewPlan();
+    this.newBenefitsText = '';
+    this.primaryColor = '#7c3aed';
+    this.accentColor = '#f59e0b';
+    this.showCreator.set(true);
+  }
+
+  closeCreator(): void { this.showCreator.set(false); }
+
+  createPlan(): void {
+    this.saving.set(true);
+    this.error.set(null);
+    const payload = {
+      ...this.newPlan,
+      beneficios: this.newBenefitsText.split('\n').map((item) => item.trim()).filter(Boolean),
+      estilo: { color_primario: this.primaryColor, color_acento: this.accentColor, destacado: false },
+    };
+    this.plansService.createPlan(payload).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.showCreator.set(false);
+        this.message.set('Nuevo plan global creado. Ya está disponible para configurarlo y ofrecerlo a los tenants.');
+        this.loadPlans();
+        this.loadSubscriptions();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.error.set(err?.error?.detail || 'No se pudo crear el plan.');
+      },
+    });
+  }
 
   save(): void {
     const plan = this.editing();
@@ -160,5 +207,20 @@ export class PlanesComponent implements OnInit {
 
   planColor(plan: SubscriptionPlan): string {
     return String(plan.estilo?.['color_primario'] || (plan.codigo === 'profesional' ? '#7c3aed' : plan.codigo === 'basico' ? '#0f766e' : '#b45309'));
+  }
+
+  isProtectedPlan(code: string): boolean {
+    return ['basico', 'intermedio', 'profesional'].includes(code);
+  }
+
+  private emptyNewPlan() {
+    return {
+      codigo: '', nombre: '', descripcion: '', precio_mensual: 0, moneda: 'BOB', max_sucursales: 1,
+      ia_generativa: false, active: true,
+      capacidades: {
+        productos: true, ventas: true, reservas: true, offline: true, reportes: true,
+        chatbot: false, predicciones: false, ia_generativa: false,
+      } as Record<string, boolean>,
+    };
   }
 }

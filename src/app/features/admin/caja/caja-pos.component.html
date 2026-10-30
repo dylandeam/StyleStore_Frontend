@@ -73,6 +73,9 @@
             <span class="order-number">Orden #{{ o.id }}</span>
             <span class="order-date">{{ o.fecha }}</span>
           </div>
+          <span class="adjustment-badge" *ngIf="o.cambio_devolucion_id">
+            {{ o.liquidacion_tipo === 'reembolso' ? 'Devolución a entregar' : (o.liquidacion_tipo === 'cobro' ? 'Diferencia a cobrar' : 'Cambio sin diferencia') }}
+          </span>
 
           <div class="order-client">
             <strong>{{ o.cliente_nombre || 'Cliente General' }}</strong>
@@ -106,8 +109,8 @@
       <!-- Formulario de Cobro Activo -->
       <div class="card checkout-card" *ngIf="ordenSeleccionada && !ticketEmitido">
         <div class="checkout-header">
-          <h2>Cobro: Orden #{{ ordenSeleccionada.id }}</h2>
-          <span class="badge-status">Pendiente de Pago</span>
+          <h2>{{ esAjusteCambio ? 'Liquidación' : 'Cobro' }}: Orden #{{ ordenSeleccionada.id }}</h2>
+          <span class="badge-status">{{ esAjusteCambio ? 'Pendiente de revisión en caja' : 'Pendiente de Pago' }}</span>
         </div>
 
         <div class="client-bar">
@@ -116,7 +119,7 @@
 
         <!-- Total a Pagar -->
         <div class="amount-to-pay-display">
-          <span class="label">TOTAL A COBRAR</span>
+          <span class="label">{{ esReembolsoCambio ? 'TOTAL A DEVOLVER' : 'TOTAL A COBRAR' }}</span>
           <span class="value">Bs. {{ ordenSeleccionada.total | number:'1.2-2' }}</span>
         </div>
 
@@ -148,7 +151,7 @@
             <button 
               type="button" 
               class="btn-metodo online" 
-              *ngIf="ordenSeleccionada.tipo_venta === 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'paypal' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'en linea'"
+              *ngIf="!esAjusteCambio && (ordenSeleccionada.tipo_venta === 'en linea' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'paypal' || (ordenSeleccionada.metodo_pago || '').toLowerCase() === 'en linea')"
               [class.active]="metodoCobroOrden === 'online'"
               (click)="metodoCobroOrden = 'online'"
             >
@@ -199,9 +202,9 @@
               </button>
             </div>
             <div class="qr-amount-box">
-              <span class="lbl">Monto Exacto a Transferir:</span>
+              <span class="lbl">{{ esReembolsoCambio ? 'Monto exacto a devolver:' : 'Monto exacto a transferir:' }}</span>
               <span class="val">Bs. {{ ordenSeleccionada.total | number:'1.2-2' }}</span>
-              <span class="hint">El cliente escanea el QR desde su app bancaria y paga el monto exacto. No requiere cálculo de vuelto.</span>
+              <span class="hint">{{ esReembolsoCambio ? 'Confirma que el cliente recibió la devolución por QR antes de cerrar la operación.' : 'El cliente escanea el QR desde su app bancaria y paga el monto exacto. No requiere cálculo de vuelto.' }}</span>
             </div>
           </div>
 
@@ -211,15 +214,15 @@
             [disabled]="procesando"
             (click)="procesarCobro()"
           >
-            <span *ngIf="!procesando">✓ Registrar Cobro QR y Emitir Ticket</span>
+            <span *ngIf="!procesando">{{ esReembolsoCambio ? '✓ Confirmar devolución por QR' : '✓ Registrar Cobro QR y Emitir Ticket' }}</span>
             <span *ngIf="procesando">Registrando cobro QR...</span>
           </button>
         </div>
 
         <!-- ACCIÓN 2: Cobro en Efectivo con Vuelto -->
         <div class="cash-checkout-box" *ngIf="metodoCobroOrden === 'efectivo'">
-          <h4 class="section-title">Cobro en efectivo con cálculo de vuelto:</h4>
-          <div class="cash-input-group">
+          <h4 class="section-title">{{ esReembolsoCambio ? 'Confirmar entrega de efectivo al cliente:' : 'Cobro en efectivo con cálculo de vuelto:' }}</h4>
+          <div class="cash-input-group" *ngIf="!esReembolsoCambio">
             <label>Efectivo Recibido (Bs.)</label>
             <input
               type="number"
@@ -239,7 +242,11 @@
             </div>
           </div>
 
-          <div class="cambio-display" [class.valid]="puedeCobrar">
+          <div class="refund-confirmation" *ngIf="esReembolsoCambio">
+            Verifica la prenda y entrega <strong>Bs. {{ ordenSeleccionada.total | number:'1.2-2' }}</strong> al cliente antes de confirmar.
+          </div>
+
+          <div class="cambio-display" *ngIf="!esReembolsoCambio" [class.valid]="puedeCobrar">
             <div class="cambio-label">CAMBIO A DEVOLVER:</div>
             <div class="cambio-value">Bs. {{ cambio | number:'1.2-2' }}</div>
           </div>
@@ -250,7 +257,7 @@
             [disabled]="!puedeCobrar || procesando"
             (click)="procesarCobro()"
           >
-            <span *ngIf="!procesando">✓ Cobrar en Efectivo y Emitir Ticket</span>
+            <span *ngIf="!procesando">{{ esReembolsoCambio ? '✓ Confirmar devolución en efectivo' : '✓ Cobrar en Efectivo y Emitir Ticket' }}</span>
             <span *ngIf="procesando">Registrando cobro...</span>
           </button>
         </div>

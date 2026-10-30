@@ -5,15 +5,20 @@
     <p>{{ isAdminView && isPlatformAdmin ? 'Configura precio, moneda, beneficios y apariencia sin afectar a otras empresas.' : 'El cambio se activa únicamente después de que PayPal confirme el cobro.' }}</p>
 
     @if (isPlatformAdmin && isAdminView) {
-      <label class="tenant-picker">
-        <span>Ámbito del administrador maestro</span>
-        <select [(ngModel)]="selectedEmpresaId" (change)="loadPlans()">
-          <option [ngValue]="undefined">Plantillas globales</option>
-          @for (company of companies(); track company.id) {
-            <option [ngValue]="company.id">{{ company.nombre }} · {{ company.codigo }}</option>
-          }
-        </select>
-      </label>
+      <div class="admin-toolbar">
+        <label class="tenant-picker">
+          <span>Ámbito del administrador maestro</span>
+          <select [(ngModel)]="selectedEmpresaId" (change)="loadPlans()">
+            <option [ngValue]="undefined">Plantillas globales</option>
+            @for (company of companies(); track company.id) {
+              <option [ngValue]="company.id">{{ company.nombre }} · {{ company.codigo }}</option>
+            }
+          </select>
+        </label>
+        @if (!selectedEmpresaId) {
+          <button type="button" class="create-plan-button" (click)="openCreator()">Nuevo plan</button>
+        }
+      </div>
     }
   </header>
 
@@ -72,6 +77,50 @@
       }
     </div>
   }
+
+
+  @if (isAdminView && isPlatformAdmin && !selectedEmpresaId && subscriptions(); as overview) {
+    <section class="subscription-overview" aria-labelledby="subscription-overview-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="subscription-overview-title">Suscripciones por tenant</h2>
+          <p>Estado comercial, plan contratado y tiempo restante de cada empresa.</p>
+        </div>
+        <button type="button" class="secondary" (click)="loadSubscriptions()">Actualizar</button>
+      </div>
+
+      <div class="summary-grid">
+        @for (summary of overview.planes; track summary.plan_codigo) {
+          <article class="summary-card">
+            <span>{{ summary.plan_nombre }}</span>
+            <strong>{{ summary.total }}</strong>
+            <small>{{ summary.activas }} vigentes</small>
+          </article>
+        }
+      </div>
+
+      <div class="subscriptions-table-wrap">
+        <table class="subscriptions-table">
+          <thead><tr><th>Tenant</th><th>Plan</th><th>Vigencia</th><th>Pago</th><th>Tiempo restante</th></tr></thead>
+          <tbody>
+            @for (tenant of overview.tenants; track tenant.empresa_id) {
+              <tr>
+                <td><strong>{{ tenant.empresa_nombre }}</strong><small>{{ tenant.empresa_codigo }}</small></td>
+                <td>{{ tenant.plan_nombre || 'Sin plan' }}</td>
+                <td>{{ tenant.fecha_inicio ? (tenant.fecha_inicio | date:'dd/MM/yyyy') : '—' }} <span>→</span> {{ tenant.fecha_fin ? (tenant.fecha_fin | date:'dd/MM/yyyy') : '—' }}</td>
+                <td><span class="status-pill" [class.active]="tenant.estado === 'activa' && tenant.estado_pago === 'pagado'">{{ tenant.estado_pago }}</span></td>
+                <td>
+                  @if (tenant.dias_restantes !== null && tenant.dias_restantes !== undefined) {
+                    <strong>{{ tenant.dias_restantes }} días</strong>
+                  } @else { <span>Sin vigencia</span> }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
 </section>
 
 @if (editing(); as plan) {
@@ -82,7 +131,7 @@
         <label>Nombre<input name="name" [(ngModel)]="plan.nombre" required maxlength="80"></label>
         <label>Moneda<select name="currency" [(ngModel)]="plan.moneda"><option>BOB</option><option>USD</option><option>EUR</option></select></label>
         <label>Precio mensual<input name="price" type="number" min="0" step="0.01" [(ngModel)]="plan.precio_mensual" required></label>
-        <label>Sucursales máximas<input name="branches" type="number" min="10" [(ngModel)]="plan.max_sucursales" [disabled]="plan.codigo !== 'profesional'"></label>
+        <label>Sucursales máximas<input name="branches" type="number" min="1" [(ngModel)]="plan.max_sucursales" [disabled]="plan.codigo === 'basico' || plan.codigo === 'intermedio'"></label>
         <label class="wide">Descripción<textarea name="description" rows="3" [(ngModel)]="plan.descripcion" maxlength="1200"></textarea></label>
         <label class="wide">Beneficios <small>Uno por línea</small><textarea name="benefits" rows="5" [(ngModel)]="benefitsText"></textarea></label>
         <label>Color principal<input name="primary" type="color" [(ngModel)]="primaryColor"></label>
@@ -92,14 +141,47 @@
         <div><strong>Capacidades operativas</strong><small>Reglas oficiales protegidas para Básico, Intermedio y Profesional.</small></div>
         <div class="capability-grid">
           @for (capability of capabilityOptions; track capability.key) {
-            <label><input type="checkbox" [name]="'cap-' + capability.key" [(ngModel)]="plan.capacidades[capability.key]" disabled> {{ capability.label }}</label>
+            <label><input type="checkbox" [name]="'cap-' + capability.key" [(ngModel)]="plan.capacidades[capability.key]" [disabled]="isProtectedPlan(plan.codigo)"> {{ capability.label }}</label>
           }
-          <label><input type="checkbox" name="cap-chatbot" [(ngModel)]="plan.capacidades['chatbot']" disabled> Chatbot</label>
-          <label><input type="checkbox" name="cap-predictions" [(ngModel)]="plan.capacidades['predicciones']" disabled> Predicciones</label>
+          <label><input type="checkbox" name="cap-chatbot" [(ngModel)]="plan.capacidades['chatbot']" [disabled]="isProtectedPlan(plan.codigo)"> Chatbot</label>
+          <label><input type="checkbox" name="cap-predictions" [(ngModel)]="plan.capacidades['predicciones']" [disabled]="isProtectedPlan(plan.codigo)"> Predicciones</label>
         </div>
       </section>
       <div class="checks"><label><input type="checkbox" name="featured" [(ngModel)]="featured"> Mostrar como destacado</label><label><input type="checkbox" name="active" [(ngModel)]="plan.active"> Plan visible</label></div>
       <footer><button type="button" class="secondary" (click)="closeEditor()">Cancelar</button><button class="primary" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar configuración' }}</button></footer>
+    </form>
+  </div>
+}
+
+@if (showCreator()) {
+  <div class="modal-backdrop" (click)="closeCreator()">
+    <form class="editor" (click)="$event.stopPropagation()" (ngSubmit)="createPlan()">
+      <header>
+        <div><span class="form-kicker">PLAN GLOBAL</span><h2>Crear plan de suscripción</h2></div>
+        <button type="button" class="close" (click)="closeCreator()" aria-label="Cerrar">×</button>
+      </header>
+      <p class="editor-intro">Define una nueva alternativa comercial. El código identifica el plan en pagos y reportes, por eso no podrá repetirse.</p>
+      <div class="form-grid">
+        <label>Nombre<input name="new-name" [(ngModel)]="newPlan.nombre" required maxlength="80"></label>
+        <label>Código<input name="new-code" [(ngModel)]="newPlan.codigo" required maxlength="30" placeholder="ej. empresarial"></label>
+        <label>Precio mensual<input name="new-price" type="number" min="0" step="0.01" [(ngModel)]="newPlan.precio_mensual" required></label>
+        <label>Moneda<select name="new-currency" [(ngModel)]="newPlan.moneda"><option>BOB</option><option>USD</option><option>EUR</option></select></label>
+        <label>Sucursales máximas<input name="new-branches" type="number" min="1" [(ngModel)]="newPlan.max_sucursales"></label>
+        <label class="wide">Descripción<textarea name="new-description" rows="3" [(ngModel)]="newPlan.descripcion" maxlength="1200"></textarea></label>
+        <label class="wide">Beneficios <small>Uno por línea</small><textarea name="new-benefits" rows="4" [(ngModel)]="newBenefitsText"></textarea></label>
+      </div>
+      <section class="capability-editor">
+        <div><strong>Capacidades incluidas</strong><small>Las operaciones esenciales permanecen activas; puedes sumar automatización e inteligencia.</small></div>
+        <div class="capability-grid">
+          @for (capability of capabilityOptions; track capability.key) {
+            <label><input type="checkbox" [name]="'new-cap-' + capability.key" [(ngModel)]="newPlan.capacidades[capability.key]"> {{ capability.label }}</label>
+          }
+          <label><input type="checkbox" name="new-cap-chatbot" [(ngModel)]="newPlan.capacidades['chatbot']"> Chatbot</label>
+          <label><input type="checkbox" name="new-cap-predictions" [(ngModel)]="newPlan.capacidades['predicciones']"> Predicciones</label>
+          <label><input type="checkbox" name="new-cap-generative" [(ngModel)]="newPlan.ia_generativa" (ngModelChange)="newPlan.capacidades['ia_generativa'] = $event"> IA generativa</label>
+        </div>
+      </section>
+      <footer><button type="button" class="secondary" (click)="closeCreator()">Cancelar</button><button class="primary" [disabled]="saving()">{{ saving() ? 'Creando…' : 'Crear plan global' }}</button></footer>
     </form>
   </div>
 }

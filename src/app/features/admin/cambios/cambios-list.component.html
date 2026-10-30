@@ -34,6 +34,7 @@
           <option value="">Todos los estados</option>
           <option value="pendiente">Pendiente</option>
           <option value="aceptada">Aceptada</option>
+          <option value="pendiente_liquidacion">Pendiente en caja</option>
           <option value="rechazada">Rechazada</option>
           <option value="completada">Completada (en caja)</option>
         </select>
@@ -100,10 +101,9 @@
               <div class="small text-primary" *ngIf="sol.tipo === 'cambio' && (sol.talla_nueva || sol.color_nuevo)">
                 <strong>Solicita:</strong> {{ sol.talla_nueva || 'Talla' }} - {{ sol.color_nuevo || 'Color' }}
               </div>
-              <div class="financial-result" *ngIf="sol.estado === 'completada'">
+              <div class="financial-result" *ngIf="sol.estado === 'completada' || sol.estado === 'pendiente_liquidacion'">
                 <span *ngIf="sol.monto_adicional">Cobrado: Bs. {{ sol.monto_adicional | number:'1.2-2' }}</span>
-                <span *ngIf="sol.saldo_favor_generado">Saldo a favor: Bs. {{ sol.saldo_favor_generado | number:'1.2-2' }}</span>
-                <span *ngIf="sol.monto_reembolsado">Reembolsado: Bs. {{ sol.monto_reembolsado | number:'1.2-2' }}</span>
+                <span *ngIf="sol.monto_reembolsado">A devolver: Bs. {{ sol.monto_reembolsado | number:'1.2-2' }}</span>
                 <small *ngIf="sol.nota_venta_numero">Nota {{ sol.nota_venta_numero }}</small>
               </div>
             </td>
@@ -140,8 +140,17 @@
                   class="btn-action btn-completar"
                   (click)="abrirModalCompletar(sol)"
                 >
-                  <i class="bi bi-cash-stack"></i> Canjear en Caja
+                  <i class="bi bi-cash-stack"></i> Preparar ajuste
                 </button>
+
+                <span *ngIf="sol.estado === 'pendiente_liquidacion'" class="badge-pending-cash">
+                  Pendiente en caja
+                </span>
+                <button
+                  *ngIf="sol.estado === 'pendiente_liquidacion' && sol.tipo === 'cambio'"
+                  class="btn-action btn-recalcular"
+                  (click)="abrirModalCompletar(sol)"
+                >Cambiar prenda del ajuste</button>
 
                 <!-- Si ya está completada o rechazada: Ver info -->
                 <span *ngIf="sol.estado === 'completada'" class="badge-completado">
@@ -204,7 +213,7 @@
     <div class="modal-card">
       <div class="modal-header">
         <div>
-          <h3>Completar Canje en Caja POS</h3>
+          <h3>Preparar liquidación para caja</h3>
           <p class="modal-sub">Solicitud #{{ selectedSolicitud.id }} - Sucursal {{ selectedSolicitud.sucursal_nombre }}</p>
         </div>
         <button class="btn-close" (click)="cerrarModalCompletar()">✕</button>
@@ -236,24 +245,18 @@
         <div class="settlement-box" *ngIf="selectedSolicitud.tipo === 'cambio' && prendaNuevaSeleccionada">
           <div><span>Precio pagado original</span><strong>Bs. {{ selectedSolicitud.precio_original | number:'1.2-2' }}</strong></div>
           <div><span>Precio nueva prenda</span><strong>Bs. {{ prendaNuevaSeleccionada.precio | number:'1.2-2' }}</strong></div>
-          <div class="charge" *ngIf="montoAdicional > 0"><span>Diferencia a cobrar</span><strong>Bs. {{ montoAdicional | number:'1.2-2' }}</strong></div>
-          <div class="credit" *ngIf="saldoFavor > 0"><span>Saldo a favor del cliente</span><strong>Bs. {{ saldoFavor | number:'1.2-2' }}</strong></div>
+          <div class="charge" *ngIf="montoAdicional > 0"><span>Diferencia pendiente de cobro</span><strong>Bs. {{ montoAdicional | number:'1.2-2' }}</strong></div>
+          <div class="credit" *ngIf="saldoFavor > 0"><span>Importe pendiente de devolución</span><strong>Bs. {{ saldoFavor | number:'1.2-2' }}</strong></div>
           <div class="credit" *ngIf="montoAdicional === 0 && saldoFavor === 0"><span>Cambio equivalente</span><strong>Sin diferencia</strong></div>
         </div>
 
-        <div class="payment-fields" *ngIf="montoAdicional > 0">
-          <label>Método de cobro<select [(ngModel)]="metodoPagoDiferencia"><option value="efectivo">Efectivo</option><option value="qr">QR</option></select></label>
-          <label *ngIf="metodoPagoDiferencia === 'efectivo'">Efectivo recibido<input type="number" min="0" [(ngModel)]="efectivoRecibido"></label>
-        </div>
-
-        <div class="payment-fields" *ngIf="selectedSolicitud.tipo === 'devolucion'">
-          <label>Método del reembolso<select [(ngModel)]="metodoReembolso"><option value="efectivo">Efectivo</option><option value="transferencia">Transferencia</option></select></label>
-          <p>Importe a reembolsar: <strong>Bs. {{ selectedSolicitud.precio_original | number:'1.2-2' }}</strong></p>
+        <div class="settlement-box" *ngIf="selectedSolicitud.tipo === 'devolucion'">
+          <div class="credit"><span>Importe pendiente de devolución</span><strong>Bs. {{ selectedSolicitud.precio_original | number:'1.2-2' }}</strong></div>
         </div>
 
         <div class="notice-caja">
           <i class="bi bi-info-circle-fill"></i>
-          <span>Al confirmar se ajustará el stock, se registrará el cobro, reembolso o saldo a favor y se emitirá una nota de venta.</span>
+          <span>Al confirmar se generará una operación pendiente en Gestionar Pagos. El stock y el cambio solo se formalizarán cuando caja confirme el cobro o la devolución.</span>
         </div>
       </div>
 
@@ -264,7 +267,7 @@
           [disabled]="submittingCompletar"
           (click)="ejecutarCompletarEnCaja()"
         >
-          {{ submittingCompletar ? 'Procesando...' : 'Formalizar en Caja' }}
+          {{ submittingCompletar ? 'Preparando...' : 'Enviar a caja' }}
         </button>
       </div>
     </div>

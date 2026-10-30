@@ -1633,3 +1633,48 @@
   color: #2563eb;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .notif-dropdown-menu {
+    position: fixed;
+    top: calc(68px + env(safe-area-inset-top));
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 86px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    border-radius: 16px;
+    box-shadow: 0 18px 48px rgba(20, 38, 61, 0.24);
+  }
+
+  .notif-dropdown-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-height: 48px;
+    box-sizing: border-box;
+  }
+
+  .notif-list-scroll {
+    max-height: calc(100dvh - 142px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+
+  .notif-dropdown-item {
+    padding: 0.9rem 1rem;
+  }
+
+  .notif-item-top {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .notif-titulo,
+  .notif-msg {
+    overflow-wrap: anywhere;
+  }
+
+  .notif-time {
+    flex: 0 0 auto;
+  }
+}

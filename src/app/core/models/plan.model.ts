@@ -1,4 +1,4 @@
-export type PlanCode = 'basico' | 'intermedio' | 'profesional';
+export type PlanCode = string;
 
 export interface SubscriptionPlan {
   id: number;
@@ -6,7 +6,7 @@ export interface SubscriptionPlan {
   codigo: PlanCode;
   nombre: string;
   descripcion?: string | null;
-  precio_mensual: string;
+  precio_mensual: number | string;
   moneda: string;
   max_sucursales?: number | null;
   ia_generativa: boolean;
@@ -49,4 +49,32 @@ export interface PlanPayPalOrder {
   plan_codigo: PlanCode;
   total: number;
   moneda: string;
+}
+
+export interface PlanSubscriptionSummary {
+  plan_codigo: string;
+  plan_nombre: string;
+  total: number;
+  activas: number;
+}
+
+export interface TenantPlanSubscription {
+  empresa_id: number;
+  empresa_codigo: string;
+  empresa_nombre: string;
+  empresa_activa: boolean;
+  plan_codigo?: string | null;
+  plan_nombre?: string | null;
+  estado: string;
+  estado_pago: string;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  dias_restantes?: number | null;
+  precio?: string | null;
+  moneda?: string | null;
+}
+
+export interface PlanSubscriptionsOverview {
+  planes: PlanSubscriptionSummary[];
+  tenants: TenantPlanSubscription[];
 }

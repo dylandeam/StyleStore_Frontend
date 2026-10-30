@@ -176,6 +176,9 @@
   box-shadow: 0 4px 12px rgba(20, 38, 61, 0.1);
 }
 
+.adjustment-badge { display:inline-flex; margin:.35rem 0; padding:.25rem .55rem; border-radius:999px; color:#7c2d12; background:#ffedd5; font-size:.72rem; font-weight:800; }
+.refund-confirmation { margin:1rem 0; padding:1rem; border:1px solid #f2c16b; border-radius:12px; color:#78350f; background:#fffbeb; line-height:1.5; }
+
 .order-top {
   display: flex;
   justify-content: space-between;
@@ -1769,7 +1772,7 @@
   background: #f8fafc;
   padding: 10px 14px;
   border-radius: 10px;
-  border-left: 3px solid #0f766e;
+  border: 1px solid #cbd5e1;
 }
 
 /* Card del QR Vigente */
