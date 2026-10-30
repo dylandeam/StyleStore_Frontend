@@ -433,3 +433,88 @@
 .payment-fields label { display:flex; flex-direction:column; gap:5px; font-weight:700; }
 .payment-fields input,.payment-fields select { padding:9px; border:1px solid #CBD5E1; border-radius:7px; }
 @media (max-width:700px) { .policy-card { align-items:stretch; flex-direction:column; } .payment-fields { grid-template-columns:1fr; } }
+
+/* Contraste semántico por superficie.
+   El lienzo puede ser oscuro por identidad del tenant, mientras que las
+   tarjetas y controles conservan una superficie clara independiente. */
+.cambios-admin-container {
+  color: var(--text-on-page, #ffffff);
+}
+
+.page-title {
+  color: var(--text-on-page, #ffffff);
+}
+
+.page-subtitle {
+  color: color-mix(in srgb, var(--text-on-page, #ffffff) 76%, var(--surface-page, #14263d));
+}
+
+.policy-card,
+.filters-card,
+.table-card,
+.loading-state,
+.empty-state,
+.modal-card {
+  color: var(--text-on-control, #172536);
+  background: var(--surface-control, #ffffff);
+  border-color: color-mix(in srgb, var(--text-on-control, #172536) 18%, var(--surface-control, #ffffff));
+}
+
+.policy-card span,
+.table-card .text-muted,
+.desc-tooltip,
+.modal-sub {
+  color: var(--text-on-control-soft, #536171) !important;
+}
+
+.filter-label,
+.form-label,
+.checkbox-box,
+.table-cambios td,
+.policy-card label,
+.policy-card strong,
+.loading-state p,
+.empty-state h3,
+.empty-state p {
+  color: var(--text-on-control, #172536);
+}
+
+.form-select,
+.form-textarea,
+.policy-card input,
+.payment-fields input,
+.payment-fields select {
+  color: var(--text-on-control, #172536);
+  background: var(--surface-control, #ffffff);
+  border-color: color-mix(in srgb, var(--text-on-control, #172536) 24%, var(--surface-control, #ffffff));
+}
+
+.form-select option {
+  color: #172536;
+  background: #ffffff;
+}
+
+.table-cambios th {
+  color: var(--text-on-control-soft, #536171);
+  background: color-mix(in srgb, var(--surface-control, #ffffff) 94%, var(--text-on-control, #172536));
+  border-bottom-color: color-mix(in srgb, var(--text-on-control, #172536) 18%, var(--surface-control, #ffffff));
+}
+
+.table-cambios td {
+  border-bottom-color: color-mix(in srgb, var(--text-on-control, #172536) 12%, var(--surface-control, #ffffff));
+}
+
+.table-cambios .text-primary {
+  color: var(--accent-link, #274c77) !important;
+}
+
+.modal-header h3,
+.canje-summary,
+.settlement-box {
+  color: var(--text-on-control, #172536);
+}
+
+.modal-footer {
+  background: var(--surface-control, #ffffff);
+  border-top-color: color-mix(in srgb, var(--text-on-control, #172536) 16%, var(--surface-control, #ffffff));
+}

@@ -440,7 +440,7 @@
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
-  color: var(--text-primary);
+  color: var(--text-on-page);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -465,7 +465,7 @@
   height: 32px;
   border-radius: 50%;
   background: var(--accent-primary);
-  color: var(--bg-primary);
+  color: var(--text-on-navy);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -481,13 +481,13 @@
 .top-chip-name {
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--text-on-page);
 }
 
 .top-chip-role {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--accent-link);
+  color: color-mix(in srgb, var(--text-on-page) 76%, var(--surface-page));
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -500,7 +500,7 @@
   width: 16px;
   height: 16px;
   fill: none;
-  stroke: var(--text-muted);
+  stroke: var(--text-on-page);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
