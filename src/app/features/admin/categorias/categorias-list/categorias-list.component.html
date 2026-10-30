@@ -6,11 +6,26 @@
       <p class="subtitle">Clasificación oficial de prendas y artículos (CU11)</p>
     </div>
     @if (canManage) {
-      <button class="btn btn-primary" (click)="openCreateModal()">
+      <button
+        class="btn btn-primary"
+        (click)="openCreateModal()"
+        [disabled]="needsTenantSelection"
+        [title]="needsTenantSelection ? 'Selecciona un tenant para crear una categoría' : 'Crear categoría'"
+      >
         <span class="btn-icon">+</span> Nueva Categoría
       </button>
     }
   </div>
+
+  @if (needsTenantSelection) {
+    <div class="tenant-context-notice" role="status">
+      <span aria-hidden="true">🏢</span>
+      <div>
+        <strong>Selecciona un tenant para administrar su catálogo</strong>
+        <p>Las categorías pertenecen a una empresa específica y no se crean en la vista global.</p>
+      </div>
+    </div>
+  }
 
   <div class="card toolbar-card">
     <div class="toolbar-content">

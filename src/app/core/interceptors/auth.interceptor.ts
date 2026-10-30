@@ -6,7 +6,25 @@ import { catchError, throwError } from 'rxjs';
 import { TokenService } from '../services/token.service';
 
 function normalizeDetail(detail: unknown): string | unknown {
-  if (typeof detail === 'string') return detail;
+  if (typeof detail === 'string') {
+    const normalized = detail.toLowerCase();
+    const isDuplicate = normalized.includes('duplicate key') || normalized.includes('unique constraint');
+    const isTechnical = [
+      'database error',
+      'sqlalchemy',
+      'psycopg',
+      'integrityerror',
+      'traceback',
+      'violates foreign key',
+    ].some((marker) => normalized.includes(marker));
+    if (isDuplicate) {
+      return 'Ya existe un registro con esos datos.';
+    }
+    if (isTechnical) {
+      return 'No se pudo completar la operación. Inténtalo nuevamente.';
+    }
+    return detail;
+  }
   if (Array.isArray(detail)) {
     const messages = detail
       .map((item) => {

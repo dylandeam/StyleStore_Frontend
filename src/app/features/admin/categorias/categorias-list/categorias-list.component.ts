@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Categoria, CategoriaCreate } from '../../../../core/models/categoria.model';
+import { PlatformTenantContextService } from '../../../../core/services/platform-tenant-context.service';
 
 @Component({
   selector: 'app-categorias-list',
@@ -15,10 +16,15 @@ import { Categoria, CategoriaCreate } from '../../../../core/models/categoria.mo
 export class CategoriasListComponent implements OnInit {
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
+  private tenantContext = inject(PlatformTenantContextService);
 
   get canManage(): boolean {
     const role = this.authService.currentUser()?.role;
     return role === 'administrador' || role === 'encargado_sucursal';
+  }
+
+  get needsTenantSelection(): boolean {
+    return !!this.authService.currentUser()?.is_platform_admin && !this.tenantContext.selected();
   }
 
   categorias = signal<Categoria[]>([]);
@@ -63,6 +69,7 @@ export class CategoriasListComponent implements OnInit {
   }
 
   openCreateModal(): void {
+    if (this.needsTenantSelection) return;
     this.isEditing.set(false);
     this.editingId = null;
     this.formData = { nombre: '' };

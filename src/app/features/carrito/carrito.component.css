@@ -1396,6 +1396,25 @@
 .paypal-info-text { margin:.2rem 0 .75rem; font-size:.84rem; line-height:1.5; }
 .paypal-cash-note { padding-top:.75rem; border-top:1px solid color-mix(in srgb,var(--text-on-control,#172536) 20%,transparent); font-size:.79rem; line-height:1.45; }
 
+.paypal-exclusive-card *,
+.discount-code-box *,
+.envio-toggle-box *,
+.distancia-calculo-box * { border-color:color-mix(in srgb,var(--text-on-control,#172536) 20%,transparent); }
+
+.paypal-exclusive-card .paypal-secure-badge,
+.paypal-exclusive-card .paypal-info-text,
+.paypal-exclusive-card .paypal-cash-note,
+.paypal-exclusive-card strong,
+.paypal-exclusive-card p,
+.discount-code-box label,
+.totals-breakdown .total-row,
+.totals-breakdown .total-row.final {
+  color:var(--text-on-control,#172536);
+}
+
+.paypal-exclusive-card .paypal-info-text,
+.paypal-exclusive-card .paypal-cash-note { color:var(--text-on-control-soft,#536171); }
+
 .aviso-tarifa-delivery {
   color:var(--text-on-notice,#172536);
   background:var(--surface-notice,#fffbeb);
