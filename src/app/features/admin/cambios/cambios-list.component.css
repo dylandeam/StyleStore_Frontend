@@ -429,6 +429,8 @@
 .settlement-box > div { display:flex; justify-content:space-between; gap:15px; padding:5px 0; }
 .settlement-box .charge { color:#B91C1C; border-top:1px solid #E2E8F0; }
 .settlement-box .credit { color:#15803D; border-top:1px solid #E2E8F0; }
+.inventory-search { margin-bottom: 8px; width: 100%; }
+.selection-help { display: block; margin-top: 7px; color: #526173; line-height: 1.45; }
 .payment-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0; }
 .payment-fields label { display:flex; flex-direction:column; gap:5px; font-weight:700; }
 .payment-fields input,.payment-fields select { padding:9px; border:1px solid #CBD5E1; border-radius:7px; }

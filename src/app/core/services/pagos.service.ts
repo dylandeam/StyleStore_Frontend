@@ -32,13 +32,28 @@ export interface PayPalReconciliationItem {
 }
 
 export interface CobroCajaResponse {
-  pago_id: number;
+  pago_id?: number;
   orden_venta_id: number;
   total: number;
   efectivo_recibido: number;
   cambio_devuelto: number;
   ticket_numero: string;
   fecha: string;
+  es_cambio?: boolean;
+  comprobante?: {
+    tipo_documento: string;
+    numero: string;
+    orden_original_id: number;
+    orden_ajuste_id: number;
+    fecha: string;
+    sucursal?: string;
+    original: { producto?: string; talla?: string; color?: string; precio: number };
+    reemplazo?: { producto?: string; talla?: string; color?: string; precio: number };
+    diferencia_cobrada: number;
+    diferencia_devuelta: number;
+    metodo?: string;
+    repuesto_a_inventario: boolean;
+  };
 }
 
 @Injectable({

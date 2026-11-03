@@ -38,6 +38,7 @@ export class CambiosListComponent implements OnInit {
   nuevoStockId: number | undefined = undefined;
   submittingCompletar = false;
   inventarioCambio: InventarioCambio[] = [];
+  filtroInventario = '';
   plazoCambiosDias = 7;
   guardandoPolitica = false;
 
@@ -138,10 +139,20 @@ export class CambiosListComponent implements OnInit {
     this.selectedSolicitud = sol;
     this.reponerPrendaOriginal = true;
     this.nuevoStockId = undefined;
+    this.filtroInventario = '';
     this.inventarioCambio = [];
     if (sol.tipo === 'cambio' && sol.sucursal_id) {
       this.cambiosService.getInventarioDisponible(sol.sucursal_id).subscribe({
-        next: (items) => { this.inventarioCambio = items; this.cdr.markForCheck(); },
+        next: (items) => {
+          this.inventarioCambio = items;
+          const sugerida = items.find((item) =>
+            (!sol.producto_nuevo || item.producto_nombre === sol.producto_nuevo) &&
+            (!sol.talla_nueva || item.talla_nombre === sol.talla_nueva) &&
+            (!sol.color_nuevo || item.color_nombre === sol.color_nuevo)
+          );
+          this.nuevoStockId = sugerida?.stock_inventario_id;
+          this.cdr.markForCheck();
+        },
         error: (e) => alert(e?.error?.detail || 'No se pudo cargar el inventario de la sucursal.'),
       });
     }
@@ -185,6 +196,16 @@ export class CambiosListComponent implements OnInit {
 
   get prendaNuevaSeleccionada(): InventarioCambio | undefined {
     return this.inventarioCambio.find((item) => item.stock_inventario_id === Number(this.nuevoStockId));
+  }
+
+  get inventarioCambioFiltrado(): InventarioCambio[] {
+    const query = this.filtroInventario.trim().toLowerCase();
+    if (!query) return this.inventarioCambio;
+    return this.inventarioCambio.filter((item) =>
+      [item.producto_nombre, item.producto_codigo, item.talla_nombre, item.color_nombre]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query))
+    );
   }
 
   get diferenciaCambio(): number {

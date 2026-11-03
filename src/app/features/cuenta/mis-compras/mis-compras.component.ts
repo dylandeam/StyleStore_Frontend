@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { VentaService } from '../../../core/services/venta.service';
-import { CambiosService, SolicitudCambioCreate } from '../../../core/services/cambios.service';
+import { CambiosService, InventarioCambio, SolicitudCambioCreate } from '../../../core/services/cambios.service';
 import { OrdenVenta } from '../../../core/models/venta.model';
 import { PagosService } from '../../../core/services/pagos.service';
 import { catchError, of, switchMap } from 'rxjs';
@@ -51,6 +51,10 @@ export class MisComprasComponent implements OnInit, OnDestroy {
   coloresDisponibles: any[] = [];
   tallasDisponibles: any[] = [];
   cargandoOpciones = false;
+  cargandoInventarioCambio = false;
+  inventarioCambio: InventarioCambio[] = [];
+  modalidadCambio: 'misma_prenda' | 'otra_prenda' = 'misma_prenda';
+  stockPreferidoId: number | undefined;
   plazoCambiosDias = 7;
   saldoFavor = 0;
   reconciliationMessage = '';
@@ -179,6 +183,9 @@ export class MisComprasComponent implements OnInit, OnDestroy {
       talla_solicitada: '',
       color_solicitado: '',
     };
+    this.modalidadCambio = 'misma_prenda';
+    this.stockPreferidoId = undefined;
+    this.cargarInventarioCambio();
     this.showCambioModal = true;
     this.cdr.markForCheck();
 
@@ -192,6 +199,7 @@ export class MisComprasComponent implements OnInit, OnDestroy {
     this.solicitud.producto_detalle_id = dId;
     this.solicitud.talla_solicitada = '';
     this.solicitud.color_solicitado = '';
+    this.stockPreferidoId = undefined;
     this.coloresDisponibles = [];
     this.tallasDisponibles = [];
 
@@ -220,6 +228,54 @@ export class MisComprasComponent implements OnInit, OnDestroy {
     });
   }
 
+  cargarInventarioCambio(): void {
+    const sucursalId = this.selectedOrden?.sucursal_id;
+    if (!sucursalId) return;
+    this.cargandoInventarioCambio = true;
+    this.cambiosService.getInventarioDisponible(sucursalId).subscribe({
+      next: (items) => {
+        this.inventarioCambio = items || [];
+        this.cargandoInventarioCambio = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.inventarioCambio = [];
+        this.cargandoInventarioCambio = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  cambiarModalidadCambio(modo: 'misma_prenda' | 'otra_prenda'): void {
+    this.modalidadCambio = modo;
+    this.stockPreferidoId = undefined;
+    this.cdr.markForCheck();
+  }
+
+  get productoOriginalCodigo(): string {
+    const detalleId = Number(this.solicitud.producto_detalle_id);
+    const detalle = this.selectedOrden?.detalles?.find((d) => Number(d.id) === detalleId);
+    return (detalle?.producto_codigo || '').trim();
+  }
+
+  get precioOriginalSeleccionado(): number {
+    const detalleId = Number(this.solicitud.producto_detalle_id);
+    const detalle = this.selectedOrden?.detalles?.find((d) => Number(d.id) === detalleId);
+    return Number(detalle?.precio_unitario ?? detalle?.subtotal ?? 0);
+  }
+
+  get opcionesCambioFiltradas(): InventarioCambio[] {
+    const codigo = this.productoOriginalCodigo.toLowerCase();
+    return this.inventarioCambio.filter((item) => {
+      const esMismoProducto = item.producto_codigo.toLowerCase() === codigo;
+      return this.modalidadCambio === 'misma_prenda' ? esMismoProducto : !esMismoProducto;
+    });
+  }
+
+  get preferenciaSeleccionada(): InventarioCambio | undefined {
+    return this.inventarioCambio.find((item) => item.stock_inventario_id === Number(this.stockPreferidoId));
+  }
+
   cerrarModalCambio(): void {
     this.showCambioModal = false;
     this.cambioSubmitting = false;
@@ -236,6 +292,13 @@ export class MisComprasComponent implements OnInit, OnDestroy {
 
     const detalleId = this.solicitud.producto_detalle_id || (this.selectedOrden?.detalles?.[0]?.id ?? 0);
     const sucursalId = this.selectedOrden?.sucursal_id || 1;
+    const preferencia = this.solicitud.tipo === 'cambio' ? this.preferenciaSeleccionada : undefined;
+
+    if (this.solicitud.tipo === 'cambio' && !preferencia) {
+      this.cambioErrorMessage = 'Selecciona la prenda, talla y color que prefieres para el cambio.';
+      this.cdr.markForCheck();
+      return;
+    }
 
     this.cambioSubmitting = true;
     this.cambioErrorMessage = '';
@@ -250,6 +313,9 @@ export class MisComprasComponent implements OnInit, OnDestroy {
       sucursal_id: sucursalId,
       fecha_programada: this.fechaProgramada || new Date().toISOString().split('T')[0],
       descripcion_problema: desc,
+      producto_nuevo_codigo: preferencia?.producto_codigo,
+      talla_nueva_id: preferencia?.talla_id,
+      color_nuevo_id: preferencia?.color_id,
     }).subscribe({
       next: () => {
         this.cambioSubmitting = false;

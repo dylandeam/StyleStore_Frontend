@@ -259,12 +259,22 @@ export class CajaPosComponent implements OnInit {
       efectivo_recibido: !this.esReembolsoCambio && metodo === 'efectivo' ? this.efectivoRecibido : undefined,
       metodo_reembolso: this.esReembolsoCambio ? metodo : undefined,
     }).subscribe({
-      next: () => {
+      next: (res) => {
         this.ngZone.run(() => {
           const action = this.esReembolsoCambio ? 'Devolución confirmada' : 'Ajuste cobrado';
           this.procesando = false;
+          const comprobante = res?.comprobante;
+          this.ticketEmitido = comprobante ? {
+            ticket_numero: comprobante.numero,
+            fecha: comprobante.fecha,
+            orden_venta_id: comprobante.orden_ajuste_id,
+            total: this.ordenSeleccionada.total,
+            efectivo_recibido: this.esReembolsoCambio ? 0 : (metodo === 'efectivo' ? this.efectivoRecibido : this.ordenSeleccionada.total),
+            cambio_devuelto: !this.esReembolsoCambio && metodo === 'efectivo' ? this.cambio : 0,
+            es_cambio: true,
+            comprobante,
+          } : null;
           this.mostrarToast(`${action}. El cambio/devolución quedó completado.`);
-          this.ordenSeleccionada = null;
           this.cargarOrdenesPendientes();
           this.cdr.markForCheck();
         });

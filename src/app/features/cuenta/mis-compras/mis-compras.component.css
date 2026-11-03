@@ -556,6 +556,109 @@
   line-height: 1.35;
 }
 
+.exchange-preference {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--primary-color, #142b4a) 20%, #d8dee8);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface-color, #fff) 94%, var(--primary-color, #142b4a) 6%);
+}
+
+.exchange-section-heading,
+.price-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.exchange-section-heading h4 {
+  margin: 3px 0 0;
+  color: var(--surface-text-color, #152640);
+  font-size: 1.05rem;
+}
+
+.step-kicker {
+  color: var(--primary-color, #142b4a);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.stock-live-badge {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.exchange-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.exchange-mode-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: var(--surface-color, #fff);
+  color: var(--surface-text-color, #152640);
+  text-align: left;
+  cursor: pointer;
+}
+
+.exchange-mode-card:hover,
+.exchange-mode-card.active {
+  border-color: var(--primary-color, #142b4a);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color, #142b4a) 14%, transparent);
+}
+
+.exchange-mode-card.active { background: color-mix(in srgb, var(--primary-color, #142b4a) 7%, #fff); }
+.exchange-mode-card .mode-icon { font-size: 1.25rem; }
+.exchange-mode-card span:last-child { display: grid; min-width: 0; }
+.exchange-mode-card strong { font-size: .9rem; }
+.exchange-mode-card small { margin-top: 2px; color: #64748b; font-size: .75rem; }
+
+.field-help,
+.exchange-explainer {
+  margin: 7px 0 0;
+  color: #59677b;
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.price-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface-color, #fff);
+  color: var(--surface-text-color, #152640);
+}
+
+.price-preview > div { display: grid; gap: 3px; }
+.price-preview > div:last-child { text-align: right; }
+.price-preview span { color: #64748b; font-size: .75rem; }
+.price-preview strong { font-size: .95rem; }
+.price-preview .price-arrow { color: var(--primary-color, #142b4a); font-size: 1.1rem; font-weight: 800; }
+
+@media (max-width: 640px) {
+  .exchange-preference { padding: 14px; }
+  .exchange-section-heading { align-items: flex-start; }
+  .stock-live-badge { white-space: nowrap; }
+  .exchange-mode-grid { grid-template-columns: 1fr; }
+  .price-preview { align-items: flex-start; }
+}
+
 .modal-form-actions {
   display: flex;
   justify-content: flex-end;

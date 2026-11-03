@@ -43,7 +43,9 @@ export interface InventarioCambio {
   stock_inventario_id: number;
   producto_codigo: string;
   producto_nombre: string;
+  color_id?: number;
   color_nombre?: string;
+  talla_id?: number;
   talla_nombre?: string;
   precio: number;
   cantidad: number;
@@ -60,6 +62,9 @@ export interface SolicitudCambioCreate {
   producto_detalle_id?: number;
   talla_solicitada?: string;
   color_solicitado?: string;
+  producto_nuevo_codigo?: string;
+  talla_nueva_id?: number;
+  color_nuevo_id?: number;
 }
 
 @Injectable({

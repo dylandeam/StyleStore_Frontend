@@ -270,10 +270,11 @@
             <h2 class="receipt-brand">STYLESTORE</h2>
             <p class="receipt-address">Moda & Alta Calidad</p>
             <div class="receipt-divider">================================</div>
-            <div class="receipt-line"><strong>TICKET DE PAGO</strong></div>
+            <div class="receipt-line"><strong>{{ ticketEmitido.es_cambio ? ticketEmitido.comprobante?.tipo_documento : 'TICKET DE PAGO' }}</strong></div>
             <div class="receipt-line">N°: <strong>{{ ticketEmitido.ticket_numero }}</strong></div>
             <div class="receipt-line">Fecha: {{ ticketEmitido.fecha | date:'dd/MM/yyyy HH:mm' }}</div>
             <div class="receipt-line">Orden: #{{ ticketEmitido.orden_venta_id }}</div>
+            <div class="receipt-line" *ngIf="ticketEmitido.es_cambio">Compra original: #{{ ticketEmitido.comprobante?.orden_original_id }}</div>
             <div class="receipt-line" *ngIf="ordenSeleccionada?.cliente_nombre || ordenSeleccionada?.comprador_nombre">
               Cliente: <strong>{{ ordenSeleccionada.cliente_nombre || ordenSeleccionada.comprador_nombre }}</strong>
             </div>
@@ -281,7 +282,20 @@
             <div class="receipt-divider">--------------------------------</div>
           </div>
 
-          <div class="receipt-items" *ngIf="ordenSeleccionada?.detalles && ordenSeleccionada.detalles.length > 0">
+          <div class="receipt-items exchange-receipt-detail" *ngIf="ticketEmitido.es_cambio">
+            <div class="receipt-line"><strong>OPERACIÓN DE CAMBIO</strong></div>
+            <div class="receipt-item-row">
+              <span class="it-desc">RECIBIDO: {{ ticketEmitido.comprobante?.original?.producto }} ({{ ticketEmitido.comprobante?.original?.talla || 'U' }}{{ ticketEmitido.comprobante?.original?.color ? ' - ' + ticketEmitido.comprobante?.original?.color : '' }})</span>
+              <span class="it-price">Bs. {{ ticketEmitido.comprobante?.original?.precio | number:'1.2-2' }}</span>
+            </div>
+            <div class="receipt-item-row" *ngIf="ticketEmitido.comprobante?.reemplazo">
+              <span class="it-desc">ENTREGADO: {{ ticketEmitido.comprobante?.reemplazo?.producto }} ({{ ticketEmitido.comprobante?.reemplazo?.talla || 'U' }}{{ ticketEmitido.comprobante?.reemplazo?.color ? ' - ' + ticketEmitido.comprobante?.reemplazo?.color : '' }})</span>
+              <span class="it-price">Bs. {{ ticketEmitido.comprobante?.reemplazo?.precio | number:'1.2-2' }}</span>
+            </div>
+            <div class="receipt-divider">--------------------------------</div>
+          </div>
+
+          <div class="receipt-items" *ngIf="!ticketEmitido.es_cambio && ordenSeleccionada?.detalles && ordenSeleccionada.detalles.length > 0">
             <div class="receipt-item-row" *ngFor="let it of ordenSeleccionada.detalles">
               <span class="it-desc">{{ it.cantidad }}x {{ it.producto_nombre }} ({{ it.talla_nombre || 'U' }}{{ it.color_nombre ? ' - ' + it.color_nombre : '' }})</span>
               <span class="it-price">Bs. {{ it.subtotal | number:'1.2-2' }}</span>
@@ -291,16 +305,20 @@
 
           <div class="receipt-body">
             <div class="receipt-row">
-              <span>TOTAL PAGADO:</span>
+              <span>{{ ticketEmitido.es_cambio && esReembolsoCambio ? 'DIFERENCIA DEVUELTA:' : (ticketEmitido.es_cambio ? 'DIFERENCIA COBRADA:' : 'TOTAL PAGADO:') }}</span>
               <strong>Bs. {{ ticketEmitido.total | number:'1.2-2' }}</strong>
             </div>
-            <div class="receipt-row">
+            <div class="receipt-row" *ngIf="!ticketEmitido.es_cambio || !esReembolsoCambio">
               <span>EFECTIVO RECIBIDO:</span>
               <span>Bs. {{ ticketEmitido.efectivo_recibido | number:'1.2-2' }}</span>
             </div>
-            <div class="receipt-row cambio-row">
+            <div class="receipt-row cambio-row" *ngIf="!ticketEmitido.es_cambio && ticketEmitido.cambio_devuelto">
               <span>CAMBIO / VUELTO:</span>
               <strong>Bs. {{ ticketEmitido.cambio_devuelto | number:'1.2-2' }}</strong>
+            </div>
+            <div class="receipt-row" *ngIf="ticketEmitido.es_cambio">
+              <span>MÉTODO:</span>
+              <strong>{{ (ticketEmitido.comprobante?.metodo || 'SIN AJUSTE') | uppercase }}</strong>
             </div>
             <div class="receipt-divider">================================</div>
           </div>
@@ -308,7 +326,7 @@
           <div class="receipt-footer">
             <p>¡Gracias por tu preferencia!</p>
             <p>StyleStore Bolivia - Garantía 7 días</p>
-            <p>Conserva este ticket para cambios o devoluciones</p>
+            <p>{{ ticketEmitido.es_cambio ? 'Comprobante vinculado a la compra original' : 'Conserva este ticket para cambios o devoluciones' }}</p>
           </div>
         </div>
 

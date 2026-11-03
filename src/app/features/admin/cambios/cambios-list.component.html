@@ -223,6 +223,10 @@
         <div class="canje-summary">
           <p><strong>Prenda original recibida:</strong> {{ selectedSolicitud.producto_original }}</p>
           <p><strong>Tipo:</strong> {{ selectedSolicitud.tipo === 'cambio' ? 'Cambio físico de prenda' : 'Devolución de dinero' }}</p>
+          <p *ngIf="selectedSolicitud.tipo === 'cambio' && selectedSolicitud.producto_nuevo">
+            <strong>Preferencia del cliente:</strong>
+            {{ selectedSolicitud.producto_nuevo }} · {{ selectedSolicitud.talla_nueva || 'talla por definir' }} · {{ selectedSolicitud.color_nuevo || 'color por definir' }}
+          </p>
         </div>
 
         <div class="form-group mb-3 mt-3">
@@ -233,13 +237,15 @@
         </div>
 
         <div class="form-group mb-3" *ngIf="selectedSolicitud.tipo === 'cambio'">
-          <label class="form-label">Nueva prenda a entregar:</label>
+          <label class="form-label">Prenda física que entregarás:</label>
+          <input class="form-input inventory-search" [(ngModel)]="filtroInventario" placeholder="Buscar por prenda, código, talla o color" aria-label="Buscar existencia para el cambio">
           <select class="form-select" [(ngModel)]="nuevoStockId">
             <option [ngValue]="undefined">Selecciona una existencia</option>
-            <option *ngFor="let item of inventarioCambio" [ngValue]="item.stock_inventario_id">
+            <option *ngFor="let item of inventarioCambioFiltrado" [ngValue]="item.stock_inventario_id">
               {{ item.producto_nombre }} · {{ item.color_nombre || 'Sin color' }} · {{ item.talla_nombre || 'Única' }} · Bs. {{ item.precio | number:'1.2-2' }} ({{ item.cantidad }} disp.)
             </option>
           </select>
+          <small class="selection-help">La selección del cajero es definitiva y se valida nuevamente al liquidar para evitar entregar una existencia agotada.</small>
         </div>
 
         <div class="settlement-box" *ngIf="selectedSolicitud.tipo === 'cambio' && prendaNuevaSeleccionada">
