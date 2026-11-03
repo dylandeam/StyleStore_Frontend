@@ -161,7 +161,7 @@
         }
 
         <!-- Ventas, Reservas y Envíos (Solo Staff) -->
-        @if (isStaff) {
+        @if (isStaff && !isPlatformAdmin) {
           <a routerLink="/admin/ventas" routerLinkActive="active" class="nav-item icon-only" title="Ventas y Pedidos">
             <span class="nav-icon">💼</span>
           </a>
@@ -174,7 +174,7 @@
         }
 
         <!-- Administración (Solo Staff) -->
-        @if (isStaff) {
+        @if (isStaff && !isPlatformAdmin) {
           <a routerLink="/admin/sucursales" routerLinkActive="active" class="nav-item icon-only" title="Sucursales">
             <span class="nav-icon">🏢</span>
           </a>
@@ -437,7 +437,7 @@
           }
 
           <!-- Sección: ADMINISTRACIÓN (Solo Staff) -->
-          @if (isStaff) {
+          @if (isStaff && !isPlatformAdmin) {
             <div class="nav-group-header mt-group" (click)="toggleCategory('administracion')">
               <span class="nav-group-title">ADMINISTRACIÓN</span>
               <span class="nav-group-chevron" [class.collapsed]="isCategoryCollapsed('administracion')">
