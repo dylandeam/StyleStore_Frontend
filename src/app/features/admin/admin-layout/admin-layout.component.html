@@ -41,6 +41,12 @@
           <a routerLink="/admin/tenants" routerLinkActive="active" class="nav-item icon-only" title="Gestión de Tenants">
             <span class="nav-icon">🏢</span>
           </a>
+          <a routerLink="/admin/planes" routerLinkActive="active" class="nav-item icon-only" title="Planes Globales">
+            <span class="nav-icon">💎</span>
+          </a>
+          <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item icon-only" title="Reportes por tenant">
+            <span class="nav-icon">📈</span>
+          </a>
         }
         @if (isAdmin) {
           <a routerLink="/admin/notificaciones" routerLinkActive="active" class="nav-item icon-only" title="Notificaciones y campañas">
@@ -92,7 +98,7 @@
           <a routerLink="/carrito" routerLinkActive="active" class="nav-item icon-only" title="Bolsa de Compras">
             <span class="nav-icon">🛒</span>
           </a>
-        } @else {
+        } @else if (!isPlatformAdmin) {
           <!-- OPCIONES STAFF (COLAPSADO) -->
           <a routerLink="/catalogo" routerLinkActive="active" class="nav-item icon-only" title="Vista Catálogo">
             <span class="nav-icon">✨</span>
@@ -212,6 +218,10 @@
                 <span class="nav-icon">📣</span>
                 <span class="nav-label">Avisos a Tenants</span>
               </a>
+              <a routerLink="/admin/reportes" routerLinkActive="active" class="nav-item">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Reportes por Tenant</span>
+              </a>
             </div>
           }
         }
@@ -298,7 +308,7 @@
               </a>
             </div>
           }
-        } @else {
+        } @else if (!isPlatformAdmin) {
           <!-- NAVEGACIÓN STAFF Y ADMINISTRACIÓN -->
           <!-- Sección: CATÁLOGO -->
           <div class="nav-group-header mt-group" (click)="toggleCategory('catalogo')">

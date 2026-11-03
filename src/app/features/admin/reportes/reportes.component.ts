@@ -6,6 +6,9 @@ import { SucursalService } from '../../../core/services/sucursal.service';
 import { Sucursal } from '../../../core/models/sucursal.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { OfflineAiService } from '../../../core/services/offline-ai.service';
+import { TenantService } from '../../../core/services/tenant.service';
+import { PlatformTenantContextService } from '../../../core/services/platform-tenant-context.service';
+import { TenantSummary } from '../../../core/models/tenant.model';
 
 @Component({
   selector: 'app-reportes',
@@ -21,8 +24,11 @@ export class ReportesComponent implements OnInit {
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private offlineAi = inject(OfflineAiService);
+  private tenantService = inject(TenantService);
+  readonly platformTenantContext = inject(PlatformTenantContextService);
 
   sucursales: Sucursal[] = [];
+  platformTenants: TenantSummary[] = [];
   mensajeToast: string | null = null;
   descargando: boolean = false;
 
@@ -152,6 +158,15 @@ export class ReportesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (this.isPlatformAdmin) {
+      this.tenantService.list().subscribe({
+        next: (items) => {
+          this.platformTenants = items;
+          this.cdr.markForCheck();
+        },
+        error: () => (this.platformTenants = []),
+      });
+    }
     this.cargarSucursales();
     this.cargarComparativaSucursales();
     this.cargarAlertasStock();
@@ -173,12 +188,25 @@ export class ReportesComponent implements OnInit {
   }
 
   private actualizarSnapshotOffline(): void {
-    const tenantId = this.authService.currentUser()?.empresa_id;
+    const tenantId = this.platformTenantContext.selected()?.id || this.authService.currentUser()?.empresa_id;
     if (!tenantId || !navigator.onLine) return;
     this.reportesService.getSnapshotAsistenteIA().subscribe({
       next: (snapshot) => this.offlineAi.save(snapshot),
       error: () => undefined,
     });
+  }
+
+  get isPlatformAdmin(): boolean {
+    return !!this.authService.currentUser()?.is_platform_admin;
+  }
+
+  cambiarTenantReporte(event: Event): void {
+    const empresaId = Number((event.target as HTMLSelectElement).value);
+    const selected = this.platformTenants.find((item) => item.id === empresaId);
+    this.platformTenantContext.select(
+      selected ? { id: selected.id, codigo: selected.codigo, nombre: selected.nombre } : null,
+    );
+    window.location.reload();
   }
 
   initSpeechRecognitionIA(): void {

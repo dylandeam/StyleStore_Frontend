@@ -12,6 +12,26 @@
     </div>
   </div>
 
+  <section class="tenant-report-scope" *ngIf="isPlatformAdmin" aria-labelledby="tenant-report-title">
+    <div>
+      <span class="scope-kicker">ALCANCE SAAS</span>
+      <h2 id="tenant-report-title">Reportes separados por tenant</h2>
+      <p *ngIf="platformTenantContext.selected(); else globalReportHelp">
+        Estás consultando únicamente <strong>{{ platformTenantContext.selected()?.nombre }}</strong>. Las sucursales, ventas, inventario y exportaciones quedan limitadas a este tenant.
+      </p>
+      <ng-template #globalReportHelp>
+        <p>Selecciona un tenant para evitar mezclar información. La opción global se conserva solo como vista consolidada de supervisión.</p>
+      </ng-template>
+    </div>
+    <label>
+      <span>Tenant del reporte</span>
+      <select [value]="platformTenantContext.selected()?.id || ''" (change)="cambiarTenantReporte($event)">
+        <option value="">Todos los tenants · consolidado</option>
+        <option *ngFor="let tenant of platformTenants" [value]="tenant.id">{{ tenant.nombre }} · {{ tenant.codigo }}</option>
+      </select>
+    </label>
+  </section>
+
   <!-- ========================================================= -->
   <!-- ASISTENTE DE IA EJECUTIVA PARA REPORTES & COMANDOS DE VOZ -->
   <!-- ========================================================= -->

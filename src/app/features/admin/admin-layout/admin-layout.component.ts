@@ -391,7 +391,7 @@ export class AdminLayoutComponent implements OnInit {
 
   get canManageStore(): boolean {
     const role = (this.user()?.role || '').toLowerCase();
-    return role.includes('admin') || role.includes('encargado');
+    return !this.isPlatformAdmin && (role.includes('admin') || role.includes('encargado'));
   }
 
   toggleSidebar(): void {

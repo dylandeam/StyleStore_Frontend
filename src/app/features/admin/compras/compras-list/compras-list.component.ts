@@ -69,6 +69,8 @@ export class ComprasListComponent implements OnInit {
   // Modal Detalle
   showModalDetalle: boolean = false;
   compraSeleccionada: Compra | null = null;
+  detalleLoading: boolean = false;
+  detalleError: string | null = null;
 
   ngOnInit(): void {
     this.cargarDatosMaestros();
@@ -255,14 +257,30 @@ export class ComprasListComponent implements OnInit {
   }
 
   verDetalle(compra: Compra): void {
-    this.compraSeleccionada = compra;
+    this.compraSeleccionada = null;
+    this.detalleError = null;
+    this.detalleLoading = true;
     this.showModalDetalle = true;
     this.cdr.markForCheck();
+    this.compraService.getCompra(compra.id).subscribe({
+      next: (detalle) => {
+        this.compraSeleccionada = detalle;
+        this.detalleLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.detalleLoading = false;
+        this.detalleError = 'No se pudo cargar el detalle actualizado de la compra.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   cerrarModalDetalle(): void {
     this.showModalDetalle = false;
     this.compraSeleccionada = null;
+    this.detalleLoading = false;
+    this.detalleError = null;
     this.cdr.markForCheck();
   }
 

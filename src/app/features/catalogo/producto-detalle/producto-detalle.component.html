@@ -128,6 +128,15 @@
               </option>
             </select>
           </div>
+          <div class="branch-availability-summary" aria-live="polite">
+            <span class="branch-summary-icon">🏬</span>
+            <div>
+              <small>Disponibilidad consultada en</small>
+              <strong>{{ getNombreSucursalSeleccionada() }}</strong>
+              <span *ngIf="sucursalFiltroId()">La talla elegida se descontará de esta sucursal.</span>
+              <span *ngIf="!sucursalFiltroId()">Cada talla indica debajo la sucursal donde está disponible.</span>
+            </div>
+          </div>
         </div>
 
         <!-- 1. Selector de Color -->

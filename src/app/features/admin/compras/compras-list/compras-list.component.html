@@ -249,6 +249,15 @@
         <button type="button" class="btn-close" (click)="cerrarModalDetalle()">✕</button>
       </div>
 
+      <div class="modal-body detail-loading" *ngIf="detalleLoading" role="status">
+        <span class="spinner"></span>
+        <p>Cargando detalle de la compra…</p>
+      </div>
+
+      <div class="modal-body" *ngIf="detalleError">
+        <div class="alert-error">{{ detalleError }}</div>
+      </div>
+
       <div class="modal-body" *ngIf="compraSeleccionada">
         <div class="detail-header-info">
           <div><strong>Proveedor:</strong> {{ compraSeleccionada.proveedor_nombre }}</div>
@@ -282,6 +291,9 @@
                 <td><strong>{{ it.cantidad }}</strong></td>
                 <td>Bs. {{ it.costo_unitario | number:'1.2-2' }}</td>
                 <td><strong>Bs. {{ it.subtotal | number:'1.2-2' }}</strong></td>
+              </tr>
+              <tr *ngIf="!compraSeleccionada.detalles.length">
+                <td colspan="6" class="empty-detail">Esta compra no tiene prendas asociadas.</td>
               </tr>
             </tbody>
           </table>

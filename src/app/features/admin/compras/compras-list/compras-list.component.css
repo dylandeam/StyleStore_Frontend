@@ -430,3 +430,56 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* Contraste semántico: los colores del tenant nunca deben volver invisible
+   el contenido de formularios, tablas o modales con superficies claras. */
+.page-header h1 { color: var(--text-on-page, #14263d); }
+.subtitle, .breadcrumb { color: var(--text-on-page-soft, #64748b); }
+.modal-card,
+.card,
+.items-table {
+  background: var(--surface-control, #fff);
+  color: var(--text-on-control, #172536);
+}
+.modal-header h2,
+.items-builder-box h3,
+.total-bar,
+.detail-header-info,
+.items-table td,
+.items-table th {
+  color: var(--text-on-control, #172536);
+}
+.items-builder-box,
+.detail-header-info,
+.items-table th {
+  background: var(--surface-control-muted, #f8fafc);
+}
+.form-group label,
+.builder-col label { color: var(--text-on-control-soft, #475569); }
+.form-control,
+.form-select {
+  background: var(--surface-control, #fff);
+  color: var(--text-on-control, #172536);
+}
+.form-control::placeholder {
+  color: var(--text-on-control-soft, #64748b);
+  opacity: 1;
+}
+.form-control option,
+.form-select option {
+  background: #fff;
+  color: #172536;
+}
+.detail-loading {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  color: var(--text-on-control-soft, #475569);
+}
+.empty-detail {
+  padding: 28px 16px !important;
+  text-align: center;
+  color: var(--text-on-control-soft, #64748b) !important;
+}
