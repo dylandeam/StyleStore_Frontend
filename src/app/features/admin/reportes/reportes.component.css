@@ -2372,7 +2372,24 @@ h1 {
   border: 1px solid #e2e8f0;
   box-shadow: 0 4px 18px rgba(20, 38, 61, 0.05);
   padding: 1.5rem;
+  color: var(--text-on-control, #172536);
 }
+
+.alertas-stock-card .card-header-flex h2,
+.alertas-stock-card .filter-item label,
+.alertas-stock-card .report-table td,
+.alertas-stock-card .report-table th {
+  color: var(--text-on-control, #172536);
+}
+.alertas-stock-card .section-desc,
+.alertas-stock-card .loading-state p {
+  color: var(--text-on-control-soft, #64748b);
+}
+.alertas-stock-card .form-control {
+  color: var(--text-on-control, #172536);
+  background: var(--surface-control, #fff);
+}
+.alertas-stock-card .form-control option { color: #172536; background: #fff; }
 
 .kpi-alertas-summary {
   display: grid;
@@ -2392,6 +2409,7 @@ h1 {
 .kpi-evaluados {
   background: #f8fafc;
   border-color: #e2e8f0;
+  color: #172536;
 }
 
 .kpi-critico {
@@ -2425,6 +2443,9 @@ h1 {
   letter-spacing: 0.5px;
   margin-top: 4px;
 }
+
+.kpi-evaluados .kpi-num,
+.kpi-evaluados .kpi-txt { color: #172536; }
 
 .btn-refresh-alertas {
   background: #14263d;

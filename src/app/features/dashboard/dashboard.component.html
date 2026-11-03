@@ -9,8 +9,84 @@
       <span>{{ errorMessage() }}</span>
     </div>
   } @else if (user()) {
+    @if (isPlatformAdmin) {
+      <section class="saas-command-center" aria-labelledby="saas-dashboard-title">
+        <header class="saas-command-hero">
+          <div class="saas-hero-copy">
+            <span class="saas-eyebrow">CONTROL DE PLATAFORMA</span>
+            <h1 id="saas-dashboard-title">Tu ecosistema SaaS, en una sola vista.</h1>
+            <p>Supervisa tenants, suscripciones y capacidad instalada sin mezclar la operación interna de cada tienda.</p>
+          </div>
+          <div class="saas-hero-actions">
+            <a routerLink="/admin/tenants" class="saas-primary-action">Gestionar tenants <span aria-hidden="true">→</span></a>
+            <a routerLink="/admin/planes" class="saas-secondary-action">Planes y suscripciones</a>
+          </div>
+        </header>
+
+        <div class="saas-metrics" aria-label="Resumen de plataforma">
+          <article class="saas-metric-card">
+            <span class="saas-metric-icon" aria-hidden="true">🏢</span>
+            <div><small>Tenants registrados</small><strong>{{ saasTenants().length }}</strong><span>{{ saasActiveTenants }} activos</span></div>
+          </article>
+          <article class="saas-metric-card">
+            <span class="saas-metric-icon" aria-hidden="true">⌁</span>
+            <div><small>Sucursales conectadas</small><strong>{{ saasTotalBranches }}</strong><span>En toda la plataforma</span></div>
+          </article>
+          <article class="saas-metric-card">
+            <span class="saas-metric-icon" aria-hidden="true">◎</span>
+            <div><small>Usuarios administrados</small><strong>{{ saasTotalUsers }}</strong><span>Entre todos los tenants</span></div>
+          </article>
+          <article class="saas-metric-card" [class.needs-attention]="saasSubscriptionsAtRisk > 0">
+            <span class="saas-metric-icon" aria-hidden="true">◇</span>
+            <div><small>Requieren atención</small><strong>{{ saasSubscriptionsAtRisk }}</strong><span>Plan, pago o estado</span></div>
+          </article>
+        </div>
+
+        <div class="saas-overview-grid">
+          <section class="saas-tenant-panel" aria-labelledby="tenant-overview-title">
+            <div class="saas-panel-heading">
+              <div><span>PORTAFOLIO</span><h2 id="tenant-overview-title">Estado de tenants</h2></div>
+              <a routerLink="/admin/tenants">Ver todos</a>
+            </div>
+
+            <div class="saas-panel-loading" *ngIf="loadingSaasTenants()">Actualizando información de la plataforma…</div>
+            <div class="saas-tenant-list" *ngIf="!loadingSaasTenants() && saasTenants().length">
+              <article class="saas-tenant-row" *ngFor="let tenant of saasTenants().slice(0, 6)">
+                <div class="tenant-monogram" aria-hidden="true">{{ (tenant.nombre_marca || tenant.nombre).slice(0, 2).toUpperCase() }}</div>
+                <div class="tenant-identity">
+                  <strong>{{ tenant.nombre_marca || tenant.nombre }}</strong>
+                  <span>{{ tenant.codigo }} · {{ tenant.sucursales_count }} sucursal(es)</span>
+                </div>
+                <div class="tenant-plan">
+                  <small>Plan</small><strong>{{ subscriptionLabel(tenant) }}</strong>
+                </div>
+                <span class="tenant-health" [class.warning]="subscriptionStatus(tenant) !== 'Operativo'">
+                  {{ subscriptionStatus(tenant) }}
+                </span>
+              </article>
+            </div>
+            <div class="saas-empty-state" *ngIf="!loadingSaasTenants() && !saasTenants().length">
+              <strong>Aún no hay tenants registrados</strong>
+              <span>Crea el primero para comenzar a operar la plataforma.</span>
+              <a routerLink="/admin/tenants">Crear tenant</a>
+            </div>
+          </section>
+
+          <aside class="saas-actions-panel" aria-labelledby="saas-actions-title">
+            <div class="saas-panel-heading"><div><span>ADMINISTRACIÓN</span><h2 id="saas-actions-title">Acciones clave</h2></div></div>
+            <nav class="saas-action-list" aria-label="Accesos administrativos SaaS">
+              <a routerLink="/admin/tenants"><span>01</span><div><strong>Tenants</strong><small>Altas, identidad y administradores</small></div><b>→</b></a>
+              <a routerLink="/admin/planes"><span>02</span><div><strong>Planes globales</strong><small>Precios, límites y vigencias</small></div><b>→</b></a>
+              <a routerLink="/admin/notificaciones"><span>03</span><div><strong>Avisos</strong><small>Comunicación con administradores</small></div><b>→</b></a>
+              <a routerLink="/admin/reportes"><span>04</span><div><strong>Reportes por tenant</strong><small>Análisis individual o consolidado</small></div><b>→</b></a>
+            </nav>
+          </aside>
+        </div>
+      </section>
+    }
+
     <!-- Welcome Hero Banner (Navy #14263D) -->
-    <section class="welcome-hero-navy" [class.client-welcome-hero]="isCliente">
+    <section class="welcome-hero-navy" [class.client-welcome-hero]="isCliente" *ngIf="!isPlatformAdmin">
       <div class="hero-content">
         <div class="hero-badge" *ngIf="!isCliente">
           <span>{{ user()?.role?.toUpperCase() }}</span>
@@ -49,7 +125,7 @@
     </section>
 
     <!-- Barra de Filtro de Sucursal y Métricas Operativas (Staff & Admin) -->
-    <section class="kpis-section" *ngIf="isStaff">
+    <section class="kpis-section" *ngIf="isStaff && !isPlatformAdmin">
       <div class="kpi-header-row">
         <div>
           <h2 class="section-title">Métricas Operativas en Tiempo Real</h2>
@@ -228,7 +304,7 @@
           <a routerLink="/admin/sucursales"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16M5 10v10h14V10M3 6h18l-1 4H4L3 6Z"/></svg><span><strong>Sucursales</strong><small>Encuentra tu tienda</small></span></a>
         </div>
       </section>
-    } @else {
+    } @else if (!isPlatformAdmin) {
     <!-- Modules Navigation Section -->
     <section class="modules-section">
       <div class="section-header">

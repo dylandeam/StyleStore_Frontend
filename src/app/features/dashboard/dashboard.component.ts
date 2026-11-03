@@ -9,6 +9,8 @@ import { SucursalService } from '../../core/services/sucursal.service';
 import { User } from '../../core/models/user.model';
 import { Sucursal } from '../../core/models/sucursal.model';
 import { BrandingService } from '../../core/services/branding.service';
+import { TenantService } from '../../core/services/tenant.service';
+import { TenantSummary } from '../../core/models/tenant.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,6 +25,7 @@ export class DashboardComponent implements OnInit {
   private sucursalService = inject(SucursalService);
   private cdr = inject(ChangeDetectorRef);
   readonly branding = inject(BrandingService);
+  private tenantService = inject(TenantService);
 
   user = signal<User | null>(this.authService.currentUser());
   isLoading = signal<boolean>(!this.authService.currentUser());
@@ -38,13 +41,18 @@ export class DashboardComponent implements OnInit {
   predictions: any = null;
   predictionsLocked = false;
   loadingPredictions = false;
+  saasTenants = signal<TenantSummary[]>([]);
+  loadingSaasTenants = signal(false);
+  private saasDashboardLoaded = false;
 
   ngOnInit(): void {
-    if (this.user() && this.isStaff) {
+    if (this.user() && this.isPlatformAdmin) {
+      this.loadSaasDashboard();
+    } else if (this.user() && this.isStaff) {
       this.loadDashboardStats();
     }
     this.loadProfile();
-    this.loadSucursales();
+    if (!this.isPlatformAdmin) this.loadSucursales();
   }
 
   loadProfile(): void {
@@ -53,8 +61,11 @@ export class DashboardComponent implements OnInit {
         this.user.set(profile);
         this.isLoading.set(false);
         this.cdr.markForCheck();
-        if (this.isStaff) {
+        if (this.isPlatformAdmin) {
+          this.loadSaasDashboard();
+        } else if (this.isStaff) {
           this.loadDashboardStats();
+          if (!this.sucursales.length) this.loadSucursales();
         }
       },
       error: (err) => {
@@ -65,6 +76,56 @@ export class DashboardComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+  }
+
+  loadSaasDashboard(): void {
+    if (!this.isPlatformAdmin || this.loadingSaasTenants() || this.saasDashboardLoaded) return;
+    this.loadingSaasTenants.set(true);
+    this.tenantService.list().subscribe({
+      next: (items) => {
+        this.saasTenants.set(items || []);
+        this.saasDashboardLoaded = true;
+        this.loadingSaasTenants.set(false);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.loadingSaasTenants.set(false);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  get saasActiveTenants(): number {
+    return this.saasTenants().filter((tenant) => tenant.active).length;
+  }
+
+  get saasTotalBranches(): number {
+    return this.saasTenants().reduce((total, tenant) => total + (tenant.sucursales_count || 0), 0);
+  }
+
+  get saasTotalUsers(): number {
+    return this.saasTenants().reduce((total, tenant) => total + (tenant.usuarios_count || 0), 0);
+  }
+
+  get saasSubscriptionsAtRisk(): number {
+    return this.saasTenants().filter((tenant) => {
+      const status = (tenant.suscripcion?.estado || '').toLowerCase();
+      const payment = (tenant.suscripcion?.estado_pago || '').toLowerCase();
+      return !tenant.suscripcion || !tenant.active || status.includes('venc') || payment.includes('pend');
+    }).length;
+  }
+
+  subscriptionLabel(tenant: TenantSummary): string {
+    if (!tenant.suscripcion) return 'Sin plan';
+    return tenant.suscripcion.plan_nombre || tenant.suscripcion.plan_codigo;
+  }
+
+  subscriptionStatus(tenant: TenantSummary): string {
+    if (!tenant.active) return 'Inactivo';
+    if (!tenant.suscripcion) return 'Sin suscripción';
+    const payment = (tenant.suscripcion.estado_pago || '').toLowerCase();
+    if (payment.includes('pend')) return 'Pago pendiente';
+    return 'Operativo';
   }
 
   loadSucursales(): void {
@@ -131,6 +192,10 @@ export class DashboardComponent implements OnInit {
   get isStaff(): boolean {
     const role = (this.user()?.role || '').toLowerCase();
     return role.includes('admin') || role.includes('encargado') || role.includes('cajero') || role.includes('repartidor');
+  }
+
+  get isPlatformAdmin(): boolean {
+    return !!this.user()?.is_platform_admin;
   }
 
   get isCliente(): boolean {
