@@ -141,9 +141,9 @@
                 <p>{{ recommendation.explicacion }}</p>
                 <span>{{ recommendation.dias_cobertura_destino | number:'1.0-1' }} días de cobertura · {{ recommendation.confianza_porcentaje }}% de confianza</span>
               </div>
-              @if (canEdit()) {
+              @if (canRequestTransfer()) {
                 <button type="button" class="btn btn-primary recommendation-action" (click)="aplicarRecomendacion(recommendation)">
-                  Revisar traspaso
+                  {{ isTenantAdmin() ? 'Revisar traspaso' : 'Enviar solicitud' }}
                 </button>
               }
             </article>
@@ -185,17 +185,22 @@
                     <div class="transfer-arrow">↓</div>
                     <div>{{ transfer.sucursal_destino }}</div>
                   </td>
-                  <td><strong>{{ transfer.cantidad }} un.</strong></td>
+                  <td>
+                    <strong>{{ transfer.cantidad }} solicitadas</strong>
+                    @if (transfer.cantidad_aprobada) { <div class="text-muted text-xs">{{ transfer.cantidad_aprobada }} aprobadas</div> }
+                  </td>
                   <td><span class="status-badge status-{{ transfer.estado }}">{{ transfer.estado | titlecase }}</span></td>
                   <td>
                     <div>{{ transfer.solicitado_por }}</div>
                     <div class="text-muted text-xs">{{ transfer.created_at | date:'short' }}</div>
                   </td>
                   <td class="cell-actions">
-                    @if (transfer.estado === 'pendiente' && canEdit()) {
+                    @if (transfer.estado === 'pendiente' && isTenantAdmin()) {
                       <button class="btn btn-sm btn-primary" (click)="decidirTraspaso(transfer, 'aprobar')">Aprobar</button>
                       <button class="btn btn-sm btn-danger" (click)="decidirTraspaso(transfer, 'rechazar')">Rechazar</button>
                       <button class="btn btn-sm btn-secondary" (click)="decidirTraspaso(transfer, 'cancelar')">Cancelar</button>
+                    } @else if (transfer.estado === 'pendiente' && canRequestTransfer()) {
+                      <span class="text-muted text-xs">Esperando aprobación del administrador</span>
                     } @else {
                       <span class="text-muted text-xs">{{ transfer.procesado_por || 'Sin acciones' }}</span>
                     }
@@ -270,8 +275,8 @@
                 <td class="cell-actions">
                   @if (canEdit()) {
                     <button class="btn btn-sm btn-outline" (click)="openAdjustModal(item)">✏️ Ajustar</button>
-                    @if (item.cantidad > 0 && sucursales().length > 1) {
-                      <button class="btn btn-sm btn-transfer" (click)="openTransferModal(item)">⇄ Traspasar</button>
+                    @if (item.cantidad > 0 && sucursales().length > 1 && canRequestTransfer()) {
+                      <button class="btn btn-sm btn-transfer" (click)="openTransferModal(item)">⇄ Solicitar traspaso</button>
                     }
                   } @else {
                     <span class="text-muted text-xs">Solo lectura</span>
@@ -358,7 +363,7 @@
     <div class="modal-backdrop" (click)="closeTransferModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h3>Solicitar Traspaso</h3>
+          <h3>{{ isTenantAdmin() ? 'Preparar Traspaso' : 'Solicitar Traspaso al Administrador' }}</h3>
           <button class="btn-close" (click)="closeTransferModal()">✕</button>
         </div>
         <div class="modal-body">
@@ -395,7 +400,39 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="closeTransferModal()">Cancelar</button>
-          <button class="btn btn-primary" (click)="crearTraspaso()" [disabled]="isLoading()">Crear Solicitud</button>
+          <button class="btn btn-primary" (click)="crearTraspaso()" [disabled]="isLoading()">Enviar Solicitud</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (approvalTransfer()) {
+    <div class="modal-backdrop" (click)="closeApproval()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Aprobar y ejecutar traspaso</h3>
+          <button class="btn-close" (click)="closeApproval()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="approval-route">
+            <div><span>Origen</span><strong>{{ approvalTransfer()!.sucursal_origen }}</strong></div>
+            <span aria-hidden="true">→</span>
+            <div><span>Destino</span><strong>{{ approvalTransfer()!.sucursal_destino }}</strong></div>
+          </div>
+          <p class="approval-product"><strong>{{ approvalTransfer()!.producto_nombre }}</strong> · {{ approvalTransfer()!.color }} · Talla {{ approvalTransfer()!.talla }}</p>
+          <div class="form-group">
+            <label>Cantidad a aprobar <span class="req">*</span></label>
+            <input class="form-control full-width" type="number" min="1" [ngModel]="approvalQuantity()" (ngModelChange)="approvalQuantity.set(+$event)" />
+            <small class="text-muted">Se solicitaron {{ approvalTransfer()!.cantidad }} unidades. Puedes ajustar la cantidad según la disponibilidad real.</small>
+          </div>
+          <div class="form-group">
+            <label>Respuesta para el encargado</label>
+            <textarea class="form-control full-width" rows="3" maxlength="500" [ngModel]="approvalResponse()" (ngModelChange)="approvalResponse.set($event)" placeholder="Indicaciones de preparación o entrega"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeApproval()">Volver</button>
+          <button class="btn btn-primary" (click)="confirmarAprobacion()" [disabled]="isLoading()">Aprobar y mover stock</button>
         </div>
       </div>
     </div>

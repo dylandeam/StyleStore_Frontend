@@ -57,10 +57,22 @@ export class InventarioComponent implements OnInit {
   transferDestinationId = signal<number | null>(null);
   transferQuantity = signal(1);
   transferObservation = signal('');
+  approvalTransfer = signal<TraspasoInventario | null>(null);
+  approvalQuantity = signal(1);
+  approvalResponse = signal('');
 
   canEdit(): boolean {
     const role = this.authService.currentUser()?.role;
     return role === 'administrador' || role === 'encargado_sucursal';
+  }
+
+  isTenantAdmin(): boolean {
+    return this.authService.currentUser()?.role === 'administrador' && !this.authService.currentUser()?.is_platform_admin;
+  }
+
+  canRequestTransfer(): boolean {
+    const role = this.authService.currentUser()?.role;
+    return role === 'administrador' || role === 'encargado_sucursal' || role === 'encargado';
   }
 
   ngOnInit(): void {
@@ -248,15 +260,52 @@ export class InventarioComponent implements OnInit {
   }
 
   decidirTraspaso(item: TraspasoInventario, accion: 'aprobar' | 'rechazar' | 'cancelar'): void {
+    if (accion === 'aprobar') {
+      this.approvalTransfer.set(item);
+      this.approvalQuantity.set(item.cantidad_aprobada || item.cantidad);
+      this.approvalResponse.set('');
+      return;
+    }
     if (!confirm(`¿Deseas ${accion} el traspaso #${item.id}?`)) return;
     this.isLoading.set(true);
     this.inventarioService.decidirTraspaso(item.id, accion).subscribe({
       next: () => {
-        this.successMessage.set(`Traspaso ${accion === 'aprobar' ? 'aprobado' : accion === 'rechazar' ? 'rechazado' : 'cancelado'} correctamente.`);
+        this.successMessage.set(`Traspaso ${accion === 'rechazar' ? 'rechazado' : 'cancelado'} correctamente.`);
         this.loadTraspasos();
       },
       error: (err) => {
         this.errorMessage.set(err.error?.detail || 'No se pudo procesar el traspaso.');
+        this.isLoading.set(false);
+      },
+    });
+  }
+
+  closeApproval(): void {
+    this.approvalTransfer.set(null);
+  }
+
+  confirmarAprobacion(): void {
+    const item = this.approvalTransfer();
+    const quantity = Number(this.approvalQuantity());
+    if (!item || quantity < 1) {
+      this.errorMessage.set('La cantidad aprobada debe ser mayor a cero.');
+      return;
+    }
+    this.isLoading.set(true);
+    this.inventarioService.decidirTraspaso(
+      item.id,
+      'aprobar',
+      this.approvalResponse().trim() || undefined,
+      quantity
+    ).subscribe({
+      next: () => {
+        this.successMessage.set(`Traspaso aprobado por ${quantity} unidad(es). El inventario y las notificaciones ya fueron actualizados.`);
+        this.closeApproval();
+        this.loadTraspasos();
+        this.loadRecomendaciones();
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'No se pudo aprobar el traspaso.');
         this.isLoading.set(false);
       },
     });

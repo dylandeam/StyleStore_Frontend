@@ -115,6 +115,14 @@ export class ReportesService {
     return this.http.get<any>(`${this.apiUrl}/dashboard-stats`, { params });
   }
 
+  getDashboardIndicator(indicador: string, sucursalId?: number): Observable<any> {
+    let params = new HttpParams();
+    if (sucursalId !== undefined && sucursalId !== null) {
+      params = params.set('sucursal_id', sucursalId.toString());
+    }
+    return this.http.get<any>(`${this.apiUrl}/dashboard-indicadores/${indicador}`, { params });
+  }
+
   getPredicciones(sucursalId?: number): Observable<any> {
     let params = new HttpParams();
     if (sucursalId !== undefined && sucursalId !== null) {

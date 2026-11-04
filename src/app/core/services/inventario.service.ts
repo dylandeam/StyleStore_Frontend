@@ -83,10 +83,12 @@ export class InventarioService {
   decidirTraspaso(
     id: number,
     accion: 'aprobar' | 'rechazar' | 'cancelar',
-    respuesta?: string
+    respuesta?: string,
+    cantidad?: number
   ): Observable<TraspasoInventario> {
     return this.http.post<TraspasoInventario>(`${this.apiUrl}/traspasos/${id}/${accion}`, {
       respuesta: respuesta || null,
+      cantidad: cantidad || null,
     });
   }
 

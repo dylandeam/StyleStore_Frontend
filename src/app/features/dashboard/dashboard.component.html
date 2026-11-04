@@ -143,7 +143,7 @@
       <!-- Grid de KPIs -->
       <div class="kpis-grid" *ngIf="stats">
         <!-- KPI 1: Ventas Totales -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('ventas_sucursal')" aria-label="Ver detalle de ventas por sucursal">
           <div class="kpi-icon-wrap bg-blue">
             <span>💰</span>
           </div>
@@ -152,10 +152,11 @@
             <strong class="kpi-number">Bs. {{ stats.ventas?.total_recaudado || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">{{ stats.ventas?.cantidad_ventas || 0 }} transacciones registradas</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver detalle →</span>
+        </button>
 
         <!-- KPI 2: Stock Crítico -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('stock_categoria')" aria-label="Ver detalle de stock por categoría">
           <div class="kpi-icon-wrap bg-red">
             <span>⚠️</span>
           </div>
@@ -164,10 +165,11 @@
             <strong class="kpi-number text-danger">{{ stats.inventario?.items_criticos || 0 }}</strong>
             <small class="kpi-note">De {{ stats.inventario?.total_existencias || 0 }} prendas en inventario</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver detalle →</span>
+        </button>
 
         <!-- KPI 3: Reservas Activas -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('historial_compras')" aria-label="Ver historial relacionado con reservas y ventas">
           <div class="kpi-icon-wrap bg-yellow">
             <span>🔖</span>
           </div>
@@ -176,10 +178,11 @@
             <strong class="kpi-number">{{ stats.reservas?.activas || 0 }}</strong>
             <small class="kpi-note">{{ stats.reservas?.vencidas || 0 }} reservas vencidas</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver operaciones →</span>
+        </button>
 
         <!-- KPI 4: Cambios Pendientes -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('historial_compras')" aria-label="Ver historial de ventas y cambios">
           <div class="kpi-icon-wrap bg-purple">
             <span>🔄</span>
           </div>
@@ -188,10 +191,11 @@
             <strong class="kpi-number">{{ stats.cambios?.pendientes || 0 }}</strong>
             <small class="kpi-note">Solicitudes esperando revisión de tienda</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver operaciones →</span>
+        </button>
 
         <!-- KPI 5: Efectivo en Caja -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('historial_compras')" aria-label="Ver historial de cobros en caja">
           <div class="kpi-icon-wrap bg-green">
             <span>💵</span>
           </div>
@@ -200,10 +204,11 @@
             <strong class="kpi-number text-success">Bs. {{ stats.ventas?.desglose_pagos?.efectivo || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">Efectivo recibido en mostrador</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver historial →</span>
+        </button>
 
         <!-- KPI 6: Pagos Digitales PayPal -->
-        <div class="kpi-card">
+        <button type="button" class="kpi-card kpi-card-action" (click)="openIndicator('historial_compras')" aria-label="Ver historial de pagos digitales">
           <div class="kpi-icon-wrap bg-cyan">
             <span>🌐</span>
           </div>
@@ -212,8 +217,50 @@
             <strong class="kpi-number text-primary">Bs. {{ stats.ventas?.desglose_pagos?.en_linea || stats.ventas?.desglose_pagos?.paypal || 0 | number:'1.2-2' }}</strong>
             <small class="kpi-note">Capturados vía PayPal Orders v2</small>
           </div>
-        </div>
+          <span class="kpi-open">Ver historial →</span>
+        </button>
       </div>
+
+      @if (indicatorLoading()) {
+        <div class="indicator-state" role="status">Preparando gráfico y tabla del indicador…</div>
+      } @else if (indicatorError()) {
+        <div class="indicator-state indicator-error" role="alert">{{ indicatorError() }}</div>
+      } @else if (indicatorDetail()) {
+        <section class="indicator-detail" aria-labelledby="indicator-detail-title">
+          <header class="indicator-detail-header">
+            <div>
+              <h3 id="indicator-detail-title">{{ indicatorDetail().titulo }}</h3>
+              <p>{{ indicatorDetail().descripcion }}</p>
+            </div>
+            <button type="button" class="indicator-close" (click)="closeIndicator()" aria-label="Cerrar detalle">Cerrar</button>
+          </header>
+          @if (indicatorDetail().filas?.length) {
+            <div class="indicator-layout">
+              <div class="indicator-chart" aria-label="Gráfico comparativo">
+                @for (point of indicatorDetail().grafico; track point.label) {
+                  <div class="indicator-bar-row">
+                    <span>{{ point.label }}</span>
+                    <div class="indicator-track"><i [style.width.%]="indicatorBarWidth(point.value)"></i></div>
+                    <strong>{{ formatIndicatorValue(point.value) }}</strong>
+                  </div>
+                }
+              </div>
+              <div class="indicator-table-wrap">
+                <table class="indicator-table">
+                  <thead><tr>@for (column of indicatorDetail().columnas; track column.key) { <th>{{ column.label }}</th> }</tr></thead>
+                  <tbody>
+                    @for (row of indicatorDetail().filas; track $index) {
+                      <tr>@for (column of indicatorDetail().columnas; track column.key) { <td [attr.data-label]="column.label">{{ formatIndicatorValue(row[column.key]) }}</td> }</tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          } @else {
+            <div class="indicator-state">Aún no hay operaciones para este indicador y alcance.</div>
+          }
+        </section>
+      }
 
       <!-- Loading State for Stats -->
       <div class="stats-loading" *ngIf="loadingStats">
@@ -264,6 +311,19 @@
     </section>
 
     @if (isCliente) {
+      <section class="client-history-indicator">
+        <div><h2>Tu actividad de compra</h2><p>Consulta importes, estados y sucursales de tus últimas operaciones.</p></div>
+        <button type="button" (click)="openIndicator('historial_compras')">Ver historial detallado →</button>
+      </section>
+      @if (indicatorLoading()) { <div class="indicator-state">Cargando tu historial…</div> }
+      @if (indicatorDetail()) {
+        <section class="indicator-detail" aria-labelledby="client-indicator-title">
+          <header class="indicator-detail-header"><div><h3 id="client-indicator-title">{{ indicatorDetail().titulo }}</h3><p>{{ indicatorDetail().descripcion }}</p></div><button type="button" class="indicator-close" (click)="closeIndicator()">Cerrar</button></header>
+          <div class="indicator-table-wrap">
+            <table class="indicator-table"><thead><tr>@for (column of indicatorDetail().columnas; track column.key) { <th>{{ column.label }}</th> }</tr></thead><tbody>@for (row of indicatorDetail().filas; track $index) { <tr>@for (column of indicatorDetail().columnas; track column.key) { <td [attr.data-label]="column.label">{{ formatIndicatorValue(row[column.key]) }}</td> }</tr> }</tbody></table>
+          </div>
+        </section>
+      }
       <section class="client-discovery-section">
         <div class="client-section-heading">
           <div>

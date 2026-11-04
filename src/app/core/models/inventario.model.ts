@@ -51,6 +51,8 @@ export interface TraspasoInventario {
   talla_id: number;
   talla: string;
   cantidad: number;
+  cantidad_aprobada?: number | null;
+  cantidad_efectiva: number;
   estado: EstadoTraspaso;
   idempotency_key: string;
   observacion?: string | null;

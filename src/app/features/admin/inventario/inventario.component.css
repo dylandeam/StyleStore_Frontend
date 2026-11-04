@@ -270,6 +270,23 @@
   white-space: nowrap;
 }
 
+.approval-route {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  color: #14263d;
+  background: #f7f3ec;
+  border-radius: 10px;
+}
+
+.approval-route > div { display: grid; gap: 3px; }
+.approval-route > div:last-child { text-align: right; }
+.approval-route span { color: #64748b; font-size: 0.72rem; }
+.approval-route strong { overflow-wrap: anywhere; font-size: 0.9rem; }
+.approval-product { margin: 16px 0; color: #334155; }
+
 /* TABLE */
 .table-card {
   background: #FFFFFF;
