@@ -50,6 +50,7 @@ import { PlanesComponent } from './features/planes/planes.component';
 import { OfflineOperationsComponent } from './features/offline/offline-operations.component';
 import { TenantsComponent } from './features/admin/tenants/tenants.component';
 import { ReembolsosComponent } from './features/admin/reembolsos/reembolsos.component';
+import { ProcesosOfflineComponent } from './features/admin/procesos-offline/procesos-offline.component';
 import { ExperienciaComponent } from './features/cuenta/experiencia/experiencia.component';
 import { CampanasComponent } from './features/admin/notificaciones/campanas.component';
 import { BrandingComponent } from './features/admin/branding/branding.component';
@@ -261,6 +262,11 @@ export const routes: Routes = [
         path: 'admin/reembolsos',
         component: ReembolsosComponent,
         canActivate: [roleGuard(['administrador', 'encargado_sucursal', 'cajero'])],
+      },
+      {
+        path: 'admin/procesos-offline',
+        component: ProcesosOfflineComponent,
+        canActivate: [roleGuard(['administrador'])],
       },
       // Administración y Personas
       {

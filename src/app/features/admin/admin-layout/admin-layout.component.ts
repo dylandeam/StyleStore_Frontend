@@ -267,6 +267,9 @@ export class AdminLayoutComponent implements OnInit {
     } else if (url.includes('/planes')) {
       this.currentTitle.set('Planes de Suscripción');
       this.currentSubtitle.set('Compara y contrata el plan ideal para ti');
+    } else if (url.includes('/admin/procesos-offline')) {
+      this.currentTitle.set('Procesos Offline');
+      this.currentSubtitle.set('Auditoría de ventas, reservas y reseñas sincronizadas, conflictos y reembolsos (CU44)');
     } else if (url.includes('/admin/reembolsos')) {
       this.currentTitle.set('Reembolsos Offline');
       this.currentSubtitle.set('Devolución auditable de efectivo por conflictos de stock al sincronizar');

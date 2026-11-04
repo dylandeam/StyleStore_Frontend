@@ -1,0 +1,198 @@
+<section class="offline-page" aria-labelledby="offline-title">
+  <header class="page-heading">
+    <div>
+      <h1 id="offline-title">Procesos realizados sin conexión</h1>
+      <p>Audita las operaciones que llegaron desde dispositivos offline y confirma cómo terminó cada sincronización.</p>
+    </div>
+    <button class="refresh-button" type="button" (click)="load()" [disabled]="loading()">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 1 0 2 5.3M20 4v7h-7"/></svg>
+      {{ loading() ? 'Actualizando…' : 'Actualizar panel' }}
+    </button>
+  </header>
+
+  @if (metrics(); as summary) {
+    <section class="summary-strip" aria-label="Resumen de sincronización offline">
+      <article>
+        <span>Operaciones recibidas</span>
+        <strong>{{ summary.total_operaciones }}</strong>
+        <small>{{ summary.total_confirmadas }} confirmadas</small>
+      </article>
+      <article>
+        <span>Incidentes por revisar</span>
+        <strong class="danger-value">{{ summary.total_conflictos + summary.total_rechazadas }}</strong>
+        <small>{{ summary.total_conflictos }} conflictos · {{ summary.total_rechazadas }} rechazadas</small>
+      </article>
+      <article>
+        <span>Reembolsos generados</span>
+        <strong>{{ summary.reembolsos_asociados.total_reembolsos }}</strong>
+        <small>{{ summary.reembolsos_asociados.pendientes }} pendientes · Bs. {{ summary.reembolsos_asociados.monto_total | number:'1.2-2' }}</small>
+      </article>
+      <article>
+        <span>Tasa de sincronización exitosa</span>
+        <strong>{{ summary.tasa_exito_porcentaje | number:'1.0-1' }}%</strong>
+        <div class="progress-track" aria-hidden="true"><span [style.width.%]="summary.tasa_exito_porcentaje"></span></div>
+      </article>
+    </section>
+  }
+
+  <section class="filters" aria-label="Filtros del historial">
+    <label>
+      <span>Sucursal</span>
+      <select [(ngModel)]="sucursalId" (ngModelChange)="load(true)">
+        <option [ngValue]="null">Todas las sucursales</option>
+        @for (branch of branches(); track branch.id) {
+          <option [ngValue]="branch.id">{{ branch.name }} · {{ branch.city }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>Tipo de operación</span>
+      <select [(ngModel)]="operationType" (ngModelChange)="load(true)">
+        <option value="">Todos los tipos</option>
+        <option value="venta_efectivo">Compras / ventas en caja</option>
+        <option value="reserva">Reservas</option>
+        <option value="resena_producto">Reseñas y calificaciones</option>
+      </select>
+    </label>
+    <label>
+      <span>Resultado</span>
+      <select [(ngModel)]="status" (ngModelChange)="load(true)">
+        <option value="">Todos los resultados</option>
+        <option value="confirmada">Confirmadas</option>
+        <option value="conflicto">Conflictos</option>
+        <option value="rechazada">Rechazadas</option>
+        <option value="procesando">Procesando</option>
+      </select>
+    </label>
+  </section>
+
+  @if (error()) {
+    <section class="feedback error-state" role="alert">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.5 2.4 17.2A2 2 0 0 0 4.1 20h15.8a2 2 0 0 0 1.7-2.8L13.7 3.5a2 2 0 0 0-3.4 0Z"/></svg>
+      <div><strong>No se pudo cargar el panel</strong><p>{{ error() }}</p></div>
+      <button type="button" (click)="load()">Reintentar</button>
+    </section>
+  } @else if (loading() && operations().length === 0) {
+    <section class="loading-state" aria-live="polite">
+      <span class="spinner"></span>
+      <strong>Revisando la bitácora offline…</strong>
+      <p>Estamos reuniendo operaciones, conflictos, notificaciones y reembolsos.</p>
+    </section>
+  } @else if (operations().length === 0) {
+    <section class="empty-state">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 12.5 11 15l5-6m4 3a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+      <strong>No hay operaciones para estos filtros</strong>
+      <p>Cuando un dispositivo sincronice una venta, reserva o reseña offline, aparecerá aquí con su resultado.</p>
+    </section>
+  } @else {
+    <section class="ledger" [class.is-loading]="loading()" aria-label="Historial de operaciones offline">
+      <div class="ledger-heading">
+        <div>
+          <h2>Bitácora de sincronización</h2>
+          <p>{{ total() }} movimiento{{ total() === 1 ? '' : 's' }} encontrado{{ total() === 1 ? '' : 's' }}</p>
+        </div>
+        <span class="sync-note">Los registros se identifican por UUID y no se duplican.</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Operación</th>
+              <th>Usuario y sucursal</th>
+              <th>Fecha local / sincronización</th>
+              <th>Resultado</th>
+              <th>Notificación</th>
+              <th><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of operations(); track item.operation_uuid) {
+              <tr [class.incident-row]="item.status === 'conflicto' || item.status === 'rechazada'" [class.expanded-row]="selected()?.operation_uuid === item.operation_uuid">
+                <td data-label="Operación">
+                  <strong>{{ operationLabel(item.operation_type) }}</strong>
+                  <span class="reference">#{{ shortUuid(item.operation_uuid) }}</span>
+                </td>
+                <td data-label="Usuario y sucursal">
+                  <strong>{{ item.user_name }}</strong>
+                  <span>{{ item.sucursal_nombre || 'Sin sucursal asociada' }}</span>
+                </td>
+                <td data-label="Fecha local / sincronización">
+                  <strong>{{ item.client_created_at | date:'dd/MM/yyyy, HH:mm' }}</strong>
+                  <span>Sincronizada {{ item.created_at | date:'dd/MM/yyyy, HH:mm' }}</span>
+                </td>
+                <td data-label="Resultado">
+                  <span class="status" [attr.data-status]="item.status">{{ statusLabel(item.status) }}</span>
+                  <span>{{ resultLabel(item) }}</span>
+                </td>
+                <td data-label="Notificación">
+                  <span class="notification" [class.sent]="item.resultado_notificado">
+                    {{ item.resultado_notificado ? 'Cliente notificado' : (item.status === 'procesando' ? 'Pendiente de resultado' : 'Sin confirmación') }}
+                  </span>
+                </td>
+                <td class="action-cell">
+                  <button type="button" class="detail-button" (click)="toggleDetail(item)" [attr.aria-expanded]="selected()?.operation_uuid === item.operation_uuid">
+                    {{ selected()?.operation_uuid === item.operation_uuid ? 'Ocultar' : 'Ver detalle' }}
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </td>
+              </tr>
+              @if (selected()?.operation_uuid === item.operation_uuid) {
+                <tr class="detail-row">
+                  <td colspan="6">
+                    <section class="operation-detail" aria-label="Detalle de la operación seleccionada">
+                      <div class="detail-summary">
+                        <div><span>Identificador único</span><strong>{{ item.operation_uuid }}</strong></div>
+                        <div><span>Cuenta que originó la acción</span><strong>{{ item.user_email }}</strong></div>
+                        <div><span>Última actualización</span><strong>{{ item.updated_at | date:'dd/MM/yyyy, HH:mm:ss' }}</strong></div>
+                      </div>
+                      @if (item.reason) {
+                        <div class="reason-box" [class.danger-box]="item.status === 'conflicto' || item.status === 'rechazada'">
+                          <span>Diagnóstico de sincronización</span>
+                          <p>{{ item.reason }}</p>
+                        </div>
+                      }
+                      @if (item.refund_id) {
+                        <div class="refund-box">
+                          <div>
+                            <span>Reembolso generado automáticamente</span>
+                            <strong>#{{ item.refund_id }} · {{ item.refund_currency || 'BOB' }} {{ item.refund_amount | number:'1.2-2' }}</strong>
+                            <p>{{ item.refund_reason || 'Compensación por conflicto de stock durante la sincronización.' }}</p>
+                          </div>
+                          <div class="refund-actions">
+                            <span class="refund-status">{{ item.refund_status || 'pendiente' }}</span>
+                            <a routerLink="/admin/reembolsos">Gestionar reembolso</a>
+                          </div>
+                        </div>
+                      }
+                      <div class="result-note">
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm0-14v4l3 2"/></svg>
+                        <p>
+                          @if (item.resultado_notificado) {
+                            El cliente ya recibió una notificación con el resultado definitivo de esta operación.
+                          } @else if (item.status === 'procesando') {
+                            La operación todavía está en proceso. El cliente será notificado al obtener un resultado definitivo.
+                          } @else {
+                            No se encontró confirmación de la notificación al cliente. Revisa este incidente antes de cerrarlo.
+                          }
+                        </p>
+                      </div>
+                    </section>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination" aria-label="Paginación">
+        <span>Mostrando {{ offset + 1 }}–{{ Math.min(offset + operations().length, total()) }} de {{ total() }}</span>
+        <div>
+          <button type="button" (click)="previous()" [disabled]="offset === 0 || loading()">Anterior</button>
+          <button type="button" (click)="next()" [disabled]="offset + limit >= total() || loading()">Siguiente</button>
+        </div>
+      </footer>
+    </section>
+  }
+</section>
