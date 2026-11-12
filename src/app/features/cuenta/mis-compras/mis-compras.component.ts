@@ -153,7 +153,19 @@ export class MisComprasComponent implements OnInit, OnDestroy {
     const fechaOrden = new Date(orden.created_at || orden.fecha);
     const ahora = new Date();
     const diffDias = (ahora.getTime() - fechaOrden.getTime()) / (1000 * 60 * 60 * 24);
-    return diffDias <= this.plazoCambiosDias;
+    return diffDias <= this.plazoCambiosDias && this.detallesElegiblesCambio(orden).length > 0;
+  }
+
+  detalleTieneCambio(detalle: OrdenVenta['detalles'][number]): boolean {
+    return !!detalle.cambio_devolucion_id && !!detalle.estado_cambio;
+  }
+
+  detallesElegiblesCambio(orden?: OrdenVenta | null): OrdenVenta['detalles'] {
+    return (orden?.detalles || []).filter((detalle) => !this.detalleTieneCambio(detalle));
+  }
+
+  todosLosDetallesProcesados(orden: OrdenVenta): boolean {
+    return !!orden.detalles?.length && this.detallesElegiblesCambio(orden).length === 0;
   }
 
   diasRestantesCambio(orden: OrdenVenta): number {
@@ -172,7 +184,13 @@ export class MisComprasComponent implements OnInit, OnDestroy {
     manana.setDate(manana.getDate() + 1);
     this.fechaProgramada = manana.toISOString().split('T')[0];
 
-    const firstDetalleId = orden.detalles && orden.detalles.length > 0 ? orden.detalles[0].id : 0;
+    const firstDetalleId = this.detallesElegiblesCambio(orden)[0]?.id ?? 0;
+
+    if (!firstDetalleId) {
+      this.cambioErrorMessage = 'Todas las prendas de esta compra ya tienen un cambio o devolución registrado.';
+      this.cdr.markForCheck();
+      return;
+    }
 
     this.solicitud = {
       orden_venta_id: orden.id,
@@ -290,7 +308,7 @@ export class MisComprasComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const detalleId = this.solicitud.producto_detalle_id || (this.selectedOrden?.detalles?.[0]?.id ?? 0);
+    const detalleId = this.solicitud.producto_detalle_id || (this.detallesElegiblesCambio(this.selectedOrden)[0]?.id ?? 0);
     const sucursalId = this.selectedOrden?.sucursal_id || 1;
     const preferencia = this.solicitud.tipo === 'cambio' ? this.preferenciaSeleccionada : undefined;
 

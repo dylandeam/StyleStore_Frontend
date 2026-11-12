@@ -229,11 +229,14 @@
           </p>
         </div>
 
-        <div class="form-group mb-3 mt-3">
+        <div class="form-group mb-3 mt-3" *ngIf="selectedSolicitud.tipo !== 'cambio'">
           <label class="checkbox-box">
             <input type="checkbox" [(ngModel)]="reponerPrendaOriginal">
             <span><strong>Reponer prenda original al stock disponible</strong> (si la prenda devuelta se encuentra en perfecto estado y puede venderse nuevamente).</span>
           </label>
+        </div>
+        <div class="canje-summary" *ngIf="selectedSolicitud.tipo === 'cambio'">
+          <p><strong>Movimiento de inventario automático:</strong> la prenda recibida volverá al stock de esta sucursal y la prenda entregada se descontará al confirmar en caja.</p>
         </div>
 
         <div class="form-group mb-3" *ngIf="selectedSolicitud.tipo === 'cambio'">

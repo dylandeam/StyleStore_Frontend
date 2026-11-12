@@ -1105,3 +1105,27 @@
   color: #1e3a8a;
   line-height: 1.45;
 }
+.item-cambiado {
+  opacity: 0.82;
+}
+
+.item-exchange-status {
+  display: block;
+  margin-top: 0.35rem;
+  color: #0f766e;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cambio-procesado {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+  color: #115e59;
+}
+
+.exchange-row {
+  background: #f0fdfa;
+  color: #115e59;
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+}

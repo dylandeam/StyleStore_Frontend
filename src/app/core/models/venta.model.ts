@@ -10,6 +10,10 @@ export interface DetalleVenta {
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
+  cambio_devolucion_id?: number;
+  estado_cambio?: 'pendiente' | 'aceptada' | 'pendiente_liquidacion' | 'completada';
+  tipo_cambio?: 'cambio' | 'devolucion';
+  producto_reemplazo?: string;
 }
 
 export interface OrdenVenta {

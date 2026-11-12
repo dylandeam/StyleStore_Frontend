@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 export interface SolicitudCambioDevolucion {
   id: number;
   orden_venta_id: number;
+  detalle_venta_id: number;
   ticket_numero?: string;
   cliente_nombre?: string;
   cliente_email?: string;

@@ -127,6 +127,10 @@
           <span class="plazo-icon">⏱️</span>
           <span>Elegible para cambio: Te quedan <strong>{{ diasRestantesCambio(orden) }} día(s)</strong></span>
         </div>
+        <div class="plazo-aviso cambio-procesado" *ngIf="todosLosDetallesProcesados(orden)">
+          <span class="plazo-icon">✓</span>
+          <span>Esta compra ya tiene su cambio o devolución registrado. No puede volver a solicitarse sobre la misma prenda.</span>
+        </div>
 
         <!-- Resumen de Delivery StyleStore si tiene envío -->
         <div class="envio-resumen-card" *ngIf="orden.envio" [class.card-entregado]="isEnvioEntregado(orden)">
@@ -148,9 +152,13 @@
         <div class="items-summary" *ngIf="orden.detalles && orden.detalles.length > 0">
           <p class="summary-label">Artículos ({{ orden.detalles.length }}):</p>
           <ul class="items-list-compact">
-            <li *ngFor="let item of orden.detalles">
+            <li *ngFor="let item of orden.detalles" [class.item-cambiado]="detalleTieneCambio(item)">
               <strong>{{ item.cantidad }}x</strong> {{ item.producto_nombre }} 
               <span class="item-meta">({{ item.talla_nombre || 'Talla' }} - {{ item.color_nombre || 'Color' }})</span>
+              <span class="item-exchange-status" *ngIf="detalleTieneCambio(item)">
+                {{ item.estado_cambio === 'completada' ? 'Cambio/devolución completado' : 'Cambio/devolución en proceso' }}
+                <ng-container *ngIf="item.producto_reemplazo"> · Reemplazo: {{ item.producto_reemplazo }}</ng-container>
+              </span>
             </li>
           </ul>
         </div>
@@ -281,6 +289,15 @@
                 <td>Bs. {{ det.precio_unitario | number:'1.2-2' }}</td>
                 <td><strong>Bs. {{ det.subtotal | number:'1.2-2' }}</strong></td>
               </tr>
+              <ng-container *ngFor="let det of selectedOrden.detalles">
+                <tr *ngIf="detalleTieneCambio(det)">
+                  <td colspan="5" class="exchange-row">
+                    <strong>{{ det.estado_cambio === 'completada' ? 'Operación completada' : 'Operación en curso' }}:</strong>
+                    esta prenda ya no está disponible para una nueva solicitud
+                    <ng-container *ngIf="det.producto_reemplazo"> y fue reemplazada por {{ det.producto_reemplazo }}</ng-container>.
+                  </td>
+                </tr>
+              </ng-container>
             </tbody>
             <tfoot>
               <tr>
@@ -349,7 +366,7 @@
               (ngModelChange)="cargarOpcionesParaDetalle($event)"
               name="detalleId"
             >
-              <option *ngFor="let det of selectedOrden.detalles" [value]="det.id">
+              <option *ngFor="let det of detallesElegiblesCambio(selectedOrden)" [value]="det.id">
                 {{ det.producto_nombre }} ({{ det.talla_nombre }} - {{ det.color_nombre }}) - Bs. {{ det.subtotal | number:'1.2-2' }}
               </option>
             </select>
